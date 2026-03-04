@@ -1,0 +1,20 @@
+{
+  "name": "@unifast/node",
+  "version": "0.1.0",
+  "description": "Node.js binding for unifast Markdown/MDX compiler",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "native"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@unifast/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

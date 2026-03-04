@@ -1,0 +1,16 @@
+{
+  "name": "@unifast/core",
+  "version": "0.1.0",
+  "description": "TypeScript type definitions for unifast",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

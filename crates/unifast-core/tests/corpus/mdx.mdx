@@ -1,0 +1,39 @@
+import { Button } from './components'
+import Layout from './layout'
+
+export const meta = {
+  title: "MDX Test Document",
+  date: "2024-01-15"
+}
+
+# Hello MDX
+
+This is an MDX document with JSX components.
+
+<Button variant="primary" size="lg">
+  Click me
+</Button>
+
+Inline expression: {1 + 2 + 3}
+
+<Layout>
+  <div className="content">
+    <p>Nested JSX content</p>
+  </div>
+</Layout>
+
+## Regular Markdown
+
+Regular **markdown** works alongside JSX.
+
+- List item 1
+- List item 2
+
+```js
+const x = 42;
+```
+
+{(() => {
+  const items = [1, 2, 3];
+  return items.map(i => i * 2);
+})()}

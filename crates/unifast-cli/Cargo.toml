@@ -1,0 +1,9 @@
+[package]
+name = "unifast-cli"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+unifast-core = { workspace = true }
+clap = { workspace = true }
+serde_json = { workspace = true }
