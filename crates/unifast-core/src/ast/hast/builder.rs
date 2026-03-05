@@ -1,18 +1,17 @@
-use super::nodes::*;
+use super::nodes::{HComment, HDoctype, HElement, HNode, HRaw, HRoot, HText};
 use crate::ast::common::{NodeIdGen, Span};
 use crate::util::small_map::SmallMap;
 
-/// Convenience builder for constructing HTML AST nodes.
 pub struct HBuilder<'a> {
     id_gen: &'a mut NodeIdGen,
 }
 
 impl<'a> HBuilder<'a> {
-    pub fn new(id_gen: &'a mut NodeIdGen) -> Self {
+    pub const fn new(id_gen: &'a mut NodeIdGen) -> Self {
         Self { id_gen }
     }
 
-    pub fn root(&mut self, span: Span, children: Vec<HNode>) -> HNode {
+    pub const fn root(&mut self, span: Span, children: Vec<HNode>) -> HNode {
         HNode::Root(HRoot {
             id: self.id_gen.next_id(),
             span,
@@ -38,7 +37,6 @@ impl<'a> HBuilder<'a> {
         })
     }
 
-    /// Shorthand: create an element with no attributes, not self-closing.
     pub fn elem(&mut self, span: Span, tag: impl Into<String>, children: Vec<HNode>) -> HNode {
         self.element(span, tag, SmallMap::new(), children, false)
     }
@@ -59,7 +57,7 @@ impl<'a> HBuilder<'a> {
         })
     }
 
-    pub fn doctype(&mut self, span: Span) -> HNode {
+    pub const fn doctype(&mut self, span: Span) -> HNode {
         HNode::Doctype(HDoctype {
             id: self.id_gen.next_id(),
             span,

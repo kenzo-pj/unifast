@@ -1,17 +1,10 @@
 use crate::ast::mdast::nodes::*;
 
-/// Options for the link rewriting pass.
 pub struct RewriteOptions {
-    /// Base URL to prepend to relative links.
     pub base_url: Option<String>,
-    /// Whether to make relative URLs absolute (requires base_url).
     pub make_absolute: bool,
 }
 
-/// Rewrite links and image URLs in the document.
-///
-/// If a `base_url` is provided, relative URLs in links and images
-/// will be resolved against it.
 pub fn rewrite_links(doc: &mut Document, options: &RewriteOptions) {
     if options.base_url.is_none() && !options.make_absolute {
         return;
@@ -55,7 +48,7 @@ fn is_relative(url: &str) -> bool {
 fn resolve_url(base: &str, relative: &str) -> String {
     let base = base.trim_end_matches('/');
     let relative = relative.trim_start_matches("./");
-    format!("{}/{}", base, relative)
+    format!("{base}/{relative}")
 }
 
 #[cfg(test)]
@@ -361,6 +354,7 @@ mod tests {
             id: id_gen.next_id(),
             span: Span::new(0, 35),
             children: vec![para],
+            alert_type: None,
         });
         let mut doc = make_doc_with(&mut id_gen, vec![bq]);
 

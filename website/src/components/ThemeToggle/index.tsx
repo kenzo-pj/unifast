@@ -1,8 +1,10 @@
-import { memo } from "react";
-import { Toggle } from "@base-ui-components/react/toggle";
+import { Toggle } from "@base-ui/react/toggle";
 import { Sun02Icon, Moon02Icon, ComputerIcon } from "hugeicons-react";
+import { memo } from "react";
+
 import { useTheme } from "~/hooks/useTheme";
 import { useTranslation } from "~/i18n";
+
 import styles from "./ThemeToggle.module.css";
 
 const ICON_SIZE = 16;
@@ -12,8 +14,7 @@ export const ThemeToggle = memo(function ThemeToggle() {
   const { mode, resolved, cycle } = useTheme();
   const label = t(`theme.${mode}` as "theme.light" | "theme.dark" | "theme.system");
 
-  const Icon =
-    mode === "light" ? Sun02Icon : mode === "dark" ? Moon02Icon : ComputerIcon;
+  const Icon = mode === "light" ? Sun02Icon : mode === "dark" ? Moon02Icon : ComputerIcon;
 
   return (
     <Toggle

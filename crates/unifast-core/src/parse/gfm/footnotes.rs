@@ -1,5 +1,4 @@
-/// Check if a line is a footnote definition: `[^id]: content`.
-/// Returns `Some((identifier, first_line_content))` if it matches.
+#[must_use]
 pub fn is_footnote_definition(line: &str) -> Option<(&str, &str)> {
     let trimmed = line.trim_start();
     let indent = line.len() - trimmed.len();
@@ -12,10 +11,8 @@ pub fn is_footnote_definition(line: &str) -> Option<(&str, &str)> {
     }
 
     let bytes = trimmed.as_bytes();
-    // Find the closing `]:`.
-    let mut i = 2; // skip `[^`
+    let mut i = 2;
     while i < bytes.len() && bytes[i] != b']' {
-        // Identifier chars: alphanumeric, `-`, `_`.
         let b = bytes[i];
         if !b.is_ascii_alphanumeric() && b != b'-' && b != b'_' {
             return None;
@@ -32,13 +29,12 @@ pub fn is_footnote_definition(line: &str) -> Option<(&str, &str)> {
         return None;
     }
 
-    i += 1; // skip `]`
+    i += 1;
     if i >= bytes.len() || bytes[i] != b':' {
         return None;
     }
-    i += 1; // skip `:`
+    i += 1;
 
-    // Skip optional space.
     if i < bytes.len() && bytes[i] == b' ' {
         i += 1;
     }
@@ -47,14 +43,12 @@ pub fn is_footnote_definition(line: &str) -> Option<(&str, &str)> {
     Some((identifier, content))
 }
 
-/// Check if text at `pos` is a footnote reference: `[^id]`.
-/// Returns `Some((identifier, bytes_consumed))` if matched.
+#[must_use]
 pub fn is_footnote_reference(text: &str, pos: usize) -> Option<(&str, usize)> {
     let rest = &text[pos..];
     let bytes = rest.as_bytes();
 
     if bytes.len() < 4 {
-        // Minimum: [^a]
         return None;
     }
     if bytes[0] != b'[' || bytes[1] != b'^' {
@@ -79,8 +73,6 @@ pub fn is_footnote_reference(text: &str, pos: usize) -> Option<(&str, usize)> {
         return None;
     }
 
-    // Make sure this is NOT followed by `(` (which would be a link), `[` (which would
-    // be a reference link), or `:` (which would be a definition).
     let consumed = i + 1;
     if consumed < bytes.len()
         && (bytes[consumed] == b'(' || bytes[consumed] == b'[' || bytes[consumed] == b':')
@@ -139,7 +131,6 @@ mod tests {
 
     #[test]
     fn test_footnote_reference_not_link() {
-        // [^id]( should not match as footnote reference.
         assert!(is_footnote_reference("[^id](url)", 0).is_none());
     }
 

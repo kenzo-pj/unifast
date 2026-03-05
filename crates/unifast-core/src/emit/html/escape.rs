@@ -1,4 +1,4 @@
-/// Escape special HTML characters in text content.
+#[must_use]
 pub fn escape_html(text: &str) -> String {
     let mut result = String::with_capacity(text.len());
     for ch in text.chars() {
@@ -14,7 +14,7 @@ pub fn escape_html(text: &str) -> String {
     result
 }
 
-/// Escape special HTML characters in attribute values (same rules as text).
+#[must_use]
 pub fn escape_attribute(text: &str) -> String {
     escape_html(text)
 }

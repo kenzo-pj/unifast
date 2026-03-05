@@ -1,0 +1,27 @@
+name: 📖 Documentation
+description: Report a docs issue or suggest improvement
+labels: ["documentation"]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - Incorrect information
+        - Missing documentation
+        - Unclear explanation
+        - Typo / formatting
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Page URL or path
+      placeholder: e.g. /en/guides/react or website/content/en/guides/react.md
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is wrong or what should be added?
+    validations:
+      required: true

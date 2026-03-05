@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "rust-lang.rust-analyzer",
+    "tamasfe.even-better-toml",
+    "oxc.oxc-vscode",
+    "stylelint.vscode-stylelint",
+    "DavidAnson.vscode-markdownlint",
+    "unifiedjs.vscode-mdx",
+    "mizdra.css-modules-kit-vscode"
+  ]
+}

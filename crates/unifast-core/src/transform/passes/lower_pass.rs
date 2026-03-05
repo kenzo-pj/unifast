@@ -1,7 +1,7 @@
+use super::mdast_to_hast;
 use crate::ast::common::Span;
 use crate::ast::hast::nodes::{HNode, HRoot};
 use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
-use super::mdast_to_hast;
 
 pub struct LowerPass;
 
@@ -20,7 +20,8 @@ impl Pass for LowerPass {
             AstPayload::Both { mdast, .. } => mdast,
             AstPayload::Hast(_) => return Ok(()),
         };
-        let hast_node = mdast_to_hast::lower(doc, ctx.id_gen, ctx.options.raw_html, ctx.diagnostics);
+        let hast_node =
+            mdast_to_hast::lower(doc, ctx.id_gen, ctx.options.raw_html, ctx.diagnostics);
         let hast_root = match hast_node {
             HNode::Root(root) => root,
             other => HRoot {

@@ -1,20 +1,63 @@
 import type { CompileOptions, CompileResult, HastRoot, HastNode, HastElement } from "@unifast/core";
 import { hastToHtml } from "@unifast/core";
+
 import { loadNativeBinding } from "./native.js";
 
 export type { CompileOptions, CompileResult, UnifastPlugin, TocEntry } from "@unifast/core";
 export type { HastRoot, HastElement, HastText, HastNode } from "@unifast/core";
 export { hastToHtml } from "@unifast/core";
 export { UnifastError, ParseError, CompileError } from "@unifast/core";
+export {
+  gfm,
+  frontmatter,
+  sanitize,
+  syntect,
+  treeSitter,
+  toc,
+  externalLinks,
+  autolinkHeadings,
+  smartypants,
+  wikiLink,
+  codeImport,
+  emoji,
+  breaks,
+  math,
+  githubAlert,
+  sectionize,
+  directive,
+  definitionList,
+  rubyAnnotation,
+  cjk,
+} from "@unifast/core";
+export type {
+  GfmPluginOptions,
+  FrontmatterPluginOptions,
+  SanitizePluginOptions,
+  SyntectPluginOptions,
+  TreeSitterPluginOptions,
+  TocPluginOptions,
+  ExternalLinksPluginOptions,
+  AutolinkHeadingsPluginOptions,
+  SmartypantsPluginOptions,
+  WikiLinkPluginOptions,
+  CodeImportPluginOptions,
+} from "@unifast/core";
 
-function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
+function deepMerge(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>,
+): Record<string, unknown> {
   const result = { ...target };
   for (const key of Object.keys(source)) {
     const srcVal = source[key];
     const tgtVal = result[key];
     if (
-      srcVal && typeof srcVal === "object" && !Array.isArray(srcVal) &&
-      tgtVal && typeof tgtVal === "object" && !Array.isArray(tgtVal)
+      srcVal &&
+      typeof srcVal === "object" &&
+      !Array.isArray(srcVal) &&
+      tgtVal &&
+      typeof tgtVal === "object" &&
+      !Array.isArray(tgtVal)
     ) {
       result[key] = deepMerge(tgtVal as Record<string, unknown>, srcVal as Record<string, unknown>);
     } else {
@@ -56,25 +99,23 @@ function applyDataLineAttributes(node: HastNode): void {
   }
 }
 
-/**
- * Compile Markdown or MDX input to HTML or other formats.
- */
-export function compile(
-  input: string,
-  options?: CompileOptions,
-): CompileResult {
+export function compile(input: string, options?: CompileOptions): CompileResult {
   const native = loadNativeBinding();
 
-  // 1. Separate plugins from options
   const plugins = options?.plugins ?? [];
   const hastTransforms = plugins
-    .filter((p) => p.hastTransform)
-    .map((p) => p.hastTransform!);
+    .filter(
+      (p): p is typeof p & { hastTransform: NonNullable<typeof p.hastTransform> } =>
+        !!p.hastTransform,
+    )
+    .map((p) => p.hastTransform);
   const mdxJsTransforms = plugins
-    .filter((p) => p.mdxJsTransform)
-    .map((p) => p.mdxJsTransform!);
+    .filter(
+      (p): p is typeof p & { mdxJsTransform: NonNullable<typeof p.mdxJsTransform> } =>
+        !!p.mdxJsTransform,
+    )
+    .map((p) => p.mdxJsTransform);
 
-  // 2. Merge plugin options into compile options
   let mergedOpts: Record<string, unknown> = { ...options };
   delete mergedOpts.plugins;
   for (const plugin of plugins) {
@@ -83,24 +124,24 @@ export function compile(
     }
   }
 
-  // 3. If HAST transforms exist and output is not mdxJs, force HAST output
   const hasHastTransforms = hastTransforms.length > 0;
   const userRequestedOutputKind = options?.outputKind;
-  if (hasHastTransforms && userRequestedOutputKind !== "hast" && userRequestedOutputKind !== "mdxJs") {
+  if (
+    hasHastTransforms &&
+    userRequestedOutputKind !== "hast" &&
+    userRequestedOutputKind !== "mdxJs"
+  ) {
     mergedOpts.outputKind = "hast";
   }
 
-  // 4. Call Rust native binding
   const rawResult = native.compile(input, mergedOpts);
 
-  // 5. Apply plugin transforms
   let output = rawResult.output;
   if (hasHastTransforms && userRequestedOutputKind !== "mdxJs") {
-    let hast: HastRoot = JSON.parse(output);
+    let hast = JSON.parse(output) as HastRoot;
     for (const transform of hastTransforms) {
       hast = transform(hast);
     }
-    // 5b. Re-apply data-line after plugin transforms (shiki replaces code blocks)
     if (options?.lineNumbers?.enabled) {
       for (const child of hast.children) {
         applyDataLineAttributes(child);
@@ -112,7 +153,10 @@ export function compile(
       output = hastToHtml(hast);
     }
   }
-  if (mdxJsTransforms.length > 0 && (userRequestedOutputKind === "mdxJs" || mergedOpts.outputKind === "mdxJs")) {
+  if (
+    mdxJsTransforms.length > 0 &&
+    (userRequestedOutputKind === "mdxJs" || mergedOpts.outputKind === "mdxJs")
+  ) {
     for (const transform of mdxJsTransforms) {
       output = transform(output);
     }
@@ -120,7 +164,7 @@ export function compile(
 
   return {
     output,
-    frontmatter: JSON.parse(rawResult.frontmatter),
+    frontmatter: JSON.parse(rawResult.frontmatter) as Record<string, unknown>,
     diagnostics: rawResult.diagnostics.map((d) => ({
       level: d.level as "error" | "warn",
       message: d.message,

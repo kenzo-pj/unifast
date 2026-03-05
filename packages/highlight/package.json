@@ -1,0 +1,22 @@
+{
+  "name": "@unifast/highlight",
+  "version": "0.1.0",
+  "description": "highlight.js syntax highlighting plugin for unifast via HAST transforms",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@unifast/core": "workspace:*",
+    "lowlight": "^3.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

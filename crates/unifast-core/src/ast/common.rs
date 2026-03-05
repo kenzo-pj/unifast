@@ -7,28 +7,34 @@ pub struct Span {
 }
 
 impl Span {
-    pub fn new(start: u32, end: u32) -> Self {
+    #[must_use]
+    pub const fn new(start: u32, end: u32) -> Self {
         Self { start, end }
     }
 
-    pub fn empty() -> Self {
+    #[must_use]
+    pub const fn empty() -> Self {
         Self { start: 0, end: 0 }
     }
 
-    pub fn contains(&self, offset: u32) -> bool {
+    #[must_use]
+    pub const fn contains(&self, offset: u32) -> bool {
         offset >= self.start && offset < self.end
     }
 
-    pub fn len(&self) -> u32 {
+    #[must_use]
+    pub const fn len(&self) -> u32 {
         self.end - self.start
     }
 
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         self.start == self.end
     }
 
-    pub fn merge(self, other: Span) -> Span {
-        Span::new(self.start.min(other.start), self.end.max(other.end))
+    #[must_use]
+    pub fn merge(self, other: Self) -> Self {
+        Self::new(self.start.min(other.start), self.end.max(other.end))
     }
 }
 
@@ -38,11 +44,12 @@ pub struct NodeId(pub u32);
 pub struct NodeIdGen(u32);
 
 impl NodeIdGen {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self(0)
     }
 
-    pub fn next_id(&mut self) -> NodeId {
+    pub const fn next_id(&mut self) -> NodeId {
         let id = NodeId(self.0);
         self.0 += 1;
         id

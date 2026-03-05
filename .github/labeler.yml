@@ -1,0 +1,41 @@
+"🦀 rust":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "crates/**"
+          - "Cargo.toml"
+          - "Cargo.lock"
+
+"📦 typescript":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/**"
+          - "!packages/benchmark/**"
+
+"🌐 website":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "website/**"
+
+"⚡ benchmark":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/benchmark/**"
+
+"⚙️ ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+
+"📌 dependencies":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pnpm-lock.yaml"
+          - "package.json"
+          - "packages/*/package.json"
+
+"📝 documentation":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "*.md"
+          - "website/content/**"

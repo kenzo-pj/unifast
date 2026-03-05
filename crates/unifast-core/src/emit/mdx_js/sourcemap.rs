@@ -1,9 +1,6 @@
 use super::printer::SourceMapping;
 
-/// Generate a basic JSON source-map (v3) from collected source mappings.
-///
-/// The returned string is a self-contained JSON object suitable for writing to
-/// a `.map` file or inlining as a data URI.
+#[must_use]
 pub fn generate_sourcemap(file: &str, source_content: &str, mappings: &[SourceMapping]) -> String {
     let mappings_str = encode_mappings(mappings);
     let source_file = file.replace(".js", ".mdx");
@@ -13,10 +10,6 @@ pub fn generate_sourcemap(file: &str, source_content: &str, mappings: &[SourceMa
     )
 }
 
-/// Encode source mappings into a simplified VLQ-encoded mappings string.
-///
-/// Each mapping becomes a VLQ segment; lines are separated by `;` and segments
-/// within a line by `,`.
 fn encode_mappings(mappings: &[SourceMapping]) -> String {
     if mappings.is_empty() {
         return String::new();
@@ -26,12 +19,10 @@ fn encode_mappings(mappings: &[SourceMapping]) -> String {
     let mut current_line: u32 = 1;
 
     for mapping in mappings {
-        // Add semicolons for any line gap.
         while current_line < mapping.generated_line {
             result.push(';');
             current_line += 1;
         }
-        // Separate segments on the same line.
         if !result.is_empty() && !result.ends_with(';') {
             result.push(',');
         }
@@ -41,7 +32,6 @@ fn encode_mappings(mappings: &[SourceMapping]) -> String {
     result
 }
 
-/// Encode a single value using Base64 VLQ.
 fn vlq_encode(value: i64) -> String {
     let mut result = String::new();
     let mut v = if value < 0 {
@@ -65,7 +55,6 @@ fn vlq_encode(value: i64) -> String {
 
 const VLQ_CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-/// Escape a string so it can be embedded inside a JSON string literal.
 fn escape_json_string(s: &str) -> String {
     s.replace('\\', "\\\\")
         .replace('"', "\\\"")
@@ -109,7 +98,6 @@ mod tests {
             },
         ];
         let encoded = encode_mappings(&mappings);
-        // Should have at least one semicolon for the line gap.
         assert!(encoded.contains(';'));
     }
 
@@ -120,7 +108,6 @@ mod tests {
 
     #[test]
     fn vlq_positive() {
-        // 1 => encoded as 1<<1 = 2, digit=2 => 'E' (but full VLQ check)
         let encoded = vlq_encode(1);
         assert!(!encoded.is_empty());
     }
@@ -129,7 +116,6 @@ mod tests {
     fn vlq_negative() {
         let encoded = vlq_encode(-1);
         assert!(!encoded.is_empty());
-        // Negative values set the sign bit
         assert_ne!(encoded, vlq_encode(1));
     }
 

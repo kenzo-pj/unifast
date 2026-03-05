@@ -17,12 +17,12 @@ pub struct ParseResult {
     pub frontmatter: FrontmatterData,
 }
 
+#[must_use]
 pub fn parse_markdown(input: &str) -> ParseResult {
     let mut id_gen = NodeIdGen::new();
     let mut diagnostics = DiagnosticSink::new();
     let mut frontmatter_data = FrontmatterData::new();
 
-    // Extract frontmatter before parsing the markdown content.
     let fm_offset = if let Some(fm) = frontmatter::extract_frontmatter(input) {
         frontmatter_data = fm.data;
         fm.end_offset
@@ -30,8 +30,6 @@ pub fn parse_markdown(input: &str) -> ParseResult {
         0
     };
 
-    // Parse the document starting from the offset after frontmatter.
-    // The original source is kept so that spans remain correct.
     let document =
         markdown::parser::parse_from_offset(input, fm_offset, &mut id_gen, &mut diagnostics);
 
@@ -42,11 +40,7 @@ pub fn parse_markdown(input: &str) -> ParseResult {
     }
 }
 
-/// Parse MDX input into a `ParseResult`.
-///
-/// This delegates to the MDX-specific parser which recognises JSX elements,
-/// ESM imports/exports, and `{expression}` blocks in addition to standard
-/// Markdown.
+#[must_use]
 pub fn parse_mdx_input(input: &str) -> ParseResult {
     let result = mdx::parse_mdx(input);
     ParseResult {

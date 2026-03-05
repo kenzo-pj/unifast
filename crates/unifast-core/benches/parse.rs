@@ -13,7 +13,7 @@ fn bench_parse_markdown_simple(iterations: u32) {
         "parse_markdown_simple: {} iterations in {:?} ({:.2} µs/iter)",
         iterations,
         elapsed,
-        elapsed.as_micros() as f64 / iterations as f64
+        elapsed.as_micros() as f64 / f64::from(iterations)
     );
 }
 
@@ -28,7 +28,7 @@ fn bench_parse_gfm_table(iterations: u32) {
         "parse_gfm_table: {} iterations in {:?} ({:.2} µs/iter)",
         iterations,
         elapsed,
-        elapsed.as_micros() as f64 / iterations as f64
+        elapsed.as_micros() as f64 / f64::from(iterations)
     );
 }
 
@@ -52,7 +52,7 @@ Some text with {expression + 1} inline.
         "parse_mdx: {} iterations in {:?} ({:.2} µs/iter)",
         iterations,
         elapsed,
-        elapsed.as_micros() as f64 / iterations as f64
+        elapsed.as_micros() as f64 / f64::from(iterations)
     );
 }
 
@@ -68,7 +68,7 @@ fn bench_parse_frontmatter(iterations: u32) {
         "parse_frontmatter: {} iterations in {:?} ({:.2} µs/iter)",
         iterations,
         elapsed,
-        elapsed.as_micros() as f64 / iterations as f64
+        elapsed.as_micros() as f64 / f64::from(iterations)
     );
 }
 

@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+
 import en, { type Locale } from "./locales/en";
 import ja from "./locales/ja";
 
@@ -17,11 +18,16 @@ export const I18nContext = createContext<I18nContextValue>({ locale: DEFAULT_LOC
 
 type DotPath<T> = T extends string
   ? ""
-  : { [K in keyof T & string]: T[K] extends string ? K : `${K}.${DotPath<T[K]>}` }[keyof T & string];
+  : { [K in keyof T & string]: T[K] extends string ? K : `${K}.${DotPath<T[K]>}` }[keyof T &
+      string];
 
 type DotValue<T, P extends string> = P extends `${infer K}.${infer R}`
-  ? K extends keyof T ? DotValue<T[K], R> : never
-  : P extends keyof T ? T[P] : never;
+  ? K extends keyof T
+    ? DotValue<T[K], R>
+    : never
+  : P extends keyof T
+    ? T[P]
+    : never;
 
 function getByPath<P extends DotPath<Locale>>(dict: Locale, path: P): DotValue<Locale, P> {
   const keys = (path as string).split(".");

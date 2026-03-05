@@ -12,3 +12,38 @@ export type {
   HastDoctype,
 } from "./hast.js";
 export { hastToHtml } from "./hast.js";
+export {
+  gfm,
+  frontmatter,
+  sanitize,
+  syntect,
+  treeSitter,
+  toc,
+  externalLinks,
+  autolinkHeadings,
+  smartypants,
+  wikiLink,
+  codeImport,
+  emoji,
+  breaks,
+  math,
+  githubAlert,
+  sectionize,
+  directive,
+  definitionList,
+  rubyAnnotation,
+  cjk,
+} from "./plugins.js";
+export type {
+  GfmPluginOptions,
+  FrontmatterPluginOptions,
+  SanitizePluginOptions,
+  SyntectPluginOptions,
+  TreeSitterPluginOptions,
+  TocPluginOptions,
+  ExternalLinksPluginOptions,
+  AutolinkHeadingsPluginOptions,
+  SmartypantsPluginOptions,
+  WikiLinkPluginOptions,
+  CodeImportPluginOptions,
+} from "./plugins.js";

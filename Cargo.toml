@@ -12,6 +12,62 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/kenzwada/unifast"
+description = "High-performance Markdown/MDX compiler"
+
+[workspace.lints.clippy]
+# Enable all groups
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+
+# Intentional project style choices
+module_name_repetitions = "allow"
+cast_possible_truncation = "allow"
+cast_sign_loss = "allow"
+cast_precision_loss = "allow"
+wildcard_imports = "allow"
+must_use_candidate = "allow"
+return_self_not_must_use = "allow"
+struct_excessive_bools = "allow"
+too_many_lines = "allow"
+cognitive_complexity = "allow"
+similar_names = "allow"
+
+# These conflict with project patterns
+option_if_let_else = "allow"
+match_same_arms = "allow"
+match_wildcard_for_single_variants = "allow"
+redundant_else = "allow"
+unused_self = "allow"
+unnecessary_wraps = "allow"
+single_match_else = "allow"
+if_not_else = "allow"
+needless_pass_by_value = "allow"
+trivially_copy_pass_by_ref = "allow"
+implicit_hasher = "allow"
+
+# Cargo metadata not needed for all crates
+multiple_crate_versions = "allow"
+cargo_common_metadata = "allow"
+
+# Noisy in tests / string-heavy code
+redundant_closure_for_method_calls = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+iter_with_drain = "allow"
+used_underscore_binding = "allow"
+format_push_string = "allow"
+naive_bytecount = "allow"
+iter_on_single_items = "allow"
+manual_let_else = "allow"
+needless_continue = "allow"
+branches_sharing_code = "allow"
+struct_field_names = "allow"
+unused_peekable = "allow"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
 
 [workspace.dependencies]
 unifast-core = { path = "crates/unifast-core" }
@@ -25,3 +81,36 @@ insta = { version = "1", features = ["yaml"] }
 napi = { version = "2", features = ["napi8"] }
 napi-derive = "2"
 syntect = { version = "5", default-features = false, features = ["default-syntaxes", "default-themes", "html", "regex-onig"] }
+tree-sitter = "0.26"
+tree-sitter-highlight = "0.26"
+tree-sitter-javascript = "0.25"
+tree-sitter-typescript = "0.23"
+tree-sitter-html = "0.23"
+tree-sitter-css = "0.25"
+tree-sitter-markdown = "0.7"
+tree-sitter-python = "0.25"
+tree-sitter-rust = "0.24"
+tree-sitter-bash = "0.25"
+tree-sitter-json = "0.24"
+tree-sitter-yaml = "0.7"
+tree-sitter-c = "0.24"
+tree-sitter-cpp = "0.23"
+tree-sitter-go = "0.25"
+tree-sitter-ruby = "0.23"
+tree-sitter-toml-ng = "0.7"
+tree-sitter-swift = "0.7"
+tree-sitter-php = "0.24"
+tree-sitter-java = "0.23"
+tree-sitter-lua = "0.5"
+# tree-sitter-kotlin = "0.3" # TODO: depends on tree-sitter 0.20, incompatible
+tree-sitter-scala = "0.24"
+tree-sitter-zig = "1.1"
+tree-sitter-elixir = "0.3"
+tree-sitter-ocaml = "0.24"
+tree-sitter-r = "1.2"
+tree-sitter-cmake = "0.7"
+# tree-sitter-dockerfile = "0.2" # TODO: depends on tree-sitter 0.20, incompatible
+tree-sitter-make = "1.1"
+tree-sitter-nix = "0.3"
+tree-sitter-regex = "0.25"
+tree-sitter-erlang = "0.15"

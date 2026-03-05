@@ -1,9 +1,7 @@
 ---
 title: "Quick Start"
-description: "Get up and running with unifast in minutes"
+description: "Install unifast and compile your first Markdown document in under a minute."
 ---
-
-## Quick Start
 
 Install unifast and compile your first Markdown document in under a minute.
 
@@ -29,12 +27,10 @@ That's it. One import, one function call, HTML output.
 
 ### Adding Plugins
 
-Plugins extend the compiler with additional features. Each plugin is a separate package that configures built-in passes.
+Plugins extend the compiler with additional features. Most plugins are included in `@unifast/node` and configure built-in passes.
 
 ```ts
-import { compile } from "@unifast/node";
-import { frontmatter } from "@unifast/plugin-frontmatter";
-import { gfm } from "@unifast/plugin-gfm";
+import { compile, frontmatter, gfm } from "@unifast/node";
 
 const source = `---
 title: My Post
@@ -67,8 +63,7 @@ console.log(result.html);
 ### Adding Syntax Highlighting
 
 ```ts
-import { compile } from "@unifast/node";
-import { syntect } from "@unifast/plugin-syntect";
+import { compile, syntect } from "@unifast/node";
 
 const result = compile(
   '```js\nconsole.log("highlighted");\n```',

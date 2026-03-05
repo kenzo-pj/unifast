@@ -1,4 +1,4 @@
-/// Returns `true` if the given tag name is an HTML void element (self-closing, no end tag).
+#[must_use]
 pub fn is_void_element(tag: &str) -> bool {
     matches!(
         tag,

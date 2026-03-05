@@ -1,6 +1,7 @@
 use super::diagnostic::{DiagLevel, Diagnostic};
 use crate::util::line_index::LineIndex;
 
+#[must_use]
 pub fn render_compact(diag: &Diagnostic, line_index: &LineIndex) -> String {
     let pos = line_index.line_col(diag.span.start);
     let level = match diag.level {
@@ -10,6 +11,7 @@ pub fn render_compact(diag: &Diagnostic, line_index: &LineIndex) -> String {
     format!("{}:{}:{}: {}", level, pos.line, pos.column, diag.message)
 }
 
+#[must_use]
 pub fn render_verbose(diag: &Diagnostic, source: &str, line_index: &LineIndex) -> String {
     let pos = line_index.line_col(diag.span.start);
     let level = match diag.level {
@@ -21,24 +23,21 @@ pub fn render_verbose(diag: &Diagnostic, source: &str, line_index: &LineIndex) -
         level,
         diag.code
             .as_ref()
-            .map(|c| format!("[{}]", c))
+            .map(|c| format!("[{c}]"))
             .unwrap_or_default(),
         diag.message
     );
     out.push_str(&format!("  --> {}:{}\n", pos.line, pos.column));
-    // Extract source line
     let line_start = source[..diag.span.start as usize]
         .rfind('\n')
-        .map(|i| i + 1)
-        .unwrap_or(0);
+        .map_or(0, |i| i + 1);
     let line_end = source[diag.span.start as usize..]
         .find('\n')
-        .map(|i| i + diag.span.start as usize)
-        .unwrap_or(source.len());
+        .map_or(source.len(), |i| i + diag.span.start as usize);
     let line_text = &source[line_start..line_end];
-    out.push_str(&format!("  | {}\n", line_text));
+    out.push_str(&format!("  | {line_text}\n"));
     for note in &diag.notes {
-        out.push_str(&format!("  = note: {}\n", note));
+        out.push_str(&format!("  = note: {note}\n"));
     }
     out
 }

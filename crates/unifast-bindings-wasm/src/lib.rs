@@ -1,9 +1,12 @@
 use unifast_core::api::compile;
-use unifast_core::api::options::*;
+use unifast_core::api::options::{
+    CompileOptions, HighlightEngine, HighlightOptions, InputKind, OutputKind, RawHtmlPolicy,
+};
 use unifast_core::api::result::Output;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+#[must_use]
 pub fn compile_to_html(input: &str) -> String {
     let opts = CompileOptions::default();
     let result = compile::compile(input, &opts);
@@ -14,17 +17,16 @@ pub fn compile_to_html(input: &str) -> String {
 }
 
 #[wasm_bindgen]
+#[must_use]
 pub fn compile_with_options(input: &str, options_json: &str) -> String {
-    // Parse options from JSON
     let opts = parse_options_from_json(options_json);
     let result = compile::compile(input, &opts);
 
-    // Return result as JSON
     let output_str = match &result.output {
         Output::Html(html) => html.clone(),
         Output::MdxJs { code, .. } => code.clone(),
-        Output::Hast(root) => format!("{:?}", root),
-        Output::Mdast(doc) => format!("{:?}", doc),
+        Output::Hast(root) => format!("{root:?}"),
+        Output::Mdast(doc) => format!("{doc:?}"),
     };
 
     let frontmatter_json = serde_json::to_string(&result.frontmatter).unwrap_or_default();

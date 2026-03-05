@@ -1,0 +1,40 @@
+---
+title: "githubAlert()"
+description: "Support GitHub-style alerts in blockquotes (NOTE, TIP, WARNING, etc.)."
+---
+
+import { Example } from "~/components/Example"
+import example from "./github-alert-example.md?example"
+
+```ts
+import { githubAlert } from "@unifast/node";
+```
+
+### Signature
+
+```ts
+function githubAlert(): UnifastPlugin
+```
+
+### Parameters
+
+None.
+
+### Returns
+
+`UnifastPlugin`
+
+## Examples
+
+<Example data={example} />
+
+## Usage
+
+```ts
+import { compile } from "@unifast/node";
+import { githubAlert } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [githubAlert()],
+});
+```

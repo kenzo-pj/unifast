@@ -46,7 +46,6 @@ export default function notFoundPlugin(): Plugin {
     },
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
-        // Refresh routes on each request in dev (content may change)
         knownRoutes = collectRoutes(contentDir);
         const url = req.url?.split("?")[0]?.replace(/\/$/, "") || "/";
         const normalized = url === "" ? "/" : url;
@@ -55,7 +54,6 @@ export default function notFoundPlugin(): Plugin {
           req.headers.accept?.includes("text/html") &&
           !knownRoutes.has(normalized)
         ) {
-          // Monkey-patch writeHead to inject 404 status
           const origWriteHead = _res.writeHead.bind(_res);
           _res.writeHead = function (statusCode: number, ...args: any[]) {
             return origWriteHead(404, ...args);

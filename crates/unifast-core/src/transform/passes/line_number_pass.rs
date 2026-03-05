@@ -1,5 +1,5 @@
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 use super::line_number;
+use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 
 pub struct LineNumberPass;
 

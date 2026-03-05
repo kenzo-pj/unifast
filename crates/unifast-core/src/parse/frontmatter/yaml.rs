@@ -1,12 +1,8 @@
 use super::{FrontmatterKind, FrontmatterResult, find_closing_delimiter, skip_newline};
 use std::collections::HashMap;
 
-/// Extract YAML frontmatter delimited by `---`.
-///
-/// The opening `---` must be the very first characters in the input, followed
-/// immediately by a newline.  The closing `---` must appear on its own line.
+#[must_use]
 pub fn extract(input: &str) -> Option<FrontmatterResult> {
-    // Must start with "---" followed by a newline.
     if !input.starts_with("---") {
         return None;
     }
@@ -16,15 +12,13 @@ pub fn extract(input: &str) -> Option<FrontmatterResult> {
     }
     let content_start = 3 + if after_open.starts_with("\r\n") { 2 } else { 1 };
 
-    // Find closing ---
     let rest = &input[content_start..];
     let close_pos = find_closing_delimiter(rest, "---")?;
 
     let raw = rest[..close_pos].to_string();
-    let end_offset = content_start + close_pos + 3; // skip closing ---
+    let end_offset = content_start + close_pos + 3;
     let end_offset = skip_newline(input, end_offset);
 
-    // Parse YAML
     let data = parse_yaml_to_map(&raw)?;
 
     Some(FrontmatterResult {
@@ -36,7 +30,6 @@ pub fn extract(input: &str) -> Option<FrontmatterResult> {
 }
 
 fn parse_yaml_to_map(yaml_str: &str) -> Option<HashMap<String, serde_json::Value>> {
-    // Empty YAML parses to Null — treat as empty map.
     let value: serde_yaml::Value = serde_yaml::from_str(yaml_str).ok()?;
     if value.is_null() {
         return Some(HashMap::new());
@@ -44,7 +37,7 @@ fn parse_yaml_to_map(yaml_str: &str) -> Option<HashMap<String, serde_json::Value
     let json_value = yaml_to_json(value);
     match json_value {
         serde_json::Value::Object(map) => Some(map.into_iter().collect()),
-        _ => None, // frontmatter must be a mapping
+        _ => None,
     }
 }
 
@@ -128,7 +121,6 @@ mod tests {
 
     #[test]
     fn opening_without_newline() {
-        // "---title" should not be treated as frontmatter
         assert!(extract("---title\n---\n").is_none());
     }
 
@@ -146,7 +138,6 @@ mod tests {
     fn end_offset_content_after() {
         let input = "---\ntitle: Test\n---\n\n# Heading\n";
         let fm = extract(input).unwrap();
-        // end_offset should point right after the closing --- and its newline
         let remaining = &input[fm.end_offset..];
         assert_eq!(remaining, "\n# Heading\n");
     }

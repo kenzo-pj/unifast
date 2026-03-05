@@ -1,16 +1,14 @@
 ---
 title: "React Integration"
-description: "Render compiled Markdown and MDX content in React applications"
+description: "Render unifast output in React applications with @unifast/react, from simple HTML rendering to full MDX component mapping."
 ---
 
-## React Integration
-
-`@unifast/plugin-react` provides utilities for rendering unifast output in React applications - from simple HTML rendering to full MDX component mapping.
+`@unifast/react` provides utilities for rendering unifast output in React applications - from simple HTML rendering to full MDX component mapping.
 
 ### Installation
 
 ```sh
-npm install @unifast/node @unifast/plugin-react
+npm install @unifast/node @unifast/react
 ```
 
 ### Using hastToReact
@@ -19,7 +17,7 @@ Convert the HAst (HTML AST) to React elements. This lets you map HTML elements t
 
 ```tsx
 import { compile } from "@unifast/node";
-import { hastToReact } from "@unifast/plugin-react";
+import { hastToReact } from "@unifast/react";
 
 const result = compile(source, { outputKind: "hast" });
 const elements = hastToReact(result.output, {
@@ -42,10 +40,10 @@ This approach is safe by default - the AST is converted to React elements withou
 For MDX content, use `compileToReact` to get a React component directly:
 
 ```tsx
-import { compileMdx } from "@unifast/mdx";
-import { compileToReact } from "@unifast/plugin-react";
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
 
-const result = compileMdx(source);
+const result = compile(source, { inputKind: "mdx" });
 const Content = compileToReact(result);
 
 function Page() {
@@ -87,9 +85,8 @@ unifast compilation is synchronous and runs in Node.js, making it ideal for SSR:
 
 ```tsx
 // server.tsx
-import { compile } from "@unifast/node";
-import { frontmatter } from "@unifast/plugin-frontmatter";
-import { hastToReact } from "@unifast/plugin-react";
+import { compile, frontmatter } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
 
 export async function getStaticProps() {
   const source = await readFile("content/post.md", "utf8");
@@ -119,6 +116,6 @@ function Post({ hast, meta }) {
 
 ### See Also
 
-- [compileToReact()](/docs/plugins/plugin-react/compile-to-react) - API reference
-- [hastToReact()](/docs/plugins/plugin-react/hast-to-react) - API reference
+- [compileToReact()](/docs/packages/react/compile-to-react) - API reference
+- [hastToReact()](/docs/packages/react/hast-to-react) - API reference
 - [Using MDX](/docs/guides/mdx) - MDX compilation guide

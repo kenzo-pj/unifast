@@ -1,10 +1,7 @@
 use crate::ast::common::{NodeId, Span};
 
-/// Main enum covering all Markdown AST node types:
-/// CommonMark, GFM extensions, frontmatter, and MDX.
 #[derive(Debug, Clone)]
 pub enum MdNode {
-    // CommonMark
     Document(Document),
     Heading(Heading),
     Paragraph(Paragraph),
@@ -22,176 +19,220 @@ pub enum MdNode {
     Definition(Definition),
     Html(Html),
     Break(Break),
-    // GFM
     Table(Table),
     TableRow(TableRow),
     TableCell(TableCell),
     Delete(Delete),
     FootnoteDefinition(FootnoteDefinition),
     FootnoteReference(FootnoteReference),
-    // Frontmatter
     Yaml(Yaml),
     Toml(Toml),
     Json(Json),
-    // MDX
     MdxJsxFlowElement(MdxJsxElement),
     MdxJsxTextElement(MdxJsxElement),
     MdxjsEsm(MdxjsEsm),
     MdxFlowExpression(MdxExpression),
     MdxTextExpression(MdxExpression),
+    Math(Math),
+    InlineMath(InlineMath),
+    ContainerDirective(ContainerDirective),
+    LeafDirective(LeafDirective),
+    TextDirective(TextDirective),
+    WikiLink(WikiLink),
+    DefinitionList(DefinitionList),
+    DefinitionTerm(DefinitionTerm),
+    DefinitionDescription(DefinitionDescription),
+    RubyAnnotation(RubyAnnotation),
 }
 
 impl MdNode {
-    /// Returns the source span for any node variant.
-    pub fn span(&self) -> Span {
+    #[must_use]
+    pub const fn span(&self) -> Span {
         match self {
-            MdNode::Document(n) => n.span,
-            MdNode::Heading(n) => n.span,
-            MdNode::Paragraph(n) => n.span,
-            MdNode::Text(n) => n.span,
-            MdNode::Emphasis(n) => n.span,
-            MdNode::Strong(n) => n.span,
-            MdNode::InlineCode(n) => n.span,
-            MdNode::Code(n) => n.span,
-            MdNode::Blockquote(n) => n.span,
-            MdNode::List(n) => n.span,
-            MdNode::ListItem(n) => n.span,
-            MdNode::ThematicBreak(n) => n.span,
-            MdNode::Link(n) => n.span,
-            MdNode::Image(n) => n.span,
-            MdNode::Definition(n) => n.span,
-            MdNode::Html(n) => n.span,
-            MdNode::Break(n) => n.span,
-            MdNode::Table(n) => n.span,
-            MdNode::TableRow(n) => n.span,
-            MdNode::TableCell(n) => n.span,
-            MdNode::Delete(n) => n.span,
-            MdNode::FootnoteDefinition(n) => n.span,
-            MdNode::FootnoteReference(n) => n.span,
-            MdNode::Yaml(n) => n.span,
-            MdNode::Toml(n) => n.span,
-            MdNode::Json(n) => n.span,
-            MdNode::MdxJsxFlowElement(n) => n.span,
-            MdNode::MdxJsxTextElement(n) => n.span,
-            MdNode::MdxjsEsm(n) => n.span,
-            MdNode::MdxFlowExpression(n) => n.span,
-            MdNode::MdxTextExpression(n) => n.span,
+            Self::Document(n) => n.span,
+            Self::Heading(n) => n.span,
+            Self::Paragraph(n) => n.span,
+            Self::Text(n) => n.span,
+            Self::Emphasis(n) => n.span,
+            Self::Strong(n) => n.span,
+            Self::InlineCode(n) => n.span,
+            Self::Code(n) => n.span,
+            Self::Blockquote(n) => n.span,
+            Self::List(n) => n.span,
+            Self::ListItem(n) => n.span,
+            Self::ThematicBreak(n) => n.span,
+            Self::Link(n) => n.span,
+            Self::Image(n) => n.span,
+            Self::Definition(n) => n.span,
+            Self::Html(n) => n.span,
+            Self::Break(n) => n.span,
+            Self::Table(n) => n.span,
+            Self::TableRow(n) => n.span,
+            Self::TableCell(n) => n.span,
+            Self::Delete(n) => n.span,
+            Self::FootnoteDefinition(n) => n.span,
+            Self::FootnoteReference(n) => n.span,
+            Self::Yaml(n) => n.span,
+            Self::Toml(n) => n.span,
+            Self::Json(n) => n.span,
+            Self::MdxJsxFlowElement(n) => n.span,
+            Self::MdxJsxTextElement(n) => n.span,
+            Self::MdxjsEsm(n) => n.span,
+            Self::MdxFlowExpression(n) => n.span,
+            Self::MdxTextExpression(n) => n.span,
+            Self::Math(n) => n.span,
+            Self::InlineMath(n) => n.span,
+            Self::ContainerDirective(n) => n.span,
+            Self::LeafDirective(n) => n.span,
+            Self::TextDirective(n) => n.span,
+            Self::WikiLink(n) => n.span,
+            Self::DefinitionList(n) => n.span,
+            Self::DefinitionTerm(n) => n.span,
+            Self::DefinitionDescription(n) => n.span,
+            Self::RubyAnnotation(n) => n.span,
         }
     }
 
-    /// Returns the unique node ID for any node variant.
-    pub fn id(&self) -> NodeId {
+    #[must_use]
+    pub const fn id(&self) -> NodeId {
         match self {
-            MdNode::Document(n) => n.id,
-            MdNode::Heading(n) => n.id,
-            MdNode::Paragraph(n) => n.id,
-            MdNode::Text(n) => n.id,
-            MdNode::Emphasis(n) => n.id,
-            MdNode::Strong(n) => n.id,
-            MdNode::InlineCode(n) => n.id,
-            MdNode::Code(n) => n.id,
-            MdNode::Blockquote(n) => n.id,
-            MdNode::List(n) => n.id,
-            MdNode::ListItem(n) => n.id,
-            MdNode::ThematicBreak(n) => n.id,
-            MdNode::Link(n) => n.id,
-            MdNode::Image(n) => n.id,
-            MdNode::Definition(n) => n.id,
-            MdNode::Html(n) => n.id,
-            MdNode::Break(n) => n.id,
-            MdNode::Table(n) => n.id,
-            MdNode::TableRow(n) => n.id,
-            MdNode::TableCell(n) => n.id,
-            MdNode::Delete(n) => n.id,
-            MdNode::FootnoteDefinition(n) => n.id,
-            MdNode::FootnoteReference(n) => n.id,
-            MdNode::Yaml(n) => n.id,
-            MdNode::Toml(n) => n.id,
-            MdNode::Json(n) => n.id,
-            MdNode::MdxJsxFlowElement(n) => n.id,
-            MdNode::MdxJsxTextElement(n) => n.id,
-            MdNode::MdxjsEsm(n) => n.id,
-            MdNode::MdxFlowExpression(n) => n.id,
-            MdNode::MdxTextExpression(n) => n.id,
+            Self::Document(n) => n.id,
+            Self::Heading(n) => n.id,
+            Self::Paragraph(n) => n.id,
+            Self::Text(n) => n.id,
+            Self::Emphasis(n) => n.id,
+            Self::Strong(n) => n.id,
+            Self::InlineCode(n) => n.id,
+            Self::Code(n) => n.id,
+            Self::Blockquote(n) => n.id,
+            Self::List(n) => n.id,
+            Self::ListItem(n) => n.id,
+            Self::ThematicBreak(n) => n.id,
+            Self::Link(n) => n.id,
+            Self::Image(n) => n.id,
+            Self::Definition(n) => n.id,
+            Self::Html(n) => n.id,
+            Self::Break(n) => n.id,
+            Self::Table(n) => n.id,
+            Self::TableRow(n) => n.id,
+            Self::TableCell(n) => n.id,
+            Self::Delete(n) => n.id,
+            Self::FootnoteDefinition(n) => n.id,
+            Self::FootnoteReference(n) => n.id,
+            Self::Yaml(n) => n.id,
+            Self::Toml(n) => n.id,
+            Self::Json(n) => n.id,
+            Self::MdxJsxFlowElement(n) => n.id,
+            Self::MdxJsxTextElement(n) => n.id,
+            Self::MdxjsEsm(n) => n.id,
+            Self::MdxFlowExpression(n) => n.id,
+            Self::MdxTextExpression(n) => n.id,
+            Self::Math(n) => n.id,
+            Self::InlineMath(n) => n.id,
+            Self::ContainerDirective(n) => n.id,
+            Self::LeafDirective(n) => n.id,
+            Self::TextDirective(n) => n.id,
+            Self::WikiLink(n) => n.id,
+            Self::DefinitionList(n) => n.id,
+            Self::DefinitionTerm(n) => n.id,
+            Self::DefinitionDescription(n) => n.id,
+            Self::RubyAnnotation(n) => n.id,
         }
     }
 
-    /// Returns a slice of children if the node has children, or `None` for leaf nodes.
-    pub fn children(&self) -> Option<&[MdNode]> {
+    #[must_use]
+    pub fn children(&self) -> Option<&[Self]> {
         match self {
-            MdNode::Document(n) => Some(&n.children),
-            MdNode::Heading(n) => Some(&n.children),
-            MdNode::Paragraph(n) => Some(&n.children),
-            MdNode::Emphasis(n) => Some(&n.children),
-            MdNode::Strong(n) => Some(&n.children),
-            MdNode::Blockquote(n) => Some(&n.children),
-            MdNode::List(n) => Some(&n.children),
-            MdNode::ListItem(n) => Some(&n.children),
-            MdNode::Link(n) => Some(&n.children),
-            MdNode::Table(n) => Some(&n.children),
-            MdNode::TableRow(n) => Some(&n.children),
-            MdNode::TableCell(n) => Some(&n.children),
-            MdNode::Delete(n) => Some(&n.children),
-            MdNode::FootnoteDefinition(n) => Some(&n.children),
-            MdNode::MdxJsxFlowElement(n) => Some(&n.children),
-            MdNode::MdxJsxTextElement(n) => Some(&n.children),
-            MdNode::Text(_)
-            | MdNode::InlineCode(_)
-            | MdNode::Code(_)
-            | MdNode::ThematicBreak(_)
-            | MdNode::Image(_)
-            | MdNode::Definition(_)
-            | MdNode::Html(_)
-            | MdNode::Break(_)
-            | MdNode::FootnoteReference(_)
-            | MdNode::Yaml(_)
-            | MdNode::Toml(_)
-            | MdNode::Json(_)
-            | MdNode::MdxjsEsm(_)
-            | MdNode::MdxFlowExpression(_)
-            | MdNode::MdxTextExpression(_) => None,
+            Self::Document(n) => Some(&n.children),
+            Self::Heading(n) => Some(&n.children),
+            Self::Paragraph(n) => Some(&n.children),
+            Self::Emphasis(n) => Some(&n.children),
+            Self::Strong(n) => Some(&n.children),
+            Self::Blockquote(n) => Some(&n.children),
+            Self::List(n) => Some(&n.children),
+            Self::ListItem(n) => Some(&n.children),
+            Self::Link(n) => Some(&n.children),
+            Self::Table(n) => Some(&n.children),
+            Self::TableRow(n) => Some(&n.children),
+            Self::TableCell(n) => Some(&n.children),
+            Self::Delete(n) => Some(&n.children),
+            Self::FootnoteDefinition(n) => Some(&n.children),
+            Self::MdxJsxFlowElement(n) => Some(&n.children),
+            Self::MdxJsxTextElement(n) => Some(&n.children),
+            Self::ContainerDirective(n) => Some(&n.children),
+            Self::DefinitionList(n) => Some(&n.children),
+            Self::DefinitionTerm(n) => Some(&n.children),
+            Self::DefinitionDescription(n) => Some(&n.children),
+            Self::WikiLink(n) => Some(&n.children),
+            Self::Text(_)
+            | Self::InlineCode(_)
+            | Self::Code(_)
+            | Self::ThematicBreak(_)
+            | Self::Image(_)
+            | Self::Definition(_)
+            | Self::Html(_)
+            | Self::Break(_)
+            | Self::FootnoteReference(_)
+            | Self::Yaml(_)
+            | Self::Toml(_)
+            | Self::Json(_)
+            | Self::MdxjsEsm(_)
+            | Self::MdxFlowExpression(_)
+            | Self::MdxTextExpression(_)
+            | Self::Math(_)
+            | Self::InlineMath(_)
+            | Self::LeafDirective(_)
+            | Self::TextDirective(_)
+            | Self::RubyAnnotation(_) => None,
         }
     }
 
-    /// Returns a mutable reference to the children vec if the node has children.
-    pub fn children_mut(&mut self) -> Option<&mut Vec<MdNode>> {
+    pub const fn children_mut(&mut self) -> Option<&mut Vec<Self>> {
         match self {
-            MdNode::Document(n) => Some(&mut n.children),
-            MdNode::Heading(n) => Some(&mut n.children),
-            MdNode::Paragraph(n) => Some(&mut n.children),
-            MdNode::Emphasis(n) => Some(&mut n.children),
-            MdNode::Strong(n) => Some(&mut n.children),
-            MdNode::Blockquote(n) => Some(&mut n.children),
-            MdNode::List(n) => Some(&mut n.children),
-            MdNode::ListItem(n) => Some(&mut n.children),
-            MdNode::Link(n) => Some(&mut n.children),
-            MdNode::Table(n) => Some(&mut n.children),
-            MdNode::TableRow(n) => Some(&mut n.children),
-            MdNode::TableCell(n) => Some(&mut n.children),
-            MdNode::Delete(n) => Some(&mut n.children),
-            MdNode::FootnoteDefinition(n) => Some(&mut n.children),
-            MdNode::MdxJsxFlowElement(n) => Some(&mut n.children),
-            MdNode::MdxJsxTextElement(n) => Some(&mut n.children),
-            MdNode::Text(_)
-            | MdNode::InlineCode(_)
-            | MdNode::Code(_)
-            | MdNode::ThematicBreak(_)
-            | MdNode::Image(_)
-            | MdNode::Definition(_)
-            | MdNode::Html(_)
-            | MdNode::Break(_)
-            | MdNode::FootnoteReference(_)
-            | MdNode::Yaml(_)
-            | MdNode::Toml(_)
-            | MdNode::Json(_)
-            | MdNode::MdxjsEsm(_)
-            | MdNode::MdxFlowExpression(_)
-            | MdNode::MdxTextExpression(_) => None,
+            Self::Document(n) => Some(&mut n.children),
+            Self::Heading(n) => Some(&mut n.children),
+            Self::Paragraph(n) => Some(&mut n.children),
+            Self::Emphasis(n) => Some(&mut n.children),
+            Self::Strong(n) => Some(&mut n.children),
+            Self::Blockquote(n) => Some(&mut n.children),
+            Self::List(n) => Some(&mut n.children),
+            Self::ListItem(n) => Some(&mut n.children),
+            Self::Link(n) => Some(&mut n.children),
+            Self::Table(n) => Some(&mut n.children),
+            Self::TableRow(n) => Some(&mut n.children),
+            Self::TableCell(n) => Some(&mut n.children),
+            Self::Delete(n) => Some(&mut n.children),
+            Self::FootnoteDefinition(n) => Some(&mut n.children),
+            Self::MdxJsxFlowElement(n) => Some(&mut n.children),
+            Self::MdxJsxTextElement(n) => Some(&mut n.children),
+            Self::ContainerDirective(n) => Some(&mut n.children),
+            Self::DefinitionList(n) => Some(&mut n.children),
+            Self::DefinitionTerm(n) => Some(&mut n.children),
+            Self::DefinitionDescription(n) => Some(&mut n.children),
+            Self::WikiLink(n) => Some(&mut n.children),
+            Self::Text(_)
+            | Self::InlineCode(_)
+            | Self::Code(_)
+            | Self::ThematicBreak(_)
+            | Self::Image(_)
+            | Self::Definition(_)
+            | Self::Html(_)
+            | Self::Break(_)
+            | Self::FootnoteReference(_)
+            | Self::Yaml(_)
+            | Self::Toml(_)
+            | Self::Json(_)
+            | Self::MdxjsEsm(_)
+            | Self::MdxFlowExpression(_)
+            | Self::MdxTextExpression(_)
+            | Self::Math(_)
+            | Self::InlineMath(_)
+            | Self::LeafDirective(_)
+            | Self::TextDirective(_)
+            | Self::RubyAnnotation(_) => None,
         }
     }
 }
-
-// ── CommonMark node structs ──────────────────────────────────────────
 
 #[derive(Debug, Clone)]
 pub struct Document {
@@ -204,9 +245,9 @@ pub struct Document {
 pub struct Heading {
     pub id: NodeId,
     pub span: Span,
-    pub depth: u8, // 1-6
+    pub depth: u8,
     pub children: Vec<MdNode>,
-    pub slug: Option<String>, // filled by slug pass
+    pub slug: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -258,6 +299,7 @@ pub struct Blockquote {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
+    pub alert_type: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -266,8 +308,8 @@ pub struct List {
     pub span: Span,
     pub ordered: bool,
     pub start: Option<u32>,
-    pub spread: bool,          // loose list
-    pub children: Vec<MdNode>, // ListItem children
+    pub spread: bool,
+    pub children: Vec<MdNode>,
 }
 
 #[derive(Debug, Clone)]
@@ -275,7 +317,7 @@ pub struct ListItem {
     pub id: NodeId,
     pub span: Span,
     pub spread: bool,
-    pub checked: Option<bool>, // Some(true/false) for task list items
+    pub checked: Option<bool>,
     pub children: Vec<MdNode>,
 }
 
@@ -326,8 +368,6 @@ pub struct Break {
     pub span: Span,
 }
 
-// ── GFM nodes ────────────────────────────────────────────────────────
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AlignKind {
     Left,
@@ -341,7 +381,7 @@ pub struct Table {
     pub id: NodeId,
     pub span: Span,
     pub align: Vec<AlignKind>,
-    pub children: Vec<MdNode>, // TableRow
+    pub children: Vec<MdNode>,
 }
 
 #[derive(Debug, Clone)]
@@ -349,7 +389,7 @@ pub struct TableRow {
     pub id: NodeId,
     pub span: Span,
     pub is_header: bool,
-    pub children: Vec<MdNode>, // TableCell
+    pub children: Vec<MdNode>,
 }
 
 #[derive(Debug, Clone)]
@@ -383,8 +423,6 @@ pub struct FootnoteReference {
     pub label: Option<String>,
 }
 
-// ── Frontmatter nodes ────────────────────────────────────────────────
-
 #[derive(Debug, Clone)]
 pub struct Yaml {
     pub id: NodeId,
@@ -406,19 +444,17 @@ pub struct Json {
     pub value: String,
 }
 
-// ── MDX nodes ────────────────────────────────────────────────────────
-
 #[derive(Debug, Clone)]
 pub struct MdxJsxAttribute {
     pub name: String,
-    pub value: Option<String>, // None for boolean attrs
+    pub value: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct MdxJsxElement {
     pub id: NodeId,
     pub span: Span,
-    pub name: Option<String>, // None for fragments
+    pub name: Option<String>,
     pub attributes: Vec<MdxJsxAttribute>,
     pub children: Vec<MdNode>,
 }
@@ -435,6 +471,86 @@ pub struct MdxExpression {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct Math {
+    pub id: NodeId,
+    pub span: Span,
+    pub value: String,
+    pub meta: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct InlineMath {
+    pub id: NodeId,
+    pub span: Span,
+    pub value: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ContainerDirective {
+    pub id: NodeId,
+    pub span: Span,
+    pub name: String,
+    pub attributes: Vec<(String, String)>,
+    pub children: Vec<MdNode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct LeafDirective {
+    pub id: NodeId,
+    pub span: Span,
+    pub name: String,
+    pub attributes: Vec<(String, String)>,
+    pub value: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct TextDirective {
+    pub id: NodeId,
+    pub span: Span,
+    pub name: String,
+    pub attributes: Vec<(String, String)>,
+    pub value: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct WikiLink {
+    pub id: NodeId,
+    pub span: Span,
+    pub target: String,
+    pub alias: Option<String>,
+    pub children: Vec<MdNode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DefinitionList {
+    pub id: NodeId,
+    pub span: Span,
+    pub children: Vec<MdNode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DefinitionTerm {
+    pub id: NodeId,
+    pub span: Span,
+    pub children: Vec<MdNode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DefinitionDescription {
+    pub id: NodeId,
+    pub span: Span,
+    pub children: Vec<MdNode>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RubyAnnotation {
+    pub id: NodeId,
+    pub span: Span,
+    pub base: String,
+    pub annotation: String,
 }
 
 #[cfg(test)]
@@ -519,6 +635,7 @@ mod tests {
                 id: id_gen.next_id(),
                 span,
                 children: vec![],
+                alert_type: None,
             }),
             MdNode::List(List {
                 id: id_gen.next_id(),

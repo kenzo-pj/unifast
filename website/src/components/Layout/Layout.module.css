@@ -4,7 +4,6 @@
   min-height: 100vh;
 }
 
-/* --- Header: full-width top bar --- */
 .header {
   display: flex;
   align-items: center;
@@ -57,7 +56,6 @@
   background: var(--color-hover-strong);
 }
 
-/* --- Body: sidebar + main below header --- */
 .body {
   display: flex;
   flex: 1;
@@ -81,7 +79,6 @@
   min-width: 0;
 }
 
-/* --- SP --- */
 @media (max-width: 768px) {
   .sidebar {
     display: none;

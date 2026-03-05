@@ -6,7 +6,8 @@ use serde::ser::{Serialize, SerializeMap, Serializer};
 pub struct SmallMap<K: Ord, V>(BTreeMap<K, V>);
 
 impl<K: Ord, V> SmallMap<K, V> {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self(BTreeMap::new())
     }
 
@@ -22,10 +23,12 @@ impl<K: Ord, V> SmallMap<K, V> {
         self.0.iter()
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
@@ -122,7 +125,6 @@ mod tests {
         map.insert("href".to_string(), "http://example.com".to_string());
         map.insert("class".to_string(), "link".to_string());
         let json = serde_json::to_string(&map).unwrap();
-        // BTreeMap ordering: alphabetical
         assert_eq!(json, r#"{"class":"link","href":"http://example.com"}"#);
     }
 }

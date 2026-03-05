@@ -29,7 +29,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: background var(--transition-normal), color var(--transition-normal);
+  transition:
+    background var(--transition-normal),
+    color var(--transition-normal);
 }
 
 .navLink:hover {
@@ -162,7 +164,9 @@
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background var(--transition-normal), color var(--transition-normal);
+  transition:
+    background var(--transition-normal),
+    color var(--transition-normal);
 }
 
 .groupTrigger:hover {
@@ -181,12 +185,8 @@
   min-width: 0;
 }
 
-.groupTrigger .chevron {
-  transform: rotate(90deg);
-}
-
 .groupTrigger[data-panel-open] .chevron {
-  transform: rotate(-90deg);
+  transform: rotate(90deg);
 }
 
 .groupList {

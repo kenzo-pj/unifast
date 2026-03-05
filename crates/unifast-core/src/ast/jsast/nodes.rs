@@ -1,6 +1,5 @@
 use crate::ast::common::{NodeId, Span};
 
-/// Minimal JavaScript AST node types for MDX support.
 #[derive(Debug, Clone)]
 pub enum JsNode {
     Program(JsProgram),
@@ -12,51 +11,46 @@ pub enum JsNode {
 }
 
 impl JsNode {
-    /// Returns the source span for any node variant.
-    pub fn span(&self) -> Span {
+    #[must_use]
+    pub const fn span(&self) -> Span {
         match self {
-            JsNode::Program(n) => n.span,
-            JsNode::ImportDeclaration(n) => n.span,
-            JsNode::ExportDeclaration(n) => n.span,
-            JsNode::JsxElement(n) => n.span,
-            JsNode::JsxFragment(n) => n.span,
-            JsNode::Expression(n) => n.span,
+            Self::Program(n) => n.span,
+            Self::ImportDeclaration(n) => n.span,
+            Self::ExportDeclaration(n) => n.span,
+            Self::JsxElement(n) => n.span,
+            Self::JsxFragment(n) => n.span,
+            Self::Expression(n) => n.span,
         }
     }
 
-    /// Returns the unique node ID for any node variant.
-    pub fn id(&self) -> NodeId {
+    #[must_use]
+    pub const fn id(&self) -> NodeId {
         match self {
-            JsNode::Program(n) => n.id,
-            JsNode::ImportDeclaration(n) => n.id,
-            JsNode::ExportDeclaration(n) => n.id,
-            JsNode::JsxElement(n) => n.id,
-            JsNode::JsxFragment(n) => n.id,
-            JsNode::Expression(n) => n.id,
+            Self::Program(n) => n.id,
+            Self::ImportDeclaration(n) => n.id,
+            Self::ExportDeclaration(n) => n.id,
+            Self::JsxElement(n) => n.id,
+            Self::JsxFragment(n) => n.id,
+            Self::Expression(n) => n.id,
         }
     }
 
-    /// Returns a slice of children if the node has children, or `None` for leaf nodes.
-    pub fn children(&self) -> Option<&[JsNode]> {
+    #[must_use]
+    pub fn children(&self) -> Option<&[Self]> {
         match self {
-            JsNode::Program(n) => Some(&n.body),
-            JsNode::JsxElement(n) => Some(&n.children),
-            JsNode::JsxFragment(n) => Some(&n.children),
-            JsNode::ImportDeclaration(_) | JsNode::ExportDeclaration(_) | JsNode::Expression(_) => {
-                None
-            }
+            Self::Program(n) => Some(&n.body),
+            Self::JsxElement(n) => Some(&n.children),
+            Self::JsxFragment(n) => Some(&n.children),
+            Self::ImportDeclaration(_) | Self::ExportDeclaration(_) | Self::Expression(_) => None,
         }
     }
 
-    /// Returns a mutable reference to the children vec if the node has children.
-    pub fn children_mut(&mut self) -> Option<&mut Vec<JsNode>> {
+    pub const fn children_mut(&mut self) -> Option<&mut Vec<Self>> {
         match self {
-            JsNode::Program(n) => Some(&mut n.body),
-            JsNode::JsxElement(n) => Some(&mut n.children),
-            JsNode::JsxFragment(n) => Some(&mut n.children),
-            JsNode::ImportDeclaration(_) | JsNode::ExportDeclaration(_) | JsNode::Expression(_) => {
-                None
-            }
+            Self::Program(n) => Some(&mut n.body),
+            Self::JsxElement(n) => Some(&mut n.children),
+            Self::JsxFragment(n) => Some(&mut n.children),
+            Self::ImportDeclaration(_) | Self::ExportDeclaration(_) | Self::Expression(_) => None,
         }
     }
 }

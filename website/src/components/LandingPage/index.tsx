@@ -1,9 +1,11 @@
-import { lazy, Suspense } from "react";
 import { Link } from "@tanstack/react-router";
-import { ThemeToggle } from "~/components/ThemeToggle";
-import { LanguageSwitcher } from "~/components/LanguageSwitcher";
+import { lazy, Suspense } from "react";
+
 import { GitHubIcon } from "~/components/GitHubIcon";
+import { LanguageSwitcher } from "~/components/LanguageSwitcher";
+import { ThemeToggle } from "~/components/ThemeToggle";
 import { useTranslation, localePath } from "~/i18n";
+
 import styles from "./LandingPage.module.css";
 
 const SearchDialog = lazy(() =>
@@ -53,9 +55,7 @@ export function LandingPage() {
 
       <section className={styles.hero}>
         <h1 className={styles.title}>unifast</h1>
-        <p className={styles.subtitle}>
-          High-performance Markdown / MDX compiler built with Rust.
-        </p>
+        <p className={styles.subtitle}>High-performance Markdown / MDX compiler built with Rust.</p>
         <div className={styles.actions}>
           <Link
             to={localePath("/docs/introduction/what-is-unifast", locale)}

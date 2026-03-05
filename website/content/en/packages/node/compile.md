@@ -164,12 +164,7 @@ const result = compile(md, {
 ### With plugins
 
 ```ts
-import { compile } from "@unifast/node";
-import { gfm } from "@unifast/plugin-gfm";
-import { frontmatter } from "@unifast/plugin-frontmatter";
-import { toc } from "@unifast/plugin-toc";
-import { sanitize } from "@unifast/plugin-sanitize";
-import { syntect } from "@unifast/plugin-syntect";
+import { compile, gfm, frontmatter, toc, sanitize, syntect } from "@unifast/node";
 
 const result = compile(md, {
   plugins: [

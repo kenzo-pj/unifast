@@ -1,4 +1,5 @@
 import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router";
+
 import { Layout } from "~/components/Layout";
 import { NotFound } from "~/components/NotFound";
 import { I18nContext, parseLocaleFromPath, SUPPORTED_LOCALES } from "~/i18n";

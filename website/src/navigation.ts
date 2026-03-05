@@ -21,15 +21,31 @@ export const NAV: NavSection[] = [
   {
     labelKey: "introduction",
     items: [
-      { labelKey: "whatIsUnifast", href: "/docs/introduction/what-is-unifast", slug: "introduction/what-is-unifast" },
-      { labelKey: "quickStart", href: "/docs/introduction/quick-start", slug: "introduction/quick-start" },
-      { labelKey: "keyConcepts", href: "/docs/introduction/key-concepts", slug: "introduction/key-concepts" },
+      {
+        labelKey: "whatIsUnifast",
+        href: "/docs/introduction/what-is-unifast",
+        slug: "introduction/what-is-unifast",
+      },
+      {
+        labelKey: "quickStart",
+        href: "/docs/introduction/quick-start",
+        slug: "introduction/quick-start",
+      },
+      {
+        labelKey: "keyConcepts",
+        href: "/docs/introduction/key-concepts",
+        slug: "introduction/key-concepts",
+      },
     ],
   },
   {
     labelKey: "guides",
     items: [
-      { labelKey: "syntaxHighlighting", href: "/docs/guides/syntax-highlighting", slug: "guides/syntax-highlighting" },
+      {
+        labelKey: "syntaxHighlighting",
+        href: "/docs/guides/syntax-highlighting",
+        slug: "guides/syntax-highlighting",
+      },
       { labelKey: "usingMdx", href: "/docs/guides/mdx", slug: "guides/mdx" },
       { labelKey: "viteIntegration", href: "/docs/guides/vite", slug: "guides/vite" },
       { labelKey: "reactIntegration", href: "/docs/guides/react", slug: "guides/react" },
@@ -41,78 +57,126 @@ export const NAV: NavSection[] = [
       {
         labelKey: "core",
         items: [
-          { labelKey: "overview", href: "/docs/packages/core/overview", slug: "packages/core/overview" },
-          { labelKey: "hastToHtml", href: "/docs/packages/core/hast-to-html", slug: "packages/core/hast-to-html" },
+          {
+            labelKey: "hastToHtml",
+            href: "/docs/packages/core/hast-to-html",
+            slug: "packages/core/hast-to-html",
+          },
+          { labelKey: "gfmFn", href: "/docs/packages/core/gfm", slug: "packages/core/gfm" },
+          {
+            labelKey: "frontmatterFn",
+            href: "/docs/packages/core/frontmatter",
+            slug: "packages/core/frontmatter",
+          },
+          {
+            labelKey: "sanitizeFn",
+            href: "/docs/packages/core/sanitize",
+            slug: "packages/core/sanitize",
+          },
+          {
+            labelKey: "syntectFn",
+            href: "/docs/packages/core/syntect",
+            slug: "packages/core/syntect",
+          },
+          { labelKey: "tocFn", href: "/docs/packages/core/toc", slug: "packages/core/toc" },
+          {
+            labelKey: "externalLinksFn",
+            href: "/docs/packages/core/external-links",
+            slug: "packages/core/external-links",
+          },
+          {
+            labelKey: "autolinkHeadingsFn",
+            href: "/docs/packages/core/autolink-headings",
+            slug: "packages/core/autolink-headings",
+          },
+          {
+            labelKey: "sectionizeFn",
+            href: "/docs/packages/core/sectionize",
+            slug: "packages/core/sectionize",
+          },
+          {
+            labelKey: "breaksFn",
+            href: "/docs/packages/core/breaks",
+            slug: "packages/core/breaks",
+          },
+          {
+            labelKey: "smartypantsFn",
+            href: "/docs/packages/core/smartypants",
+            slug: "packages/core/smartypants",
+          },
+          { labelKey: "emojiFn", href: "/docs/packages/core/emoji", slug: "packages/core/emoji" },
+          {
+            labelKey: "githubAlertFn",
+            href: "/docs/packages/core/github-alert",
+            slug: "packages/core/github-alert",
+          },
+          { labelKey: "mathFn", href: "/docs/packages/core/math", slug: "packages/core/math" },
+          {
+            labelKey: "directiveFn",
+            href: "/docs/packages/core/directive",
+            slug: "packages/core/directive",
+          },
+          {
+            labelKey: "wikiLinkFn",
+            href: "/docs/packages/core/wiki-link",
+            slug: "packages/core/wiki-link",
+          },
+          {
+            labelKey: "definitionListFn",
+            href: "/docs/packages/core/definition-list",
+            slug: "packages/core/definition-list",
+          },
+          {
+            labelKey: "rubyAnnotationFn",
+            href: "/docs/packages/core/ruby-annotation",
+            slug: "packages/core/ruby-annotation",
+          },
+          { labelKey: "cjkFn", href: "/docs/packages/core/cjk", slug: "packages/core/cjk" },
+          {
+            labelKey: "codeImportFn",
+            href: "/docs/packages/core/code-import",
+            slug: "packages/core/code-import",
+          },
         ],
       },
       {
         labelKey: "node",
         items: [
-          { labelKey: "overview", href: "/docs/packages/node/overview", slug: "packages/node/overview" },
-          { labelKey: "compileFn", href: "/docs/packages/node/compile", slug: "packages/node/compile" },
+          {
+            labelKey: "compileFn",
+            href: "/docs/packages/node/compile",
+            slug: "packages/node/compile",
+          },
         ],
       },
       {
-        labelKey: "mdx",
+        labelKey: "shiki",
         items: [
-          { labelKey: "overview", href: "/docs/packages/mdx/overview", slug: "packages/mdx/overview" },
-          { labelKey: "compileMdxFn", href: "/docs/packages/mdx/compile-mdx", slug: "packages/mdx/compile-mdx" },
-        ],
-      },
-    ],
-  },
-  {
-    labelKey: "plugins",
-    groups: [
-      {
-        labelKey: "pluginFrontmatter",
-        items: [
-          { labelKey: "overview", href: "/docs/plugins/plugin-frontmatter/overview", slug: "plugins/plugin-frontmatter/overview" },
-          { labelKey: "frontmatterFn", href: "/docs/plugins/plugin-frontmatter/frontmatter", slug: "plugins/plugin-frontmatter/frontmatter" },
+          {
+            labelKey: "createShikiPluginFn",
+            href: "/docs/packages/shiki/create-shiki-plugin",
+            slug: "packages/shiki/create-shiki-plugin",
+          },
+          {
+            labelKey: "createShikiTransformerFn",
+            href: "/docs/packages/shiki/create-shiki-transformer",
+            slug: "packages/shiki/create-shiki-transformer",
+          },
         ],
       },
       {
-        labelKey: "pluginGfm",
+        labelKey: "react",
         items: [
-          { labelKey: "overview", href: "/docs/plugins/plugin-gfm/overview", slug: "plugins/plugin-gfm/overview" },
-          { labelKey: "gfmFn", href: "/docs/plugins/plugin-gfm/gfm", slug: "plugins/plugin-gfm/gfm" },
-        ],
-      },
-      {
-        labelKey: "pluginSyntect",
-        items: [
-          { labelKey: "overview", href: "/docs/plugins/plugin-syntect/overview", slug: "plugins/plugin-syntect/overview" },
-          { labelKey: "syntectFn", href: "/docs/plugins/plugin-syntect/syntect", slug: "plugins/plugin-syntect/syntect" },
-        ],
-      },
-      {
-        labelKey: "pluginShiki",
-        items: [
-          { labelKey: "overview", href: "/docs/plugins/plugin-shiki/overview", slug: "plugins/plugin-shiki/overview" },
-          { labelKey: "createShikiPluginFn", href: "/docs/plugins/plugin-shiki/create-shiki-plugin", slug: "plugins/plugin-shiki/create-shiki-plugin" },
-          { labelKey: "createShikiTransformerFn", href: "/docs/plugins/plugin-shiki/create-shiki-transformer", slug: "plugins/plugin-shiki/create-shiki-transformer" },
-        ],
-      },
-      {
-        labelKey: "pluginSanitize",
-        items: [
-          { labelKey: "overview", href: "/docs/plugins/plugin-sanitize/overview", slug: "plugins/plugin-sanitize/overview" },
-          { labelKey: "sanitizeFn", href: "/docs/plugins/plugin-sanitize/sanitize", slug: "plugins/plugin-sanitize/sanitize" },
-        ],
-      },
-      {
-        labelKey: "pluginToc",
-        items: [
-          { labelKey: "overview", href: "/docs/plugins/plugin-toc/overview", slug: "plugins/plugin-toc/overview" },
-          { labelKey: "tocFn", href: "/docs/plugins/plugin-toc/toc", slug: "plugins/plugin-toc/toc" },
-        ],
-      },
-      {
-        labelKey: "pluginReact",
-        items: [
-          { labelKey: "overview", href: "/docs/plugins/plugin-react/overview", slug: "plugins/plugin-react/overview" },
-          { labelKey: "compileToReactFn", href: "/docs/plugins/plugin-react/compile-to-react", slug: "plugins/plugin-react/compile-to-react" },
-          { labelKey: "hastToReactFn", href: "/docs/plugins/plugin-react/hast-to-react", slug: "plugins/plugin-react/hast-to-react" },
+          {
+            labelKey: "compileToReactFn",
+            href: "/docs/packages/react/compile-to-react",
+            slug: "packages/react/compile-to-react",
+          },
+          {
+            labelKey: "hastToReactFn",
+            href: "/docs/packages/react/hast-to-react",
+            slug: "packages/react/hast-to-react",
+          },
         ],
       },
     ],

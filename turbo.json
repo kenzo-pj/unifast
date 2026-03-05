@@ -9,12 +9,19 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {
+    "lint:oxc": {},
+    "lint:oxc:fix": { "cache": false },
+    "lint:css": {},
+    "lint:css:fix": { "cache": false },
+    "lint:md": {},
+    "lint:md:fix": { "cache": false },
+    "lint:text": {},
+    "lint:text:fix": { "cache": false },
+    "typecheck": {
       "dependsOn": ["^build"]
     },
-    "fmt": {
-      "cache": false
-    },
+    "fmt:oxc": {},
+    "fmt:oxc:check": {},
     "test": {
       "dependsOn": ["^build"]
     },

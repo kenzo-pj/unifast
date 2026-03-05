@@ -6,7 +6,8 @@ pub struct DiagnosticSink {
 }
 
 impl DiagnosticSink {
-    pub fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             diagnostics: vec![],
         }
@@ -24,19 +25,23 @@ impl DiagnosticSink {
         self.diagnostics.push(diag);
     }
 
+    #[must_use]
     pub fn diagnostics(&self) -> &[Diagnostic] {
         &self.diagnostics
     }
 
+    #[must_use]
     pub fn into_diagnostics(self) -> Vec<Diagnostic> {
         self.diagnostics
     }
 
+    #[must_use]
     pub fn has_errors(&self) -> bool {
         self.diagnostics.iter().any(|d| d.level == DiagLevel::Error)
     }
 
-    pub fn is_empty(&self) -> bool {
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
         self.diagnostics.is_empty()
     }
 }

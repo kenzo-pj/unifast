@@ -1,11 +1,6 @@
 use crate::ast::common::{NodeIdGen, Span};
 use crate::ast::mdast::nodes::{MdNode, MdxExpression};
 
-/// Try to parse a flow expression (`{...}` on its own line).
-///
-/// Returns `Some(MdNode::MdxFlowExpression(...))` when the trimmed line starts
-/// with `{` and ends with `}` and the braces are balanced. Returns `None`
-/// otherwise.
 pub fn try_parse_flow_expression(
     line: &str,
     offset: usize,
@@ -16,7 +11,6 @@ pub fn try_parse_flow_expression(
         return None;
     }
 
-    // Verify balanced braces.
     let mut depth: i32 = 0;
     for ch in trimmed.chars() {
         match ch {
@@ -32,7 +26,6 @@ pub fn try_parse_flow_expression(
         return None;
     }
 
-    // Extract inner content (everything between the outermost braces).
     let inner = &trimmed[1..trimmed.len() - 1];
     let inner = inner.trim();
     if inner.is_empty() {
@@ -46,10 +39,7 @@ pub fn try_parse_flow_expression(
     }))
 }
 
-/// Try to detect an inline expression `{expr}` within text starting at `pos`.
-///
-/// Returns `Some((inner_content, end_position))` on success, where
-/// `end_position` is the byte index right after the closing `}`.
+#[must_use]
 pub fn find_inline_expression(text: &str, pos: usize) -> Option<(String, usize)> {
     if !text[pos..].starts_with('{') {
         return None;

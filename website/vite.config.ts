@@ -3,12 +3,13 @@ import url from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
-import unifastPlugin from "@unifast/plugin-vite";
-import { syntect } from "@unifast/plugin-syntect";
+import unifastPlugin from "@unifast/vite";
+import { compile, syntect, externalLinks, autolinkHeadings, githubAlert, emoji, smartypants, breaks, cjk } from "@unifast/node";
 import translationStatusPlugin from "./plugins/vite-plugin-translation-status";
 import notFoundPlugin from "./plugins/vite-plugin-not-found";
 import metaPlugin from "./plugins/vite-plugin-meta";
 import packageInstallHighlightPlugin from "./plugins/vite-plugin-package-install-highlight";
+import examplePlugin from "./plugins/vite-plugin-example";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -30,11 +31,27 @@ function pagefindDevPlugin() {
 const compileOptions = {
   toc: { enabled: true, maxDepth: 3 },
   lineNumbers: { enabled: true },
-  plugins: [syntect()],
+  plugins: [
+    syntect(),
+    externalLinks({ target: "_blank" }),
+    autolinkHeadings({ behavior: "prepend" }),
+    githubAlert(),
+    emoji(),
+    smartypants(),
+    breaks(),
+    cjk(),
+  ],
 };
 
 export default defineConfig(({ isSsrBuild }) => ({
+  css: {
+    transformer: "lightningcss",
+    lightningcss: {
+      targets: { chrome: 110, firefox: 115, safari: 16 },
+    },
+  },
   plugins: [
+    examplePlugin({ compile, compileOptions }),
     pagefindDevPlugin(),
     metaPlugin(),
     notFoundPlugin(),
@@ -66,6 +83,7 @@ export default defineConfig(({ isSsrBuild }) => ({
         },
       }
     : {
+        cssMinify: "lightningcss",
         outDir: "dist/client",
         rollupOptions: {
           input: path.resolve(__dirname, "index.html"),

@@ -1,7 +1,4 @@
-/// Find a strikethrough span starting at `pos` in `text`.
-/// Expects `~~` at `pos`. Returns `Some((content_start, end_pos))` where
-/// `content_start` is the index after the opening `~~` and `end_pos` is
-/// the index after the closing `~~`.
+#[must_use]
 pub fn find_strikethrough(text: &str, pos: usize) -> Option<(usize, usize)> {
     let bytes = text.as_bytes();
     if pos + 1 >= bytes.len() {
@@ -16,23 +13,23 @@ pub fn find_strikethrough(text: &str, pos: usize) -> Option<(usize, usize)> {
         return None;
     }
 
-    // Content must not start with a space.
     if bytes[content_start] == b' ' || bytes[content_start] == b'\n' {
         return None;
     }
 
-    // Search for closing `~~`.
     let mut i = content_start;
     while i + 1 < bytes.len() {
         if bytes[i] == b'\\' && i + 1 < bytes.len() {
             i += 2;
             continue;
         }
-        if bytes[i] == b'~' && bytes[i + 1] == b'~' {
-            // Content must not end with a space.
-            if i > content_start && bytes[i - 1] != b' ' && bytes[i - 1] != b'\n' {
-                return Some((content_start, i + 2));
-            }
+        if bytes[i] == b'~'
+            && bytes[i + 1] == b'~'
+            && i > content_start
+            && bytes[i - 1] != b' '
+            && bytes[i - 1] != b'\n'
+        {
+            return Some((content_start, i + 2));
         }
         i += 1;
     }

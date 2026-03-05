@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+
 import { LandingPage } from "~/components/LandingPage";
 import { NotFound } from "~/components/NotFound";
 import { SUPPORTED_LOCALES, type LocaleCode } from "~/i18n";

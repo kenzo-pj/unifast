@@ -1,19 +1,13 @@
 use crate::ast::common::{NodeIdGen, Span};
 use crate::ast::mdast::nodes::{MdNode, MdxJsxAttribute, MdxJsxElement};
 
-/// Result of parsing a JSX flow element, including how many source lines and
-/// bytes were consumed so the caller can advance correctly.
 pub struct JsxFlowResult {
     pub node: MdNode,
     pub lines_consumed: usize,
     pub bytes_consumed: usize,
 }
 
-/// Check whether `line` begins a JSX flow element.
-///
-/// A line is considered JSX if it starts with `<` followed by either an
-/// uppercase letter (component), `>` (fragment open), or `/` (closing tag or
-/// fragment close).
+#[must_use]
 pub fn is_jsx_start(line: &str) -> bool {
     let trimmed = line.trim();
     if let Some(rest) = trimmed.strip_prefix('<') {
@@ -26,11 +20,6 @@ pub fn is_jsx_start(line: &str) -> bool {
     }
 }
 
-/// Try to parse a JSX flow element from a set of lines.
-///
-/// `line` is the first line, `remaining_lines` is a slice starting from that
-/// same line (i.e. `remaining_lines[0] == line`). `offset` is the byte offset
-/// of `line` in the original source.
 pub fn try_parse_jsx_flow(
     line: &str,
     remaining_lines: &[&str],
@@ -47,7 +36,6 @@ pub fn try_parse_jsx_flow(
 
     let is_closing = after_trimmed.starts_with('/');
     let is_component = if is_closing {
-        // Closing tag like </Component>
         let after_slash = after_trimmed[1..].trim_start();
         after_slash.starts_with(|c: char| c.is_uppercase())
     } else {
@@ -59,13 +47,10 @@ pub fn try_parse_jsx_flow(
         return None;
     }
 
-    // Closing tags on their own should not be parsed as standalone elements
-    // (they will be consumed by the parent opening tag logic).
     if is_closing {
         return None;
     }
 
-    // Parse tag name.
     let name = if is_fragment {
         None
     } else {
@@ -76,10 +61,8 @@ pub fn try_parse_jsx_flow(
         Some(after[name_start..name_end].to_string())
     };
 
-    // Parse attributes from the opening tag line.
     let attrs = parse_jsx_attributes(trimmed);
 
-    // Self-closing tag: <Component /> or <Component attr="val" />
     if trimmed.ends_with("/>") {
         return Some(JsxFlowResult {
             node: MdNode::MdxJsxFlowElement(MdxJsxElement {
@@ -94,19 +77,17 @@ pub fn try_parse_jsx_flow(
         });
     }
 
-    // Fragment self-close: </>
     if trimmed == "</>" {
-        return None; // stray closing fragment — skip
+        return None;
     }
 
-    // Multi-line JSX: find the matching closing tag.
     let closing_tag = match name {
         Some(ref n) => format!("</{n}>"),
         None => "</>".to_string(),
     };
 
     let mut total_lines = 1;
-    let mut total_bytes = line.len() + 1; // +1 for the newline
+    let mut total_bytes = line.len() + 1;
     let mut content_lines: Vec<String> = Vec::new();
 
     for l in remaining_lines.iter().skip(1) {
@@ -118,9 +99,6 @@ pub fn try_parse_jsx_flow(
         content_lines.push((*l).to_string());
     }
 
-    // Parse inner content as children — for now we store the inner text
-    // content as a Text node if there is any. A full recursive parse would
-    // invoke the MDX parser again on the inner content.
     let children = if content_lines.is_empty() {
         vec![]
     } else {
@@ -129,7 +107,6 @@ pub fn try_parse_jsx_flow(
         if inner_trimmed.is_empty() {
             vec![]
         } else {
-            // Use markdown parser for inner content.
             use crate::diagnostics::sink::DiagnosticSink;
             use crate::parse::markdown::parser;
 
@@ -156,13 +133,9 @@ pub fn try_parse_jsx_flow(
     })
 }
 
-/// Parse JSX attributes from a single tag line.
-///
-/// Supports: `name="value"`, `name='value'`, `name={expr}`, and boolean `name`.
 fn parse_jsx_attributes(tag_line: &str) -> Vec<MdxJsxAttribute> {
     let mut attrs = Vec::new();
 
-    // Find the region between the tag name and the closing `>` or `/>`.
     let content = extract_attribute_region(tag_line);
     if content.is_empty() {
         return attrs;
@@ -178,7 +151,6 @@ fn parse_jsx_attributes(tag_line: &str) -> Vec<MdxJsxAttribute> {
             break;
         }
         if ch.is_alphabetic() || ch == '_' {
-            // Attribute name
             let mut name = String::new();
             while let Some(&(_, c)) = chars.peek() {
                 if c.is_alphanumeric() || c == '-' || c == '_' {
@@ -188,7 +160,6 @@ fn parse_jsx_attributes(tag_line: &str) -> Vec<MdxJsxAttribute> {
                     break;
                 }
             }
-            // Check for `=`
             if let Some(&(_, '=')) = chars.peek() {
                 chars.next();
                 if let Some(&(_, quote)) = chars.peek() {
@@ -206,7 +177,6 @@ fn parse_jsx_attributes(tag_line: &str) -> Vec<MdxJsxAttribute> {
                             value: Some(value),
                         });
                     } else if quote == '{' {
-                        // Expression value
                         chars.next();
                         let mut depth = 1;
                         let mut value = String::new();
@@ -229,7 +199,6 @@ fn parse_jsx_attributes(tag_line: &str) -> Vec<MdxJsxAttribute> {
                     }
                 }
             } else {
-                // Boolean attribute (no value)
                 attrs.push(MdxJsxAttribute { name, value: None });
             }
         } else {
@@ -239,23 +208,19 @@ fn parse_jsx_attributes(tag_line: &str) -> Vec<MdxJsxAttribute> {
     attrs
 }
 
-/// Extract the substring between the tag name and the closing `>` / `/>`.
 fn extract_attribute_region(tag_line: &str) -> &str {
     let trimmed = tag_line.trim();
-    // Skip the `<` and tag name.
     let after_open = match trimmed.strip_prefix('<') {
         Some(rest) => rest.trim_start(),
         None => return "",
     };
 
-    // Skip past the tag name (letters, digits, dots, dashes, underscores).
     let name_end = after_open
         .find(|c: char| !c.is_alphanumeric() && c != '.' && c != '_' && c != '-')
         .unwrap_or(after_open.len());
 
     let attr_start = &after_open[name_end..];
 
-    // Trim the closing `/>` or `>` from the end.
     if let Some(s) = attr_start.strip_suffix("/>") {
         s
     } else if let Some(s) = attr_start.strip_suffix('>') {

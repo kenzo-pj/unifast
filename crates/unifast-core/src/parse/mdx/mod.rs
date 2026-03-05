@@ -3,30 +3,21 @@ pub mod expr;
 pub mod jsx;
 
 use crate::ast::common::{NodeIdGen, Span};
-use crate::ast::mdast::nodes::*;
+use crate::ast::mdast::nodes::{Document, MdNode, MdxjsEsm};
 use crate::diagnostics::sink::DiagnosticSink;
 use crate::parse::FrontmatterData;
 
-/// The result of parsing an MDX file.
 pub struct MdxParseResult {
     pub document: Document,
     pub diagnostics: DiagnosticSink,
     pub frontmatter: FrontmatterData,
 }
 
-/// Parse MDX input into an MdAst with MDX-specific nodes (JSX, ESM,
-/// expressions).
-///
-/// The parser operates in a line-oriented fashion:
-/// 1. Extract frontmatter (if any).
-/// 2. Walk through lines, detecting ESM imports/exports, JSX flow elements,
-///    and flow expressions.
-/// 3. Delegate ordinary Markdown lines to the existing Markdown parser.
+#[must_use]
 pub fn parse_mdx(input: &str) -> MdxParseResult {
     let mut id_gen = NodeIdGen::new();
     let mut diagnostics = DiagnosticSink::new();
 
-    // ---- Frontmatter ----
     let (frontmatter_data, parse_offset) =
         if let Some(fm) = crate::parse::frontmatter::extract_frontmatter(input) {
             (fm.data, fm.end_offset)
@@ -36,7 +27,6 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
 
     let content = &input[parse_offset..];
 
-    // ---- Line-oriented scan ----
     let mut children: Vec<MdNode> = Vec::new();
     let mut current_md_lines: Vec<String> = Vec::new();
     let mut current_md_start = parse_offset;
@@ -50,11 +40,10 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
         let line = lines[line_idx];
         let line_offset = calculate_line_offset(content, line_idx) + parse_offset;
 
-        // Track fenced code blocks — lines inside them are plain markdown,
-        // never ESM/JSX/expression.
         let trimmed = line.trim_start();
         if in_fenced_code {
-            if trimmed.starts_with(&fence_marker) && trimmed[fence_marker.len()..].trim().is_empty() {
+            if trimmed.starts_with(&fence_marker) && trimmed[fence_marker.len()..].trim().is_empty()
+            {
                 in_fenced_code = false;
                 fence_marker.clear();
             }
@@ -65,14 +54,13 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
         if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
             let ch = trimmed.as_bytes()[0];
             let fence_len = trimmed.bytes().take_while(|&b| b == ch).count();
-            fence_marker = std::iter::repeat(ch as char).take(fence_len).collect();
+            fence_marker = std::iter::repeat_n(ch as char, fence_len).collect();
             in_fenced_code = true;
             current_md_lines.push(line.to_string());
             line_idx += 1;
             continue;
         }
 
-        // ---- ESM (import / export) ----
         if esm::is_esm_line(line) {
             flush_markdown(
                 &mut current_md_lines,
@@ -101,11 +89,10 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
                 span: Span::new(esm_start as u32, esm_end as u32),
                 value: esm_text,
             }));
-            current_md_start = esm_end + 1; // +1 for trailing newline
+            current_md_start = esm_end + 1;
             continue;
         }
 
-        // ---- JSX flow element ----
         if let Some(jsx_result) =
             jsx::try_parse_jsx_flow(line, &lines[line_idx..], line_offset, &mut id_gen)
         {
@@ -122,7 +109,6 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
             continue;
         }
 
-        // ---- Flow expression `{...}` ----
         if let Some(expr_node) = expr::try_parse_flow_expression(line, line_offset, &mut id_gen) {
             flush_markdown(
                 &mut current_md_lines,
@@ -137,12 +123,10 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
             continue;
         }
 
-        // ---- Regular markdown line ----
         current_md_lines.push(line.to_string());
         line_idx += 1;
     }
 
-    // Flush any remaining markdown lines.
     flush_markdown(
         &mut current_md_lines,
         current_md_start,
@@ -164,10 +148,6 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
     }
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────
-
-/// Parse accumulated Markdown lines using the existing Markdown parser and
-/// append the resulting nodes to `children`.
 fn flush_markdown(
     lines: &mut Vec<String>,
     start_offset: usize,
@@ -184,7 +164,6 @@ fn flush_markdown(
     lines.clear();
 }
 
-/// Run the Markdown parser on a fragment and return the top-level children.
 fn parse_markdown_fragment(
     text: &str,
     _offset: usize,
@@ -196,20 +175,13 @@ fn parse_markdown_fragment(
     doc.children
 }
 
-/// Calculate the byte offset of line `line_idx` within `content`.
 fn calculate_line_offset(content: &str, line_idx: usize) -> usize {
-    content
-        .lines()
-        .take(line_idx)
-        .map(|l| l.len() + 1) // +1 for the newline character
-        .sum()
+    content.lines().take(line_idx).map(|l| l.len() + 1).sum()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // ---- MDX parsing tests (at least 15) ----
 
     #[test]
     fn mdx_plain_markdown() {
@@ -375,7 +347,6 @@ mod tests {
     fn mdx_only_markdown() {
         let r = parse_mdx("Hello **world**\n");
         assert!(!r.document.children.is_empty());
-        // Should contain a paragraph
         assert!(
             r.document
                 .children
@@ -443,7 +414,6 @@ mod tests {
             .filter(|n| matches!(n, MdNode::MdxjsEsm(_)))
             .count();
         assert_eq!(esm_count, 0, "import inside code block should not be ESM");
-        // Should have a Code node via the markdown parser
         assert!(
             r.document
                 .children
@@ -463,7 +433,10 @@ mod tests {
             .iter()
             .filter(|n| matches!(n, MdNode::MdxJsxFlowElement(_)))
             .count();
-        assert_eq!(jsx_count, 0, "JSX inside code block should not be parsed as JSX flow");
+        assert_eq!(
+            jsx_count, 0,
+            "JSX inside code block should not be parsed as JSX flow"
+        );
     }
 
     #[test]

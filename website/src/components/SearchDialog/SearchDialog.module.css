@@ -35,7 +35,8 @@
   background: transparent;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: backdrop-filter var(--transition-normal),
+  transition:
+    backdrop-filter var(--transition-normal),
     -webkit-backdrop-filter var(--transition-normal);
 }
 
@@ -63,7 +64,9 @@
   -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--glass-shadow);
   overflow: hidden;
-  transition: opacity var(--transition-normal), transform var(--transition-normal);
+  transition:
+    opacity var(--transition-normal),
+    transform var(--transition-normal);
 }
 
 .popup[data-starting-style],
@@ -138,7 +141,6 @@
   -webkit-box-orient: vertical;
 }
 
-/* Pagefind wraps matches in <mark> tags - safe as content comes from our own pre-rendered HTML */
 .resultExcerpt :global(mark) {
   background: transparent;
   color: var(--color-primary);

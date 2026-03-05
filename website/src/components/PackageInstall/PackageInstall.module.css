@@ -30,7 +30,9 @@
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: color var(--transition-fast), background-color var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
   line-height: 1.4;
 }
 
@@ -47,8 +49,9 @@
   position: relative;
   background: var(--color-code-bg);
   padding: var(--gap-lg) var(--gap-xl);
-  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
-  font-size: 0.875rem;
+  font-family:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  font-size: 0.9375rem;
   line-height: 1.6;
 }
 

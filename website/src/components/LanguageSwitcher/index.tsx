@@ -1,14 +1,11 @@
-import { useCallback } from "react";
+import { Select } from "@base-ui/react/select";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Select } from "@base-ui-components/react/select";
 import { LanguageSquareIcon } from "hugeicons-react";
-import {
-  useTranslation,
-  DEFAULT_LOCALE,
-  SUPPORTED_LOCALES,
-  parseLocaleFromPath,
-} from "~/i18n";
+import { useCallback } from "react";
+
+import { useTranslation, DEFAULT_LOCALE, SUPPORTED_LOCALES, parseLocaleFromPath } from "~/i18n";
 import type { LocaleCode } from "~/i18n";
+
 import styles from "./LanguageSwitcher.module.css";
 
 const LOCALE_ITEMS = SUPPORTED_LOCALES.map((loc) => ({
@@ -25,10 +22,7 @@ export function LanguageSwitcher() {
   const handleValueChange = useCallback(
     (nextLocale: LocaleCode | null) => {
       if (!nextLocale || nextLocale === locale) return;
-      const targetPath =
-        nextLocale === DEFAULT_LOCALE
-          ? restPath
-          : `/${nextLocale}${restPath}`;
+      const targetPath = nextLocale === DEFAULT_LOCALE ? restPath : `/${nextLocale}${restPath}`;
       navigate({ to: targetPath });
     },
     [locale, restPath, navigate],

@@ -1,13 +1,10 @@
-/// Check if a line is an ESM statement (import/export at line start).
+#[must_use]
 pub fn is_esm_line(line: &str) -> bool {
     let trimmed = line.trim();
     trimmed.starts_with("import ") || trimmed.starts_with("export ")
 }
 
-/// Check if a line continues a multi-line ESM statement.
-///
-/// Multi-line imports/exports are detected by trailing commas, open braces,
-/// or lines that close a brace block opened in previous lines.
+#[must_use]
 pub fn is_esm_continuation(line: &str, prev_lines: &[String]) -> bool {
     let prev = match prev_lines.last() {
         Some(s) => s.as_str(),
@@ -16,12 +13,10 @@ pub fn is_esm_continuation(line: &str, prev_lines: &[String]) -> bool {
     let prev_trimmed = prev.trim();
     let line_trimmed = line.trim();
 
-    // Previous line ended with a comma or open brace — continuation expected.
     if prev_trimmed.ends_with(',') || prev_trimmed.ends_with('{') {
         return true;
     }
 
-    // Current line closes a brace that was opened somewhere in the statement.
     if (line_trimmed.starts_with('}') || line_trimmed.contains("} from"))
         && prev_lines.iter().any(|l| l.contains('{'))
     {

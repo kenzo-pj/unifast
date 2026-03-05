@@ -11,6 +11,7 @@ pub struct CacheKey {
 }
 
 impl CacheKey {
+    #[must_use]
     pub fn new(content: &str, options: &str, version: &str) -> Self {
         Self {
             content_hash: format!("{:016x}", hash::content_hash(content)),
@@ -19,6 +20,7 @@ impl CacheKey {
         }
     }
 
+    #[must_use]
     pub fn key_string(&self) -> String {
         format!(
             "{}-{}-{}",

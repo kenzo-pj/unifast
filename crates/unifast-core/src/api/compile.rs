@@ -4,24 +4,24 @@ use crate::ast::common::NodeIdGen;
 use crate::emit::html::stringify;
 use crate::parse;
 use crate::transform::pass::{AstPayload, PassContext};
-use crate::transform::registry::PassRegistry;
 use crate::transform::passes::{
-    normalize_pass::NormalizePass,
-    slug_pass::SlugPass,
-    resolve_defs_pass::ResolveDefsPass,
-    lower_pass::LowerPass,
-    sanitize_pass::SanitizePass,
-    highlight_pass::HighlightPass,
-    line_number_pass::LineNumberPass,
-    cleanup_pass::CleanupPass,
-    toc_pass::TocPass,
+    autolink_headings_pass::AutolinkHeadingsPass, breaks_pass::BreaksPass, cjk_pass::CjkPass,
+    cleanup_pass::CleanupPass, code_import_pass::CodeImportPass,
+    definition_list_pass::DefinitionListPass, directive_pass::DirectivePass, emoji_pass::EmojiPass,
+    external_links_pass::ExternalLinksPass, github_alert_pass::GithubAlertPass,
+    highlight_pass::HighlightPass, line_number_pass::LineNumberPass, lower_pass::LowerPass,
+    math_pass::MathPass, normalize_pass::NormalizePass, resolve_defs_pass::ResolveDefsPass,
+    ruby_annotation_pass::RubyAnnotationPass, sanitize_pass::SanitizePass,
+    sectionize_pass::SectionizePass, slug_pass::SlugPass, smartypants_pass::SmartypantsPass,
+    toc_pass::TocPass, wiki_link_pass::WikiLinkPass,
 };
+use crate::transform::registry::PassRegistry;
 use std::time::Instant;
 
+#[must_use]
 pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
     let start = Instant::now();
 
-    // 1. Parse
     let parse_start = Instant::now();
     let parse_result = match opts.input_kind {
         InputKind::Markdown => parse::parse_markdown(input),
@@ -32,17 +32,25 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
     let frontmatter = parse_result.frontmatter;
     let parse_ms = parse_start.elapsed().as_secs_f64() * 1000.0;
 
-    // 2. Build registry
     let transform_start = Instant::now();
     let mut registry = PassRegistry::new();
 
-    // Transform-phase passes (always)
     registry.register(Box::new(NormalizePass));
+    registry.register(Box::new(BreaksPass));
+    registry.register(Box::new(CjkPass));
+    registry.register(Box::new(SmartypantsPass));
+    registry.register(Box::new(EmojiPass));
+    registry.register(Box::new(MathPass));
+    registry.register(Box::new(DirectivePass));
+    registry.register(Box::new(WikiLinkPass));
+    registry.register(Box::new(DefinitionListPass));
+    registry.register(Box::new(RubyAnnotationPass));
+    registry.register(Box::new(GithubAlertPass));
+    registry.register(Box::new(CodeImportPass));
     registry.register(Box::new(SlugPass));
     registry.register(Box::new(TocPass));
     registry.register(Box::new(ResolveDefsPass));
 
-    // Lower + Optimize passes (only if we need HAST output)
     if opts.output_kind != OutputKind::Mdast {
         registry.register(Box::new(LowerPass));
         if opts.sanitize.enabled {
@@ -54,15 +62,16 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         if opts.line_numbers.enabled {
             registry.register(Box::new(LineNumberPass));
         }
+        registry.register(Box::new(ExternalLinksPass));
+        registry.register(Box::new(AutolinkHeadingsPass));
+        registry.register(Box::new(SectionizePass));
         registry.register(Box::new(CleanupPass));
     }
 
-    // 3. User plugins register additional passes
     for plugin in &opts.plugins {
         plugin.apply(&mut registry);
     }
 
-    // 4. Execute passes in phase order
     let mut id_gen = NodeIdGen::new();
     let mut payload = AstPayload::Mdast(document);
 
@@ -83,11 +92,9 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         }
         toc = std::mem::take(&mut ctx.toc);
     }
-    // diagnostics is available again after ctx is dropped
 
     let transform_ms = transform_start.elapsed().as_secs_f64() * 1000.0;
 
-    // 5. Emit
     let emit_start = Instant::now();
     let output = match opts.output_kind {
         OutputKind::Html => {
@@ -98,38 +105,41 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             };
             Output::Html(html)
         }
-        OutputKind::Hast => {
-            match payload {
-                AstPayload::Hast(root) => Output::Hast(root),
-                AstPayload::Both { hast, .. } => Output::Hast(hast),
-                _ => Output::Html(String::new()),
-            }
-        }
-        OutputKind::Mdast => {
-            match payload {
-                AstPayload::Mdast(doc) => Output::Mdast(doc),
-                _ => Output::Mdast(crate::ast::mdast::nodes::Document {
-                    id: crate::ast::common::NodeId(0),
-                    span: crate::ast::common::Span::empty(),
-                    children: vec![],
-                }),
-            }
-        }
+        OutputKind::Hast => match payload {
+            AstPayload::Hast(root) => Output::Hast(root),
+            AstPayload::Both { hast, .. } => Output::Hast(hast),
+            _ => Output::Html(String::new()),
+        },
+        OutputKind::Mdast => match payload {
+            AstPayload::Mdast(doc) => Output::Mdast(doc),
+            _ => Output::Mdast(crate::ast::mdast::nodes::Document {
+                id: crate::ast::common::NodeId(0),
+                span: crate::ast::common::Span::empty(),
+                children: vec![],
+            }),
+        },
         OutputKind::MdxJs => {
-            // MdxJs needs the original document pre-lowering; re-parse
             let mdx_result = parse::parse_mdx_input(input);
             let mut mdx_doc = mdx_result.document;
-            // Apply slugs so heading elements get id attributes in JSX output
             let slug_mode = match opts.slug.mode {
-                crate::api::options::SlugMode::GitHub => crate::transform::passes::slug::SlugMode::GitHub,
-                crate::api::options::SlugMode::Unicode => crate::transform::passes::slug::SlugMode::Unicode,
+                crate::api::options::SlugMode::GitHub => {
+                    crate::transform::passes::slug::SlugMode::GitHub
+                }
+                crate::api::options::SlugMode::Unicode => {
+                    crate::transform::passes::slug::SlugMode::Unicode
+                }
             };
             crate::transform::passes::slug::apply_slugs(&mut mdx_doc, slug_mode);
             let mdx_output = crate::emit::mdx_js::printer::print_mdx_js(&mdx_doc);
             let map = Some(crate::emit::mdx_js::sourcemap::generate_sourcemap(
-                "output.js", input, &mdx_output.source_mappings,
+                "output.js",
+                input,
+                &mdx_output.source_mappings,
             ));
-            Output::MdxJs { code: mdx_output.code, map }
+            Output::MdxJs {
+                code: mdx_output.code,
+                map,
+            }
         }
     };
     let emit_ms = emit_start.elapsed().as_secs_f64() * 1000.0;
@@ -140,7 +150,11 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         output,
         frontmatter,
         diagnostics: diagnostics.into_diagnostics(),
-        stats: CompileStats { parse_ms, transform_ms, emit_ms },
+        stats: CompileStats {
+            parse_ms,
+            transform_ms,
+            emit_ms,
+        },
         toc,
     }
 }
@@ -257,7 +271,6 @@ mod tests {
     #[test]
     fn e2e_html_escaping() {
         let html = compile_html("Hello <script>alert('xss')</script>\n");
-        // With default Disallow policy, raw HTML is stripped/escaped
         assert!(!html.contains("<script>"));
     }
 
@@ -326,16 +339,14 @@ mod tests {
     #[test]
     fn e2e_heading_with_slug() {
         let html = compile_html("# My Title\n");
-        // Slugs should produce id attribute on heading
         assert!(html.contains("id=\"my-title\""));
     }
 
     #[test]
     fn e2e_multiple_paragraphs() {
         let html = compile_html("First paragraph\n\nSecond paragraph\n");
-        // Should have two separate <p> elements
         let p_count = html.matches("<p>").count();
-        assert!(p_count >= 2, "expected 2+ paragraphs, got {}", p_count);
+        assert!(p_count >= 2, "expected 2+ paragraphs, got {p_count}");
     }
 
     #[test]
@@ -364,8 +375,12 @@ mod tests {
 
         struct UppercasePass;
         impl Pass for UppercasePass {
-            fn name(&self) -> &'static str { "uppercase" }
-            fn phase(&self) -> Phase { Phase::Optimize }
+            fn name(&self) -> &'static str {
+                "uppercase"
+            }
+            fn phase(&self) -> Phase {
+                Phase::Optimize
+            }
             fn run(&self, _ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
                 fn uppercase_hast(node: &mut crate::ast::hast::nodes::HNode) {
                     match node {
@@ -373,16 +388,22 @@ mod tests {
                             t.value = t.value.to_uppercase();
                         }
                         crate::ast::hast::nodes::HNode::Element(e) => {
-                            for child in &mut e.children { uppercase_hast(child); }
+                            for child in &mut e.children {
+                                uppercase_hast(child);
+                            }
                         }
                         crate::ast::hast::nodes::HNode::Root(r) => {
-                            for child in &mut r.children { uppercase_hast(child); }
+                            for child in &mut r.children {
+                                uppercase_hast(child);
+                            }
                         }
                         _ => {}
                     }
                 }
                 if let AstPayload::Hast(root) = ast {
-                    for child in &mut root.children { uppercase_hast(child); }
+                    for child in &mut root.children {
+                        uppercase_hast(child);
+                    }
                 }
                 Ok(())
             }
@@ -390,7 +411,9 @@ mod tests {
 
         struct UppercasePlugin;
         impl Plugin for UppercasePlugin {
-            fn name(&self) -> &'static str { "uppercase_plugin" }
+            fn name(&self) -> &'static str {
+                "uppercase_plugin"
+            }
             fn apply(&self, registry: &mut PassRegistry) {
                 registry.register(Box::new(UppercasePass));
             }
@@ -406,7 +429,10 @@ mod tests {
 
         match result.output {
             Output::Html(html) => {
-                assert!(html.contains("HELLO WORLD"), "Expected uppercase, got: {}", html);
+                assert!(
+                    html.contains("HELLO WORLD"),
+                    "Expected uppercase, got: {html}"
+                );
             }
             _ => panic!("expected HTML"),
         }
@@ -417,7 +443,10 @@ mod tests {
         let result = compile(
             "# First\n\n## Second\n\n### Third\n",
             &CompileOptions {
-                toc: TocOptions { enabled: true, max_depth: 6 },
+                toc: TocOptions {
+                    enabled: true,
+                    max_depth: 6,
+                },
                 ..Default::default()
             },
         );
@@ -442,10 +471,13 @@ mod tests {
         );
         match result.output {
             Output::Html(html) => {
-                assert!(html.contains("data-line=\"1\""), "missing line 1: {}", html);
-                assert!(html.contains("data-line=\"2\""), "missing line 2: {}", html);
-                assert!(html.contains("data-line=\"3\""), "missing line 3: {}", html);
-                assert!(html.contains("class=\"line\""), "missing line class: {}", html);
+                assert!(html.contains("data-line=\"1\""), "missing line 1: {html}");
+                assert!(html.contains("data-line=\"2\""), "missing line 2: {html}");
+                assert!(html.contains("data-line=\"3\""), "missing line 3: {html}");
+                assert!(
+                    html.contains("class=\"line\""),
+                    "missing line class: {html}"
+                );
             }
             _ => panic!("expected HTML output"),
         }
@@ -472,13 +504,17 @@ mod tests {
         );
         match result.output {
             Output::Html(html) => {
-                // Highlighting should produce sy- prefixed spans
-                assert!(html.contains("sy-"), "missing syntax highlight spans: {}", html);
-                // Line numbers should be present
-                assert!(html.contains("data-line=\"1\""), "missing line 1: {}", html);
-                assert!(html.contains("data-line=\"2\""), "missing line 2: {}", html);
-                assert!(html.contains("data-line=\"3\""), "missing line 3: {}", html);
-                assert!(html.contains("class=\"line\""), "missing line class: {}", html);
+                assert!(
+                    html.contains("sy-"),
+                    "missing syntax highlight spans: {html}"
+                );
+                assert!(html.contains("data-line=\"1\""), "missing line 1: {html}");
+                assert!(html.contains("data-line=\"2\""), "missing line 2: {html}");
+                assert!(html.contains("data-line=\"3\""), "missing line 3: {html}");
+                assert!(
+                    html.contains("class=\"line\""),
+                    "missing line class: {html}"
+                );
             }
             _ => panic!("expected HTML output"),
         }
@@ -498,7 +534,7 @@ mod tests {
         );
         match result.output {
             Output::Html(html) => {
-                assert!(html.contains("sy-"), "missing syntax highlight: {}", html);
+                assert!(html.contains("sy-"), "missing syntax highlight: {html}");
                 assert!(!html.contains("data-line"), "should not have line numbers");
             }
             _ => panic!("expected HTML output"),
@@ -516,10 +552,65 @@ mod tests {
         let result = compile(
             "# H1\n\n## H2\n\n### H3\n",
             &CompileOptions {
-                toc: TocOptions { enabled: true, max_depth: 2 },
+                toc: TocOptions {
+                    enabled: true,
+                    max_depth: 2,
+                },
                 ..Default::default()
             },
         );
         assert_eq!(result.toc.len(), 2);
+    }
+
+    #[test]
+    fn e2e_highlight_with_tree_sitter() {
+        let result = compile(
+            "```rust\nfn main() {\n    println!(\"hi\");\n}\n```\n",
+            &CompileOptions {
+                highlight: HighlightOptions {
+                    enabled: true,
+                    engine: HighlightEngine::TreeSitter,
+                },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(
+                    html.contains("ts-"),
+                    "expected tree-sitter ts- classes in output: {html}"
+                );
+                assert!(
+                    html.contains("<span"),
+                    "expected span elements in output: {html}"
+                );
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_tree_sitter_with_line_numbers() {
+        let result = compile(
+            "```rust\nfn main() {\n    println!(\"hi\");\n}\n```\n",
+            &CompileOptions {
+                highlight: HighlightOptions {
+                    enabled: true,
+                    engine: HighlightEngine::TreeSitter,
+                },
+                line_numbers: LineNumberOptions { enabled: true },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(
+                    html.contains("ts-"),
+                    "missing tree-sitter highlight: {html}"
+                );
+                assert!(html.contains("data-line=\"1\""), "missing line 1: {html}");
+            }
+            _ => panic!("expected HTML output"),
+        }
     }
 }

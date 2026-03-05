@@ -1,10 +1,11 @@
-use super::nodes::*;
+use super::nodes::{
+    Blockquote, Break, Code, ContainerDirective, Definition, DefinitionDescription, DefinitionList,
+    DefinitionTerm, Delete, Document, Emphasis, FootnoteDefinition, FootnoteReference, Heading,
+    Html, Image, InlineCode, InlineMath, Json, LeafDirective, Link, List, ListItem, Math, MdNode,
+    MdxExpression, MdxJsxElement, MdxjsEsm, Paragraph, RubyAnnotation, Strong, Table, TableCell,
+    TableRow, Text, TextDirective, ThematicBreak, Toml, WikiLink, Yaml,
+};
 
-/// Immutable visitor trait for walking the Markdown AST.
-///
-/// Each `visit_*` method has a default implementation that visits children
-/// (if any). Override specific methods to add custom logic; call
-/// `self.visit_children(children)` at the end to continue the walk.
 #[allow(unused_variables)]
 pub trait MdVisitor {
     fn visit_node(&mut self, node: &MdNode) {
@@ -40,6 +41,16 @@ pub trait MdVisitor {
             MdNode::MdxjsEsm(n) => self.visit_mdxjs_esm(n),
             MdNode::MdxFlowExpression(n) => self.visit_mdx_flow_expression(n),
             MdNode::MdxTextExpression(n) => self.visit_mdx_text_expression(n),
+            MdNode::Math(n) => self.visit_math(n),
+            MdNode::InlineMath(n) => self.visit_inline_math(n),
+            MdNode::ContainerDirective(n) => self.visit_container_directive(n),
+            MdNode::LeafDirective(n) => self.visit_leaf_directive(n),
+            MdNode::TextDirective(n) => self.visit_text_directive(n),
+            MdNode::WikiLink(n) => self.visit_wiki_link(n),
+            MdNode::DefinitionList(n) => self.visit_definition_list(n),
+            MdNode::DefinitionTerm(n) => self.visit_definition_term(n),
+            MdNode::DefinitionDescription(n) => self.visit_definition_description(n),
+            MdNode::RubyAnnotation(n) => self.visit_ruby_annotation(n),
         }
     }
 
@@ -48,8 +59,6 @@ pub trait MdVisitor {
             self.visit_node(child);
         }
     }
-
-    // ── CommonMark ───────────────────────────────────────────────────
 
     fn visit_document(&mut self, node: &Document) {
         self.visit_children(&node.children);
@@ -103,8 +112,6 @@ pub trait MdVisitor {
 
     fn visit_break(&mut self, node: &Break) {}
 
-    // ── GFM ──────────────────────────────────────────────────────────
-
     fn visit_table(&mut self, node: &Table) {
         self.visit_children(&node.children);
     }
@@ -127,15 +134,11 @@ pub trait MdVisitor {
 
     fn visit_footnote_reference(&mut self, node: &FootnoteReference) {}
 
-    // ── Frontmatter ──────────────────────────────────────────────────
-
     fn visit_yaml(&mut self, node: &Yaml) {}
 
     fn visit_toml(&mut self, node: &Toml) {}
 
     fn visit_json(&mut self, node: &Json) {}
-
-    // ── MDX ──────────────────────────────────────────────────────────
 
     fn visit_mdx_jsx_flow_element(&mut self, node: &MdxJsxElement) {
         self.visit_children(&node.children);
@@ -150,9 +153,38 @@ pub trait MdVisitor {
     fn visit_mdx_flow_expression(&mut self, node: &MdxExpression) {}
 
     fn visit_mdx_text_expression(&mut self, node: &MdxExpression) {}
+
+    fn visit_math(&mut self, node: &Math) {}
+
+    fn visit_inline_math(&mut self, node: &InlineMath) {}
+
+    fn visit_container_directive(&mut self, node: &ContainerDirective) {
+        self.visit_children(&node.children);
+    }
+
+    fn visit_leaf_directive(&mut self, node: &LeafDirective) {}
+
+    fn visit_text_directive(&mut self, node: &TextDirective) {}
+
+    fn visit_wiki_link(&mut self, node: &WikiLink) {
+        self.visit_children(&node.children);
+    }
+
+    fn visit_definition_list(&mut self, node: &DefinitionList) {
+        self.visit_children(&node.children);
+    }
+
+    fn visit_definition_term(&mut self, node: &DefinitionTerm) {
+        self.visit_children(&node.children);
+    }
+
+    fn visit_definition_description(&mut self, node: &DefinitionDescription) {
+        self.visit_children(&node.children);
+    }
+
+    fn visit_ruby_annotation(&mut self, node: &RubyAnnotation) {}
 }
 
-/// Mutable visitor trait for walking and modifying the Markdown AST in place.
 #[allow(unused_variables)]
 pub trait MdVisitorMut {
     fn visit_node_mut(&mut self, node: &mut MdNode) {
@@ -188,6 +220,16 @@ pub trait MdVisitorMut {
             MdNode::MdxjsEsm(n) => self.visit_mdxjs_esm_mut(n),
             MdNode::MdxFlowExpression(n) => self.visit_mdx_flow_expression_mut(n),
             MdNode::MdxTextExpression(n) => self.visit_mdx_text_expression_mut(n),
+            MdNode::Math(n) => self.visit_math_mut(n),
+            MdNode::InlineMath(n) => self.visit_inline_math_mut(n),
+            MdNode::ContainerDirective(n) => self.visit_container_directive_mut(n),
+            MdNode::LeafDirective(n) => self.visit_leaf_directive_mut(n),
+            MdNode::TextDirective(n) => self.visit_text_directive_mut(n),
+            MdNode::WikiLink(n) => self.visit_wiki_link_mut(n),
+            MdNode::DefinitionList(n) => self.visit_definition_list_mut(n),
+            MdNode::DefinitionTerm(n) => self.visit_definition_term_mut(n),
+            MdNode::DefinitionDescription(n) => self.visit_definition_description_mut(n),
+            MdNode::RubyAnnotation(n) => self.visit_ruby_annotation_mut(n),
         }
     }
 
@@ -196,8 +238,6 @@ pub trait MdVisitorMut {
             self.visit_node_mut(child);
         }
     }
-
-    // ── CommonMark ───────────────────────────────────────────────────
 
     fn visit_document_mut(&mut self, node: &mut Document) {
         self.visit_children_mut(&mut node.children);
@@ -251,8 +291,6 @@ pub trait MdVisitorMut {
 
     fn visit_break_mut(&mut self, node: &mut Break) {}
 
-    // ── GFM ──────────────────────────────────────────────────────────
-
     fn visit_table_mut(&mut self, node: &mut Table) {
         self.visit_children_mut(&mut node.children);
     }
@@ -275,15 +313,11 @@ pub trait MdVisitorMut {
 
     fn visit_footnote_reference_mut(&mut self, node: &mut FootnoteReference) {}
 
-    // ── Frontmatter ──────────────────────────────────────────────────
-
     fn visit_yaml_mut(&mut self, node: &mut Yaml) {}
 
     fn visit_toml_mut(&mut self, node: &mut Toml) {}
 
     fn visit_json_mut(&mut self, node: &mut Json) {}
-
-    // ── MDX ──────────────────────────────────────────────────────────
 
     fn visit_mdx_jsx_flow_element_mut(&mut self, node: &mut MdxJsxElement) {
         self.visit_children_mut(&mut node.children);
@@ -298,6 +332,36 @@ pub trait MdVisitorMut {
     fn visit_mdx_flow_expression_mut(&mut self, node: &mut MdxExpression) {}
 
     fn visit_mdx_text_expression_mut(&mut self, node: &mut MdxExpression) {}
+
+    fn visit_math_mut(&mut self, node: &mut Math) {}
+
+    fn visit_inline_math_mut(&mut self, node: &mut InlineMath) {}
+
+    fn visit_container_directive_mut(&mut self, node: &mut ContainerDirective) {
+        self.visit_children_mut(&mut node.children);
+    }
+
+    fn visit_leaf_directive_mut(&mut self, node: &mut LeafDirective) {}
+
+    fn visit_text_directive_mut(&mut self, node: &mut TextDirective) {}
+
+    fn visit_wiki_link_mut(&mut self, node: &mut WikiLink) {
+        self.visit_children_mut(&mut node.children);
+    }
+
+    fn visit_definition_list_mut(&mut self, node: &mut DefinitionList) {
+        self.visit_children_mut(&mut node.children);
+    }
+
+    fn visit_definition_term_mut(&mut self, node: &mut DefinitionTerm) {
+        self.visit_children_mut(&mut node.children);
+    }
+
+    fn visit_definition_description_mut(&mut self, node: &mut DefinitionDescription) {
+        self.visit_children_mut(&mut node.children);
+    }
+
+    fn visit_ruby_annotation_mut(&mut self, node: &mut RubyAnnotation) {}
 }
 
 #[cfg(test)]
@@ -305,7 +369,6 @@ mod tests {
     use super::*;
     use crate::ast::common::{NodeIdGen, Span};
 
-    /// A simple visitor that counts total nodes visited.
     struct NodeCounter {
         count: usize,
     }
@@ -319,7 +382,6 @@ mod tests {
     impl MdVisitor for NodeCounter {
         fn visit_node(&mut self, node: &MdNode) {
             self.count += 1;
-            // Continue walking children via the default dispatch
             if let Some(children) = node.children() {
                 self.visit_children(children);
             }
@@ -374,11 +436,9 @@ mod tests {
 
         let mut counter = NodeCounter::new();
         counter.visit_node(&doc);
-        // doc(1) + heading(1) + text(1) + paragraph(1) + text(1) + strong(1) + text(1) + text(1) = 8
         assert_eq!(counter.count, 8);
     }
 
-    /// A simple visitor that collects all heading depths.
     struct HeadingCollector {
         depths: Vec<u8>,
     }
@@ -437,7 +497,6 @@ mod tests {
         assert_eq!(collector.depths, vec![1, 2, 3]);
     }
 
-    /// A mutable visitor that uppercases all text nodes.
     struct TextUppercaser;
 
     impl MdVisitorMut for TextUppercaser {
@@ -466,7 +525,6 @@ mod tests {
         let mut visitor = TextUppercaser;
         visitor.visit_node_mut(&mut doc);
 
-        // Verify the text was uppercased
         if let MdNode::Document(doc) = &doc {
             if let MdNode::Paragraph(para) = &doc.children[0] {
                 if let MdNode::Text(text) = &para.children[0] {

@@ -1,21 +1,12 @@
 use crate::api::options::RawHtmlPolicy;
-use crate::ast::hast::nodes::*;
+use crate::ast::hast::nodes::HNode;
 use crate::diagnostics::sink::DiagnosticSink;
 
-/// Post-lowering pass to handle raw HTML nodes in the HAst.
-///
-/// - `Disallow`: All raw nodes should have been converted to text during lowering.
-/// - `AllowDangerous`: Raw nodes are kept as-is.
-/// - `ParseAndSanitize`: Raw nodes will be sanitized by the sanitize pass later.
-///
-/// This pass is currently a no-op placeholder for future HTML parsing logic.
-pub fn process_raw_html(
+pub const fn process_raw_html(
     _root: &mut HNode,
     _policy: RawHtmlPolicy,
     _diagnostics: &mut DiagnosticSink,
 ) {
-    // Intentionally empty: raw HTML handling is done during lowering
-    // and sanitization will be performed by a separate pass.
 }
 
 #[cfg(test)]

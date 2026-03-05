@@ -1,10 +1,13 @@
-import { memo } from "react";
+import { Collapsible } from "@base-ui/react/collapsible";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Collapsible } from "@base-ui-components/react/collapsible";
-import { useTranslation, localePath, DEFAULT_LOCALE } from "~/i18n";
+import { memo } from "react";
 import translationStatus from "virtual:translation-status";
-import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
+
+import { useTranslation, localePath, DEFAULT_LOCALE } from "~/i18n";
 import { NAV, type NavItem, type NavSection } from "~/navigation";
+
+import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
+
 import styles from "./Sidebar.module.css";
 
 function ChevronIcon({ className }: { className?: string }) {
@@ -34,16 +37,12 @@ const NavItemLink = memo(function NavItemLink({
 }) {
   const { t, locale } = useTranslation();
   const href = localePath(item.href, locale);
-  const status = locale !== DEFAULT_LOCALE && item.slug
-    ? translationStatus[item.slug]?.status
-    : undefined;
+  const status =
+    locale !== DEFAULT_LOCALE && item.slug ? translationStatus[item.slug]?.status : undefined;
 
   return (
     <li className={styles.navItemRow}>
-      <Link
-        to={href}
-        className={pathname === href ? styles.navLinkActive : styles.navLink}
-      >
+      <Link to={href} className={pathname === href ? styles.navLinkActive : styles.navLink}>
         {t(`nav.${item.labelKey}`)}
       </Link>
       <StatusBadge status={status} />
@@ -80,19 +79,19 @@ function SectionWithGroups({ section, pathname }: { section: NavSection; pathnam
       {section.groups!.map((group) => {
         const isActive = group.items.some((item) => pathname === localePath(item.href, locale));
         return (
-        <Collapsible.Root key={group.labelKey} defaultOpen={isActive}>
-          <Collapsible.Trigger className={styles.groupTrigger}>
-            <span className={styles.groupTriggerLabel}>{t(`nav.${group.labelKey}`)}</span>
-            <ChevronIcon className={styles.chevron} />
-          </Collapsible.Trigger>
-          <Collapsible.Panel className={styles.sectionPanel}>
-            <ul className={styles.groupList}>
-              {group.items.map((item) => (
-                <NavItemLink key={item.href} item={item} pathname={pathname} />
-              ))}
-            </ul>
-          </Collapsible.Panel>
-        </Collapsible.Root>
+          <Collapsible.Root key={group.labelKey} defaultOpen={isActive}>
+            <Collapsible.Trigger className={styles.groupTrigger}>
+              <span className={styles.groupTriggerLabel}>{t(`nav.${group.labelKey}`)}</span>
+              <ChevronIcon className={styles.chevron} />
+            </Collapsible.Trigger>
+            <Collapsible.Panel className={styles.sectionPanel}>
+              <ul className={styles.groupList}>
+                {group.items.map((item) => (
+                  <NavItemLink key={item.href} item={item} pathname={pathname} />
+                ))}
+              </ul>
+            </Collapsible.Panel>
+          </Collapsible.Root>
         );
       })}
     </div>
@@ -118,7 +117,7 @@ export function Sidebar({ hideLogo }: SidebarProps = {}) {
           <SectionWithGroups key={section.labelKey} section={section} pathname={pathname} />
         ) : (
           <SectionWithItems key={section.labelKey} section={section} pathname={pathname} />
-        )
+        ),
       )}
     </nav>
   );

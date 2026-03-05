@@ -1,5 +1,6 @@
 ---
 title: unifast
+description: "High-performance Markdown / MDX compiler built with Rust. CommonMark, GFM, frontmatter, MDX, sanitization, syntax highlighting, and more."
 ---
 
 High-performance Markdown/MDX compiler with an Oxc-style architecture.

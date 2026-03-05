@@ -2,14 +2,13 @@ use crate::ast::hast::nodes::*;
 use crate::diagnostics::sink::DiagnosticSink;
 use std::collections::{HashMap, HashSet};
 
-/// Internal sanitization schema using HashSet for O(1) lookups.
 pub struct SanitizeSchema {
     pub allowed_tags: HashSet<String>,
     pub allowed_attributes: HashMap<String, HashSet<String>>,
     pub allowed_protocols: HashMap<String, HashSet<String>>,
 }
 
-/// Default safe schema -- allows common HTML tags and safe attributes.
+#[must_use]
 pub fn default_safe_schema() -> SanitizeSchema {
     SanitizeSchema {
         allowed_tags: [
@@ -44,10 +43,10 @@ pub fn default_safe_schema() -> SanitizeSchema {
             "sub",
             "div",
             "span",
-            "input", // for task list checkboxes
+            "input",
         ]
         .iter()
-        .map(|s| s.to_string())
+        .map(std::string::ToString::to_string)
         .collect(),
         allowed_attributes: {
             let mut map = HashMap::new();
@@ -55,43 +54,57 @@ pub fn default_safe_schema() -> SanitizeSchema {
                 "a".to_string(),
                 ["href", "title", "class"]
                     .iter()
-                    .map(|s| s.to_string())
+                    .map(std::string::ToString::to_string)
                     .collect(),
             );
             map.insert(
                 "img".to_string(),
                 ["src", "alt", "title"]
                     .iter()
-                    .map(|s| s.to_string())
+                    .map(std::string::ToString::to_string)
                     .collect(),
             );
             map.insert(
                 "td".to_string(),
-                ["align"].iter().map(|s| s.to_string()).collect(),
+                ["align"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
             );
             map.insert(
                 "th".to_string(),
-                ["align"].iter().map(|s| s.to_string()).collect(),
+                ["align"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
             );
             map.insert(
                 "input".to_string(),
                 ["type", "checked", "disabled"]
                     .iter()
-                    .map(|s| s.to_string())
+                    .map(std::string::ToString::to_string)
                     .collect(),
             );
             map.insert(
                 "code".to_string(),
-                ["class"].iter().map(|s| s.to_string()).collect(),
+                ["class"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
             );
             map.insert(
                 "ol".to_string(),
-                ["start"].iter().map(|s| s.to_string()).collect(),
+                ["start"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
             );
-            // Global: id, class allowed on all elements
             map.insert(
                 "*".to_string(),
-                ["id", "class"].iter().map(|s| s.to_string()).collect(),
+                ["id", "class"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
             );
             map
         },
@@ -101,19 +114,22 @@ pub fn default_safe_schema() -> SanitizeSchema {
                 "href".to_string(),
                 ["http", "https", "mailto", "#"]
                     .iter()
-                    .map(|s| s.to_string())
+                    .map(std::string::ToString::to_string)
                     .collect(),
             );
             map.insert(
                 "src".to_string(),
-                ["http", "https"].iter().map(|s| s.to_string()).collect(),
+                ["http", "https"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
             );
             map
         },
     }
 }
 
-/// Convert the API-level SanitizeSchema (Vec-based) into the internal HashSet-based schema.
+#[must_use]
 pub fn from_api_schema(api: &crate::api::options::SanitizeSchema) -> SanitizeSchema {
     SanitizeSchema {
         allowed_tags: api.allowed_tags.iter().cloned().collect(),
@@ -130,7 +146,6 @@ pub fn from_api_schema(api: &crate::api::options::SanitizeSchema) -> SanitizeSch
     }
 }
 
-/// Sanitize an HAst tree rooted at an HRoot by removing disallowed tags and attributes.
 pub fn sanitize(root: &mut HRoot, schema: &SanitizeSchema, diagnostics: &mut DiagnosticSink) {
     sanitize_children(&mut root.children, schema, diagnostics);
 }
@@ -146,7 +161,6 @@ fn sanitize_children(
             HNode::Element(elem) => {
                 if !schema.allowed_tags.contains(&elem.tag) {
                     diagnostics.warn(format!("Removed disallowed tag: <{}>", elem.tag), elem.span);
-                    // Replace with children (unwrap the element)
                     let elem_owned = if let HNode::Element(e) = children.remove(i) {
                         e
                     } else {
@@ -154,20 +168,17 @@ fn sanitize_children(
                     };
                     let mut promoted_children = elem_owned.children;
                     sanitize_children(&mut promoted_children, schema, diagnostics);
-                    // Insert children in place
                     for (j, child) in promoted_children.into_iter().enumerate() {
                         children.insert(i + j, child);
                     }
-                    continue; // don't increment i; re-check what landed at i
+                    continue;
                 }
-                // Tag is allowed: sanitize attributes, then recurse into children
                 if let HNode::Element(ref mut elem) = children[i] {
                     sanitize_attributes(elem, schema, diagnostics);
                     sanitize_children(&mut elem.children, schema, diagnostics);
                 }
             }
             HNode::Raw(raw) => {
-                // Raw HTML nodes should be escaped in sanitize mode
                 diagnostics.warn("Raw HTML removed during sanitization", raw.span);
                 let text = HNode::Text(HText {
                     id: raw.id,
@@ -177,14 +188,11 @@ fn sanitize_children(
                 children[i] = text;
             }
             HNode::Root(_) => {
-                // Nested roots: recurse into children
                 if let HNode::Root(ref mut r) = children[i] {
                     sanitize_children(&mut r.children, schema, diagnostics);
                 }
             }
-            HNode::Text(_) | HNode::Comment(_) | HNode::Doctype(_) => {
-                // Text is always safe; comments and doctypes pass through
-            }
+            HNode::Text(_) | HNode::Comment(_) | HNode::Doctype(_) => {}
         }
         i += 1;
     }
@@ -208,7 +216,6 @@ fn sanitize_attributes(
             continue;
         }
 
-        // Check protocol for href/src
         if let Some(protocols) = schema.allowed_protocols.get(attr_name)
             && !attr_value.is_empty()
             && !is_safe_protocol(attr_value, protocols)
@@ -234,7 +241,7 @@ fn is_safe_protocol(url: &str, allowed: &HashSet<String>) -> bool {
         let protocol = &url[..colon_pos];
         allowed.contains(protocol)
     } else {
-        true // relative URLs are safe
+        true
     }
 }
 
@@ -287,7 +294,6 @@ mod tests {
 
         sanitize(&mut root, &schema, &mut diag);
 
-        // Script tag removed, text child promoted
         assert_eq!(root.children.len(), 1);
         if let HNode::Text(t) = &root.children[0] {
             assert_eq!(t.value, "alert('xss')");
@@ -472,7 +478,6 @@ mod tests {
     #[test]
     fn sanitize_nested_elements() {
         let mut id_gen = NodeIdGen::new();
-        // <div><script>alert('xss')</script><p>safe</p></div>
         let script_text = make_text(&mut id_gen, "alert('xss')");
         let script = make_element(&mut id_gen, "script", SmallMap::new(), vec![script_text]);
         let safe_text = make_text(&mut id_gen, "safe");
@@ -484,17 +489,14 @@ mod tests {
 
         sanitize(&mut root, &schema, &mut diag);
 
-        // div kept, script removed (child text promoted), p kept
         if let HNode::Element(div_elem) = &root.children[0] {
             assert_eq!(div_elem.tag, "div");
             assert_eq!(div_elem.children.len(), 2);
-            // First child is the promoted text from script
             if let HNode::Text(t) = &div_elem.children[0] {
                 assert_eq!(t.value, "alert('xss')");
             } else {
                 panic!("expected promoted text");
             }
-            // Second child is the p
             if let HNode::Element(p_elem) = &div_elem.children[1] {
                 assert_eq!(p_elem.tag, "p");
             } else {
@@ -514,7 +516,6 @@ mod tests {
         let h1 = make_element(&mut id_gen, "h1", SmallMap::new(), vec![text2]);
         let mut root = make_root(&mut id_gen, vec![p, h1]);
 
-        // Custom schema that only allows <p>
         let schema = SanitizeSchema {
             allowed_tags: ["p"].iter().map(|s| s.to_string()).collect(),
             allowed_attributes: HashMap::new(),
@@ -524,7 +525,6 @@ mod tests {
 
         sanitize(&mut root, &schema, &mut diag);
 
-        // p kept, h1 removed but text promoted
         assert_eq!(root.children.len(), 2);
         if let HNode::Element(p_elem) = &root.children[0] {
             assert_eq!(p_elem.tag, "p");
@@ -586,9 +586,7 @@ mod tests {
         sanitize(&mut root, &schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
-            // data: protocol not allowed, src removed
             assert!(!elem.attributes.contains_key(&"src".to_string()));
-            // alt is still there
             assert!(elem.attributes.contains_key(&"alt".to_string()));
         } else {
             panic!("expected img element");
@@ -617,8 +615,6 @@ mod tests {
     #[test]
     fn sanitize_deeply_nested_disallowed() {
         let mut id_gen = NodeIdGen::new();
-        // <div><section><p>text</p></section></div>
-        // section is not allowed, should be unwrapped
         let text = make_text(&mut id_gen, "text");
         let p = make_element(&mut id_gen, "p", SmallMap::new(), vec![text]);
         let section = make_element(&mut id_gen, "section", SmallMap::new(), vec![p]);
@@ -629,7 +625,6 @@ mod tests {
 
         sanitize(&mut root, &schema, &mut diag);
 
-        // div > p > text (section unwrapped)
         if let HNode::Element(div_elem) = &root.children[0] {
             assert_eq!(div_elem.tag, "div");
             assert_eq!(div_elem.children.len(), 1);

@@ -1,7 +1,6 @@
 use crate::ast::mdast::nodes::AlignKind;
 
-/// Check if a line is a GFM table separator row (e.g. `|---|:---:|---:|`).
-/// Returns the alignment for each column if it is a valid separator.
+#[must_use]
 pub fn is_table_separator(line: &str) -> Option<Vec<AlignKind>> {
     let trimmed = line.trim();
     if !trimmed.contains('-') {
@@ -19,11 +18,9 @@ pub fn is_table_separator(line: &str) -> Option<Vec<AlignKind>> {
         if c.is_empty() {
             return None;
         }
-        // Must consist only of `-`, `:` characters.
         if !c.bytes().all(|b| b == b'-' || b == b':') {
             return None;
         }
-        // Must have at least one dash.
         if !c.contains('-') {
             return None;
         }
@@ -42,8 +39,7 @@ pub fn is_table_separator(line: &str) -> Option<Vec<AlignKind>> {
     Some(aligns)
 }
 
-/// Split a table row line by pipes, trimming each cell.
-/// Handles leading/trailing pipes, e.g. `| a | b |` -> ["a", "b"].
+#[must_use]
 pub fn parse_table_row(line: &str) -> Vec<String> {
     split_table_row(line.trim())
         .into_iter()
@@ -51,8 +47,6 @@ pub fn parse_table_row(line: &str) -> Vec<String> {
         .collect()
 }
 
-/// Internal helper: split by pipes, stripping leading/trailing empty segments
-/// caused by leading/trailing `|`.
 fn split_table_row(trimmed: &str) -> Vec<String> {
     let mut cells: Vec<String> = Vec::new();
     let mut current = String::new();
@@ -61,7 +55,6 @@ fn split_table_row(trimmed: &str) -> Vec<String> {
 
     while i < bytes.len() {
         if bytes[i] == b'\\' && i + 1 < bytes.len() && bytes[i + 1] == b'|' {
-            // Escaped pipe -- include literal pipe in cell.
             current.push('|');
             i += 2;
         } else if bytes[i] == b'|' {
@@ -73,14 +66,11 @@ fn split_table_row(trimmed: &str) -> Vec<String> {
             i += trimmed[i..].chars().next().unwrap().len_utf8();
         }
     }
-    // Push last segment.
     cells.push(current);
 
-    // Remove leading empty segment (from leading `|`).
     if cells.first().is_some_and(|c| c.trim().is_empty()) {
         cells.remove(0);
     }
-    // Remove trailing empty segment (from trailing `|`).
     if cells.last().is_some_and(|c| c.trim().is_empty()) {
         cells.pop();
     }
@@ -88,7 +78,7 @@ fn split_table_row(trimmed: &str) -> Vec<String> {
     cells
 }
 
-/// Check if a line looks like it could be a table header row (contains at least one `|`).
+#[must_use]
 pub fn could_be_table_row(line: &str) -> bool {
     let trimmed = line.trim();
     trimmed.contains('|')

@@ -15,19 +15,15 @@ export default function packageInstallHighlightPlugin(): Plugin {
 
     configResolved() {
       try {
-        // Use createRequire to load the native binding (CJS)
         const { createRequire } = require("node:module");
         const req = createRequire(import.meta.url);
         compileFn = req("@unifast/node").compile;
-      } catch {
-        // Native binding not available — skip highlighting
-      }
+      } catch {}
     },
 
     transform(code, id) {
       if (!/\.mdx$/.test(id) || !compileFn) return null;
 
-      // Match: _jsx(PackageInstall, { package: "..." })
       const pattern = /_jsx\(PackageInstall,\s*\{\s*package:\s*"([^"]+)"\s*\}\)/g;
       const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
@@ -43,7 +39,6 @@ export default function packageInstallHighlightPlugin(): Plugin {
             const result = compileFn(md, {
               highlight: { enabled: true, engine: "syntect" },
             });
-            // Extract inner HTML from <pre><code ...>CONTENT</code></pre>
             const inner = result.output.match(/<code[^>]*>([\s\S]*?)<\/code>/);
             highlighted[mgr.id] = inner ? inner[1] : cmd;
           } catch {

@@ -18,13 +18,49 @@ export type CompileOptions = {
 
   sanitize?: { enabled?: boolean; schema?: SanitizeSchema };
 
-  highlight?: { enabled?: boolean; engine?: "none" | "syntect" };
+  highlight?: { enabled?: boolean; engine?: "none" | "syntect" | "treeSitter" };
 
   lineNumbers?: { enabled?: boolean };
 
   slug?: { mode?: "github" | "unicode" };
 
   toc?: { enabled?: boolean; maxDepth?: number };
+
+  externalLinks?: { enabled?: boolean; rel?: string; target?: string };
+
+  autolinkHeadings?: {
+    enabled?: boolean;
+    behavior?: "prepend" | "append" | "wrap";
+  };
+
+  sectionize?: { enabled?: boolean };
+
+  breaks?: { enabled?: boolean };
+
+  smartypants?: {
+    enabled?: boolean;
+    quotes?: boolean;
+    dashes?: boolean;
+    ellipses?: boolean;
+  };
+
+  emoji?: { enabled?: boolean };
+
+  githubAlert?: { enabled?: boolean };
+
+  math?: { enabled?: boolean };
+
+  directive?: { enabled?: boolean };
+
+  wikiLink?: { enabled?: boolean; hrefTemplate?: string };
+
+  definitionList?: { enabled?: boolean };
+
+  rubyAnnotation?: { enabled?: boolean };
+
+  cjk?: { enabled?: boolean };
+
+  codeImport?: { enabled?: boolean; rootDir?: string };
 
   diagnostics?: { format?: "compact" | "verbose" };
 

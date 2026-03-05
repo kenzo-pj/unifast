@@ -11,6 +11,7 @@ let pagefind: any = null;
 async function loadPagefind() {
   if (pagefind) return pagefind;
   try {
+    // @ts-expect-error pagefind is generated at build time and served from /pagefind/
     pagefind = await import(/* @vite-ignore */ "/pagefind/pagefind.js");
     await pagefind.init();
     return pagefind;
@@ -23,7 +24,7 @@ export function useSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const search = useCallback((term: string) => {
     setQuery(term);

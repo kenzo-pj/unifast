@@ -1,6 +1,6 @@
-use crate::ast::mdast::nodes::*;
+use crate::ast::mdast::nodes::{Document, MdNode, MdxJsxElement};
 
-/// Compile an MDX document AST into a JavaScript module string.
+#[must_use]
 pub fn print_mdx_js(doc: &Document) -> MdxJsOutput {
     let mut printer = MdxJsPrinter::new();
     printer.print_document(doc);
@@ -10,22 +10,16 @@ pub fn print_mdx_js(doc: &Document) -> MdxJsOutput {
     }
 }
 
-/// The output of the MDX-to-JS compilation step.
 pub struct MdxJsOutput {
-    /// The generated JavaScript source code.
     pub code: String,
-    /// Source-mapping segments (generated position -> original offset).
     pub source_mappings: Vec<SourceMapping>,
 }
 
-/// A single source-mapping segment.
 pub struct SourceMapping {
     pub generated_line: u32,
     pub generated_column: u32,
     pub original_offset: u32,
 }
-
-// ── Printer ──────────────────────────────────────────────────────────────
 
 struct MdxJsPrinter {
     output: String,
@@ -35,7 +29,7 @@ struct MdxJsPrinter {
 }
 
 impl MdxJsPrinter {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self {
             output: String::new(),
             mappings: Vec::new(),
@@ -44,7 +38,6 @@ impl MdxJsPrinter {
         }
     }
 
-    /// Append text to the output, updating line/column tracking.
     fn emit(&mut self, s: &str) {
         for ch in s.chars() {
             if ch == '\n' {
@@ -57,7 +50,6 @@ impl MdxJsPrinter {
         self.output.push_str(s);
     }
 
-    /// Append text with a source-mapping entry.
     fn emit_with_mapping(&mut self, s: &str, original_offset: u32) {
         self.mappings.push(SourceMapping {
             generated_line: self.line,
@@ -67,10 +59,7 @@ impl MdxJsPrinter {
         self.emit(s);
     }
 
-    // ── Document ─────────────────────────────────────────────────────
-
     fn print_document(&mut self, doc: &Document) {
-        // Separate ESM statements from content nodes.
         let mut esm_nodes: Vec<&MdNode> = Vec::new();
         let mut content_nodes: Vec<&MdNode> = Vec::new();
 
@@ -81,7 +70,6 @@ impl MdxJsPrinter {
             }
         }
 
-        // Emit ESM imports/exports at the top of the module.
         for esm in &esm_nodes {
             if let MdNode::MdxjsEsm(e) = esm {
                 self.emit_with_mapping(&e.value, e.span.start);
@@ -89,7 +77,6 @@ impl MdxJsPrinter {
             }
         }
 
-        // Emit the MDXContent component function.
         self.emit("\nfunction MDXContent(props) {\n");
         self.emit("  return ");
 
@@ -113,8 +100,6 @@ impl MdxJsPrinter {
         self.emit("}\n\n");
         self.emit("export default MDXContent;\n");
     }
-
-    // ── Node emitter ─────────────────────────────────────────────────
 
     fn print_mdx_node(&mut self, node: &MdNode, indent: usize) {
         let pad = " ".repeat(indent);
@@ -223,8 +208,6 @@ impl MdxJsPrinter {
                 self.emit(&format!("{pad}_jsx(\"br\", {{}})"));
             }
             MdNode::Html(h) => {
-                // Emit raw HTML as a string — consumers should sanitize before
-                // rendering.
                 self.emit(&format!(
                     "{pad}_jsx(\"div\", {{ rawHtml: \"{}\" }})",
                     escape_js_string(&h.value),
@@ -263,7 +246,67 @@ impl MdxJsPrinter {
                 self.print_inline_children(&d.children);
                 self.emit(" })");
             }
-            // Nodes without a direct JSX representation are silently skipped.
+            MdNode::Math(m) => {
+                self.emit(&format!(
+                    "{pad}_jsx(\"pre\", {{ className: \"math math-display\", children: _jsx(\"code\", {{ children: \"{}\" }}) }})",
+                    escape_js_string(&m.value),
+                ));
+            }
+            MdNode::InlineMath(m) => {
+                self.emit(&format!(
+                    "{pad}_jsx(\"code\", {{ className: \"math math-inline\", children: \"{}\" }})",
+                    escape_js_string(&m.value),
+                ));
+            }
+            MdNode::ContainerDirective(d) => {
+                self.emit(&format!(
+                    "{pad}_jsxs(\"div\", {{ className: \"directive directive-{}\", \"data-directive\": \"{}\", children: [\n",
+                    escape_js_string(&d.name), escape_js_string(&d.name),
+                ));
+                for (i, child) in d.children.iter().enumerate() {
+                    self.print_mdx_node(child, indent + 2);
+                    if i < d.children.len() - 1 {
+                        self.emit(",\n");
+                    }
+                }
+                self.emit(&format!("\n{pad}] }})"));
+            }
+            MdNode::WikiLink(w) => {
+                let slug = w.target.to_lowercase().replace(' ', "-");
+                self.emit(&format!(
+                    "{pad}_jsx(\"a\", {{ href: \"/wiki/{}\", className: \"wiki-link\", children: ",
+                    escape_js_string(&slug),
+                ));
+                self.print_inline_children(&w.children);
+                self.emit(" })");
+            }
+            MdNode::DefinitionList(dl) => {
+                self.emit(&format!("{pad}_jsxs(\"dl\", {{ children: [\n"));
+                for (i, child) in dl.children.iter().enumerate() {
+                    self.print_mdx_node(child, indent + 2);
+                    if i < dl.children.len() - 1 {
+                        self.emit(",\n");
+                    }
+                }
+                self.emit(&format!("\n{pad}] }})"));
+            }
+            MdNode::DefinitionTerm(dt) => {
+                self.emit(&format!("{pad}_jsx(\"dt\", {{ children: "));
+                self.print_inline_children(&dt.children);
+                self.emit(" })");
+            }
+            MdNode::DefinitionDescription(dd) => {
+                self.emit(&format!("{pad}_jsx(\"dd\", {{ children: "));
+                self.print_inline_children(&dd.children);
+                self.emit(" })");
+            }
+            MdNode::RubyAnnotation(r) => {
+                self.emit(&format!(
+                    "{pad}_jsxs(\"ruby\", {{ children: [\"{}\", _jsx(\"rp\", {{ children: \"(\" }}), _jsx(\"rt\", {{ children: \"{}\" }}), _jsx(\"rp\", {{ children: \")\" }})] }})",
+                    escape_js_string(&r.base),
+                    escape_js_string(&r.annotation),
+                ));
+            }
             MdNode::Document(_)
             | MdNode::Definition(_)
             | MdNode::FootnoteDefinition(_)
@@ -271,11 +314,12 @@ impl MdxJsPrinter {
             | MdNode::Yaml(_)
             | MdNode::Toml(_)
             | MdNode::Json(_)
-            | MdNode::MdxjsEsm(_) => {}
+            | MdNode::MdxjsEsm(_)
+            | MdNode::LeafDirective(_)
+            | MdNode::TextDirective(_) => {}
         }
     }
 
-    /// Emit a JSX element (`MdxJsxElement`).
     fn print_jsx_element(&mut self, el: &MdxJsxElement, pad: &str, indent: usize) {
         let name = el.name.as_deref().unwrap_or("_Fragment");
 
@@ -330,7 +374,6 @@ impl MdxJsPrinter {
         }
     }
 
-    /// Emit an inline children array (or a single string shorthand).
     fn print_inline_children(&mut self, children: &[MdNode]) {
         if children.len() == 1
             && let MdNode::Text(t) = &children[0]
@@ -349,7 +392,6 @@ impl MdxJsPrinter {
     }
 }
 
-/// Escape a Rust string for embedding inside a JavaScript string literal.
 fn escape_js_string(s: &str) -> String {
     s.replace('\\', "\\\\")
         .replace('"', "\\\"")
@@ -362,8 +404,6 @@ fn escape_js_string(s: &str) -> String {
 mod tests {
     use super::*;
     use crate::parse::mdx::parse_mdx;
-
-    // ---- MDX JS emission tests (at least 10) ----
 
     #[test]
     fn mdx_js_emit_heading() {
@@ -504,7 +544,6 @@ mod tests {
     fn mdx_js_escape_special_chars() {
         let r = parse_mdx("Hello \"world\"\n");
         let output = print_mdx_js(&r.document);
-        // The quote should be escaped in the JS output.
         assert!(output.code.contains("\\\"world\\\""));
     }
 
@@ -512,8 +551,6 @@ mod tests {
     fn mdx_js_emit_thematic_break() {
         let r = parse_mdx("---\n\ntext\n");
         let output = print_mdx_js(&r.document);
-        // The --- is either a thematic break or frontmatter;
-        // with content after it, it may be treated as hr.
         assert!(output.code.contains("MDXContent"));
     }
 }

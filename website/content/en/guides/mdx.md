@@ -1,22 +1,20 @@
 ---
 title: "Using MDX"
-description: "Write JSX expressions and import components in Markdown files"
+description: "Compile MDX with unifast to use JSX expressions and import statements inside Markdown, rendered with React or other JSX runtimes."
 ---
-
-## Using MDX
 
 MDX lets you use JSX expressions and import statements inside Markdown. unifast compiles MDX to JavaScript modules that can be rendered with React or other JSX runtimes.
 
 ### Installation
 
 ```sh
-npm install @unifast/node @unifast/mdx
+npm install @unifast/node
 ```
 
 ### Basic Usage
 
 ```ts
-import { compileMdx } from "@unifast/mdx";
+import { compile } from "@unifast/node";
 
 const source = `
 # Hello
@@ -26,7 +24,7 @@ const source = `
 export const meta = { title: "My Page" };
 `;
 
-const result = compileMdx(source);
+const result = compile(source, { inputKind: "mdx" });
 // result.output is a JavaScript module string
 ```
 
@@ -52,12 +50,12 @@ The output is a JavaScript module with a default export function that accepts a 
 ### Using with React
 
 ```ts
-import { compileMdx } from "@unifast/mdx";
-import { compileToReact } from "@unifast/plugin-react";
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
 
 const source = `# Hello\n\nThis is **MDX**.`;
 
-const result = compileMdx(source);
+const result = compile(source, { inputKind: "mdx" });
 const Component = compileToReact(result);
 
 // Render in your React app
@@ -69,8 +67,7 @@ const Component = compileToReact(result);
 Combine MDX with the frontmatter plugin to extract metadata:
 
 ```ts
-import { compileMdx } from "@unifast/mdx";
-import { frontmatter } from "@unifast/plugin-frontmatter";
+import { compile, frontmatter } from "@unifast/node";
 
 const source = `---
 title: My Article
@@ -82,7 +79,8 @@ author: Jane
 Written by {frontmatter.author}.
 `;
 
-const result = compileMdx(source, {
+const result = compile(source, {
+  inputKind: "mdx",
   plugins: [frontmatter()],
 });
 
@@ -92,5 +90,5 @@ console.log(result.frontmatter);
 
 ### See Also
 
-- [compileMdx()](/docs/packages/mdx/compile-mdx) - Full API reference
+- [compile()](/docs/packages/node/compile) - Full API reference
 - [React Integration](/docs/guides/react) - Rendering MDX with React

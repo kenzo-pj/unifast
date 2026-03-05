@@ -1,0 +1,28 @@
+{
+  "config": {
+    // Heading levels skip h2 because frontmatter title renders as h1
+    "heading-increment": false,
+    // Allow inline HTML
+    "no-inline-html": false,
+    // Allow bare URLs
+    "no-bare-urls": false,
+    // First line is frontmatter, not heading
+    "first-line-heading": false,
+    // Disable line length for docs with tables and code
+    "line-length": false,
+    // Allow code blocks without language
+    "fenced-code-language": false,
+    // Disable table column style (compact format is intentional)
+    "table-column-style": false,
+    // Allow blank lines between blockquotes (needed for GitHub Alert examples)
+    "no-blanks-blockquote": false
+  },
+  "globs": [
+    "content/**/*.md"
+  ],
+  "ignores": [
+    "node_modules",
+    "**/node_modules",
+    "content/**/*.mdx"
+  ]
+}

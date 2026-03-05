@@ -1,11 +1,13 @@
-import type { ComponentType } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import type { ComponentType } from "react";
+import translationStatus from "virtual:translation-status";
+
 import { DocContent } from "~/components/DocContent";
 import { NotFound } from "~/components/NotFound";
-import { flattenNav } from "~/navigation";
 import { useTranslation, localePath, SUPPORTED_LOCALES, type LocaleCode } from "~/i18n";
 import type { Locale } from "~/i18n/locales/en";
-import translationStatus from "virtual:translation-status";
+import { flattenNav } from "~/navigation";
+
 import type { TranslationStatus } from "../../../../plugins/vite-plugin-translation-status";
 
 type MdModule = {
@@ -20,13 +22,9 @@ type MdxModule = {
   toc: Array<{ depth: number; text: string; slug: string }>;
 };
 
-const mdModules = import.meta.glob<MdModule>(
-  "../../../../content/**/*.md",
-);
+const mdModules = import.meta.glob<MdModule>("../../../../content/**/*.md");
 
-const mdxModules = import.meta.glob<MdxModule>(
-  "../../../../content/**/*.mdx",
-);
+const mdxModules = import.meta.glob<MdxModule>("../../../../content/**/*.mdx");
 
 const allPages = flattenNav();
 
@@ -65,7 +63,9 @@ function LocaleDocsPage() {
     return <NotFound />;
   }
 
-  const status: TranslationStatus = hasLocale ? (translationStatus[slug]?.status ?? "translated") : "missing";
+  const status: TranslationStatus = hasLocale
+    ? (translationStatus[slug]?.status ?? "translated")
+    : "missing";
   const frontmatter = mdxMod?.frontmatter ?? mdMod?.frontmatter ?? {};
   const toc = mdxMod?.toc ?? mdMod?.toc ?? [];
 
@@ -81,8 +81,22 @@ function LocaleDocsPage() {
       toc={toc}
       translationStatus={status}
       slug={slug}
-      prevPage={prevPage ? { label: t(`nav.${prevPage.labelKey}` as `nav.${keyof Locale["nav"]}`), href: localePath(prevPage.href, locale) } : undefined}
-      nextPage={nextPage ? { label: t(`nav.${nextPage.labelKey}` as `nav.${keyof Locale["nav"]}`), href: localePath(nextPage.href, locale) } : undefined}
+      prevPage={
+        prevPage
+          ? {
+              label: t(`nav.${prevPage.labelKey}` as `nav.${keyof Locale["nav"]}`),
+              href: localePath(prevPage.href, locale as LocaleCode),
+            }
+          : undefined
+      }
+      nextPage={
+        nextPage
+          ? {
+              label: t(`nav.${nextPage.labelKey}` as `nav.${keyof Locale["nav"]}`),
+              href: localePath(nextPage.href, locale as LocaleCode),
+            }
+          : undefined
+      }
     />
   );
 }

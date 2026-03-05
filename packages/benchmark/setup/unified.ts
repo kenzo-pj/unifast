@@ -8,6 +8,7 @@ import { matter } from "vfile-matter";
 import rehypeSanitize from "rehype-sanitize";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
+import rehypeShiki from "@shikijs/rehype";
 
 function remarkExtractFrontmatter() {
   return function (_tree: any, file: any) {
@@ -73,5 +74,16 @@ export function createCombinedProcessor() {
     .use(rehypeSanitize)
     .use(rehypeHighlight)
     .use(rehypeSlug)
+    .use(rehypeStringify);
+}
+
+export async function createShikiProcessor() {
+  return unified()
+    .use(remarkParse)
+    .use(remarkRehype)
+    .use(rehypeShiki, {
+      theme: "github-dark",
+      langs: ["javascript", "typescript", "rust", "bash", "json", "html", "css", "python", "yaml", "toml"],
+    })
     .use(rehypeStringify);
 }

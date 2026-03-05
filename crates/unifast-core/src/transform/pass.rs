@@ -84,9 +84,9 @@ mod tests {
 
     #[test]
     fn pass_context_construction() {
-        use crate::diagnostics::sink::DiagnosticSink;
         use crate::api::options::CompileOptions;
         use crate::ast::common::NodeIdGen;
+        use crate::diagnostics::sink::DiagnosticSink;
 
         let source = "# Hello";
         let mut diag = DiagnosticSink::new();

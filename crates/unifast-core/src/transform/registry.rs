@@ -5,6 +5,7 @@ pub struct PassRegistry {
 }
 
 impl PassRegistry {
+    #[must_use]
     pub fn new() -> Self {
         Self { passes: vec![] }
     }
@@ -13,16 +14,23 @@ impl PassRegistry {
         self.passes.push(pass);
     }
 
+    #[must_use]
     pub fn ordered_passes(&self) -> Vec<&dyn Pass> {
-        let mut refs: Vec<&dyn Pass> = self.passes.iter().map(|p| p.as_ref()).collect();
+        let mut refs: Vec<&dyn Pass> = self
+            .passes
+            .iter()
+            .map(std::convert::AsRef::as_ref)
+            .collect();
         refs.sort_by_key(|p| p.phase());
         refs
     }
 
+    #[must_use]
     pub fn len(&self) -> usize {
         self.passes.len()
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.passes.is_empty()
     }
@@ -83,7 +91,6 @@ mod tests {
     #[test]
     fn registry_ordered_passes_by_phase() {
         let mut reg = PassRegistry::new();
-        // Register in reverse order
         reg.register(Box::new(MockPass {
             name: "emit_pass",
             phase: Phase::Emit,

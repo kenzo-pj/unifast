@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
-import { Dialog } from "@base-ui-components/react/dialog";
-import { Search01Icon } from "hugeicons-react";
+import { Dialog } from "@base-ui/react/dialog";
 import { useNavigate } from "@tanstack/react-router";
+import { Search01Icon } from "hugeicons-react";
+import { useState, useEffect, useCallback } from "react";
+
 import { useSearch } from "~/hooks/useSearch";
 import { useTranslation } from "~/i18n";
+
 import styles from "./SearchDialog.module.css";
 
 export function SearchDialog() {
@@ -13,7 +15,6 @@ export function SearchDialog() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const navigate = useNavigate();
 
-  // Cmd+K / Ctrl+K global shortcut
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -54,11 +55,7 @@ export function SearchDialog() {
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setActiveIndex((i) => (i > 0 ? i - 1 : results.length - 1));
-      } else if (
-        e.key === "Enter" &&
-        activeIndex >= 0 &&
-        results[activeIndex]
-      ) {
+      } else if (e.key === "Enter" && activeIndex >= 0 && results[activeIndex]) {
         e.preventDefault();
         goToResult(results[activeIndex].url);
       }
@@ -66,14 +63,11 @@ export function SearchDialog() {
     [results, activeIndex, goToResult],
   );
 
-  // Reset active index when results change
   useEffect(() => {
     setActiveIndex(results.length > 0 ? 0 : -1);
   }, [results]);
 
-  const isMac =
-    typeof navigator !== "undefined" &&
-    /Mac|iPhone|iPad/.test(navigator.userAgent);
+  const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
@@ -116,11 +110,6 @@ export function SearchDialog() {
                   onClick={() => goToResult(result.url)}
                 >
                   <div className={styles.resultTitle}>{result.title}</div>
-                  {/*
-                    Pagefind excerpts contain <mark> tags for search term highlighting.
-                    This is SAFE: Pagefind generates excerpts only from our own pre-rendered
-                    HTML content (not user input). Pagefind strips all HTML except <mark> tags.
-                  */}
                   <div
                     className={styles.resultExcerpt}
                     dangerouslySetInnerHTML={{ __html: result.excerpt }}

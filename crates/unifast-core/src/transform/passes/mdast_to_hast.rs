@@ -6,10 +6,6 @@ use crate::ast::mdast::nodes::*;
 use crate::diagnostics::sink::DiagnosticSink;
 use crate::util::small_map::SmallMap;
 
-/// Lower a parsed MdAst `Document` into an HAst tree.
-///
-/// Every `MdNode` variant is mapped to its HTML equivalent.
-/// MDX nodes and frontmatter nodes are stripped with diagnostics.
 pub fn lower(
     doc: &Document,
     id_gen: &mut NodeIdGen,
@@ -40,7 +36,7 @@ fn lower_node(
     diagnostics: &mut DiagnosticSink,
 ) -> Option<HNode> {
     match node {
-        MdNode::Document(_) => None, // shouldn't appear nested
+        MdNode::Document(_) => None,
 
         MdNode::Heading(h) => {
             let tag = format!("h{}", h.depth);
@@ -75,10 +71,9 @@ fn lower_node(
         }
 
         MdNode::Code(c) => {
-            // <pre><code class="language-xxx">value</code></pre>
             let mut code_attrs = SmallMap::new();
             if let Some(ref lang) = c.lang {
-                code_attrs.insert("class".to_string(), format!("language-{}", lang));
+                code_attrs.insert("class".to_string(), format!("language-{lang}"));
             }
             let text = builder.text(c.span, &c.value);
             let code_elem = builder.element(c.span, "code", code_attrs, vec![text], false);
@@ -87,7 +82,11 @@ fn lower_node(
 
         MdNode::Blockquote(bq) => {
             let children = lower_children(&bq.children, builder, policy, diagnostics);
-            Some(builder.elem(bq.span, "blockquote", children))
+            if let Some(ref alert_kind) = bq.alert_type {
+                lower_alert(bq.span, alert_kind, children, builder)
+            } else {
+                Some(builder.elem(bq.span, "blockquote", children))
+            }
         }
 
         MdNode::List(l) => {
@@ -105,7 +104,6 @@ fn lower_node(
 
         MdNode::ListItem(li) => {
             let mut children = Vec::new();
-            // Task list checkbox
             if let Some(checked) = li.checked {
                 let mut checkbox_attrs = SmallMap::new();
                 checkbox_attrs.insert("type".to_string(), "checkbox".to_string());
@@ -144,17 +142,15 @@ fn lower_node(
             Some(builder.element(img.span, "img", attrs, vec![], true))
         }
 
-        MdNode::Definition(_) => None, // definitions are metadata, not rendered
+        MdNode::Definition(_) => None,
 
         MdNode::Html(h) => lower_raw_html(&h.value, h.span, builder, policy, diagnostics),
 
         MdNode::Break(br) => Some(builder.element(br.span, "br", SmallMap::new(), vec![], true)),
 
-        // GFM
         MdNode::Table(t) => {
             let mut table_children = Vec::new();
 
-            // First row is header (thead)
             if let Some(first) = t.children.first()
                 && let Some(row) =
                     lower_table_row(first, builder, policy, diagnostics, true, &t.align)
@@ -163,7 +159,6 @@ fn lower_node(
                 table_children.push(thead);
             }
 
-            // Remaining rows are tbody
             if t.children.len() > 1 {
                 let body_rows: Vec<HNode> = t.children[1..]
                     .iter()
@@ -172,7 +167,9 @@ fn lower_node(
                     })
                     .collect();
                 if !body_rows.is_empty() {
-                    let tbody_span = body_rows.first().map(|r| r.span()).unwrap_or(Span::empty());
+                    let tbody_span = body_rows
+                        .first()
+                        .map_or(Span::empty(), crate::ast::hast::nodes::HNode::span);
                     let tbody = builder.elem(tbody_span, "tbody", body_rows);
                     table_children.push(tbody);
                 }
@@ -181,8 +178,8 @@ fn lower_node(
             Some(builder.elem(t.span, "table", table_children))
         }
 
-        MdNode::TableRow(_) => None,  // handled by Table
-        MdNode::TableCell(_) => None, // handled by TableRow
+        MdNode::TableRow(_) => None,
+        MdNode::TableCell(_) => None,
 
         MdNode::Delete(d) => {
             let children = lower_children(&d.children, builder, policy, diagnostics);
@@ -190,7 +187,6 @@ fn lower_node(
         }
 
         MdNode::FootnoteDefinition(fd) => {
-            // Render as an <li> with id="fn-{identifier}"
             let children = lower_children(&fd.children, builder, policy, diagnostics);
             let mut attrs = SmallMap::new();
             attrs.insert("id".to_string(), format!("fn-{}", fd.identifier));
@@ -208,10 +204,8 @@ fn lower_node(
             Some(builder.element(fr.span, "sup", sup_attrs, vec![link], false))
         }
 
-        // Frontmatter nodes shouldn't appear in rendered output
         MdNode::Yaml(_) | MdNode::Toml(_) | MdNode::Json(_) => None,
 
-        // MDX nodes — cannot render to plain HTML
         MdNode::MdxJsxFlowElement(el) | MdNode::MdxJsxTextElement(el) => {
             diagnostics.warn(
                 format!(
@@ -231,6 +225,98 @@ fn lower_node(
         MdNode::MdxFlowExpression(expr) | MdNode::MdxTextExpression(expr) => {
             diagnostics.warn("MDX expression cannot be rendered to HTML", expr.span);
             None
+        }
+
+        MdNode::Math(m) => {
+            let mut attrs = SmallMap::new();
+            attrs.insert("class".to_string(), "math math-display".to_string());
+            let code_text = builder.text(m.span, &m.value);
+            let code = builder.elem(m.span, "code", vec![code_text]);
+            Some(builder.element(m.span, "pre", attrs, vec![code], false))
+        }
+
+        MdNode::InlineMath(m) => {
+            let mut attrs = SmallMap::new();
+            attrs.insert("class".to_string(), "math math-inline".to_string());
+            let text = builder.text(m.span, &m.value);
+            Some(builder.element(m.span, "code", attrs, vec![text], false))
+        }
+
+        MdNode::ContainerDirective(d) => {
+            let mut attrs = SmallMap::new();
+            attrs.insert(
+                "class".to_string(),
+                format!("directive directive-{}", d.name),
+            );
+            attrs.insert("data-directive".to_string(), d.name.clone());
+            for (k, v) in &d.attributes {
+                attrs.insert(format!("data-{k}"), v.clone());
+            }
+            let children = lower_children(&d.children, builder, policy, diagnostics);
+            Some(builder.element(d.span, "div", attrs, children, false))
+        }
+
+        MdNode::LeafDirective(d) => {
+            let mut attrs = SmallMap::new();
+            attrs.insert(
+                "class".to_string(),
+                format!("directive directive-{}", d.name),
+            );
+            attrs.insert("data-directive".to_string(), d.name.clone());
+            for (k, v) in &d.attributes {
+                attrs.insert(format!("data-{k}"), v.clone());
+            }
+            let text = builder.text(d.span, &d.value);
+            Some(builder.element(d.span, "div", attrs, vec![text], false))
+        }
+
+        MdNode::TextDirective(d) => {
+            let mut attrs = SmallMap::new();
+            attrs.insert(
+                "class".to_string(),
+                format!("directive directive-{}", d.name),
+            );
+            attrs.insert("data-directive".to_string(), d.name.clone());
+            for (k, v) in &d.attributes {
+                attrs.insert(format!("data-{k}"), v.clone());
+            }
+            let text = builder.text(d.span, &d.value);
+            Some(builder.element(d.span, "span", attrs, vec![text], false))
+        }
+
+        MdNode::WikiLink(w) => {
+            let slug = w.target.to_lowercase().replace(' ', "-");
+            let mut attrs = SmallMap::new();
+            attrs.insert("href".to_string(), format!("/wiki/{slug}"));
+            attrs.insert("class".to_string(), "wiki-link".to_string());
+            let children = lower_children(&w.children, builder, policy, diagnostics);
+            Some(builder.element(w.span, "a", attrs, children, false))
+        }
+
+        MdNode::DefinitionList(dl) => {
+            let children = lower_children(&dl.children, builder, policy, diagnostics);
+            Some(builder.elem(dl.span, "dl", children))
+        }
+
+        MdNode::DefinitionTerm(dt) => {
+            let children = lower_children(&dt.children, builder, policy, diagnostics);
+            Some(builder.elem(dt.span, "dt", children))
+        }
+
+        MdNode::DefinitionDescription(dd) => {
+            let children = lower_children(&dd.children, builder, policy, diagnostics);
+            Some(builder.elem(dd.span, "dd", children))
+        }
+
+        MdNode::RubyAnnotation(r) => {
+            let base = builder.text(r.span, &r.base);
+            let rp_open_text = builder.text(r.span, "(");
+            let rp_open = builder.elem(r.span, "rp", vec![rp_open_text]);
+            let rt_text = builder.text(r.span, &r.annotation);
+            let rt = builder.elem(r.span, "rt", vec![rt_text]);
+            let rp_close_text = builder.text(r.span, ")");
+            let rp_close = builder.elem(r.span, "rp", vec![rp_close_text]);
+            Some(builder.elem(r.span, "ruby", vec![base, rp_open, rt, rp_close]))
         }
     }
 }
@@ -279,6 +365,36 @@ fn lower_table_row(
     }
 }
 
+fn lower_alert(
+    span: Span,
+    alert_kind: &str,
+    content_children: Vec<HNode>,
+    builder: &mut HBuilder,
+) -> Option<HNode> {
+    let title = match alert_kind {
+        "note" => "Note",
+        "tip" => "Tip",
+        "important" => "Important",
+        "warning" => "Warning",
+        "caution" => "Caution",
+        other => other,
+    };
+
+    let mut outer_attrs = SmallMap::new();
+    outer_attrs.insert("class".to_string(), format!("alert alert-{alert_kind}"));
+    outer_attrs.insert("role".to_string(), "alert".to_string());
+
+    let mut title_attrs = SmallMap::new();
+    title_attrs.insert("class".to_string(), "alert-title".to_string());
+    let title_text = builder.text(span, title);
+    let title_elem = builder.element(span, "p", title_attrs, vec![title_text], false);
+
+    let mut all_children = vec![title_elem];
+    all_children.extend(content_children);
+
+    Some(builder.element(span, "div", outer_attrs, all_children, false))
+}
+
 fn lower_raw_html(
     value: &str,
     span: Span,
@@ -295,14 +411,10 @@ fn lower_raw_html(
                 ),
                 span,
             );
-            // Escape and emit as text
             Some(builder.text(span, value))
         }
         RawHtmlPolicy::AllowDangerous => Some(builder.raw(span, value)),
-        RawHtmlPolicy::ParseAndSanitize => {
-            // For now, treat as AllowDangerous — sanitization happens in a later pass
-            Some(builder.raw(span, value))
-        }
+        RawHtmlPolicy::ParseAndSanitize => Some(builder.raw(span, value)),
     }
 }
 
@@ -310,8 +422,6 @@ fn lower_raw_html(
 mod tests {
     use super::*;
     use crate::ast::common::NodeIdGen;
-
-    // ── Helpers ──────────────────────────────────────────────────────
 
     fn make_doc(id_gen: &mut NodeIdGen, children: Vec<MdNode>) -> Document {
         Document {
@@ -349,17 +459,15 @@ mod tests {
         (root, diagnostics)
     }
 
-    /// Unwrap the root's children vec from an HNode::Root.
     fn root_children(root: &HNode) -> &[HNode] {
         root.children().expect("expected Root with children")
     }
 
-    /// Unwrap an HNode::Element, panicking with a message if it's the wrong variant.
     fn expect_element(node: &HNode) -> &HElement {
         if let HNode::Element(e) = node {
             e
         } else {
-            panic!("expected HNode::Element, got {:?}", node);
+            panic!("expected HNode::Element, got {node:?}");
         }
     }
 
@@ -367,7 +475,7 @@ mod tests {
         if let HNode::Text(t) = node {
             t
         } else {
-            panic!("expected HNode::Text, got {:?}", node);
+            panic!("expected HNode::Text, got {node:?}");
         }
     }
 
@@ -375,11 +483,9 @@ mod tests {
         if let HNode::Raw(r) = node {
             r
         } else {
-            panic!("expected HNode::Raw, got {:?}", node);
+            panic!("expected HNode::Raw, got {node:?}");
         }
     }
-
-    // ── Tests ────────────────────────────────────────────────────────
 
     #[test]
     fn lower_empty_document() {
@@ -426,7 +532,7 @@ mod tests {
             let root = lower_doc(&doc);
 
             let el = expect_element(&root_children(&root)[0]);
-            assert_eq!(el.tag, format!("h{}", depth));
+            assert_eq!(el.tag, format!("h{depth}"));
         }
     }
 
@@ -610,6 +716,7 @@ mod tests {
             id: id_gen.next_id(),
             span: Span::new(0, 10),
             children: vec![para],
+            alert_type: None,
         });
         let doc = make_doc(&mut id_gen, vec![bq]);
         let root = lower_doc(&doc);
@@ -703,7 +810,6 @@ mod tests {
 
         let ol = expect_element(&root_children(&root)[0]);
         assert_eq!(ol.tag, "ol");
-        // start=1 should not produce a "start" attribute
         assert!(ol.attributes.get(&"start".to_string()).is_none());
     }
 
@@ -732,7 +838,6 @@ mod tests {
         let ul = expect_element(&root_children(&root)[0]);
         let li_el = expect_element(&ul.children[0]);
         assert_eq!(li_el.tag, "li");
-        // First child should be the checkbox input
         let checkbox = expect_element(&li_el.children[0]);
         assert_eq!(checkbox.tag, "input");
         assert_eq!(
@@ -947,7 +1052,6 @@ mod tests {
     #[test]
     fn lower_table_basic() {
         let mut id_gen = NodeIdGen::new();
-        // Header row
         let h_text = make_text(&mut id_gen, "Name");
         let h_cell = MdNode::TableCell(TableCell {
             id: id_gen.next_id(),
@@ -960,7 +1064,6 @@ mod tests {
             is_header: true,
             children: vec![h_cell],
         });
-        // Body row
         let b_text = make_text(&mut id_gen, "Alice");
         let b_cell = MdNode::TableCell(TableCell {
             id: id_gen.next_id(),
@@ -984,7 +1087,7 @@ mod tests {
 
         let table_el = expect_element(&root_children(&root)[0]);
         assert_eq!(table_el.tag, "table");
-        assert_eq!(table_el.children.len(), 2); // thead + tbody
+        assert_eq!(table_el.children.len(), 2);
 
         let thead = expect_element(&table_el.children[0]);
         assert_eq!(thead.tag, "thead");
@@ -1185,13 +1288,10 @@ mod tests {
         let doc = make_doc(&mut id_gen, vec![html]);
         let (root, diagnostics) = lower_doc_with_diagnostics(&doc, RawHtmlPolicy::Disallow);
 
-        // Raw HTML should become text
         let children = root_children(&root);
         assert_eq!(children.len(), 1);
         let t = expect_text(&children[0]);
         assert_eq!(t.value, "<div>hello</div>");
-
-        // A warning should be emitted
         assert!(!diagnostics.is_empty());
     }
 
@@ -1223,7 +1323,6 @@ mod tests {
         let doc = make_doc(&mut id_gen, vec![html]);
         let root = lower_doc_with_policy(&doc, RawHtmlPolicy::ParseAndSanitize);
 
-        // For now, ParseAndSanitize keeps as Raw (sanitization in later pass)
         let children = root_children(&root);
         assert_eq!(children.len(), 1);
         let raw = expect_raw(&children[0]);
@@ -1270,7 +1369,7 @@ mod tests {
         let jsx = MdNode::MdxJsxFlowElement(MdxJsxElement {
             id: id_gen.next_id(),
             span: Span::new(0, 10),
-            name: None, // fragment
+            name: None,
             attributes: vec![],
             children: vec![],
         });
@@ -1381,7 +1480,6 @@ mod tests {
 
     #[test]
     fn lower_table_row_standalone_is_none() {
-        // TableRow and TableCell as direct children should be stripped
         let mut id_gen = NodeIdGen::new();
         let row = MdNode::TableRow(TableRow {
             id: id_gen.next_id(),
@@ -1445,7 +1543,6 @@ mod tests {
 
         let table_el = expect_element(&root_children(&root)[0]);
         assert_eq!(table_el.tag, "table");
-        // Only thead, no tbody
         assert_eq!(table_el.children.len(), 1);
         let thead = expect_element(&table_el.children[0]);
         assert_eq!(thead.tag, "thead");

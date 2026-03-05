@@ -1,5 +1,4 @@
 :root {
-  /* Colors */
   --color-bg: oklch(1 0 0);
   --color-text: oklch(0.145 0 0);
   --color-text-muted: oklch(0.556 0 0);
@@ -8,35 +7,29 @@
   --color-primary-hover: oklch(0.488 0.243 264);
   --color-code-bg: oklch(0.967 0.001 286);
 
-  /* Interactive overlays */
   --color-hover: oklch(0 0 0 / 0.04);
   --color-hover-strong: oklch(0 0 0 / 0.06);
   --color-active: oklch(0 0 0 / 0.08);
 
-  /* Status: warning (missing) */
   --color-warning-bg: oklch(0.98 0.016 73);
   --color-warning-text: oklch(0.495 0.163 38);
   --color-warning-border: oklch(0.9 0.076 73);
 
-  /* Status: caution (outdated) */
   --color-caution-bg: oklch(0.99 0.03 100);
   --color-caution-text: oklch(0.53 0.12 73);
   --color-caution-border: oklch(0.93 0.1 100);
 
-  /* Glass */
   --glass-bg: oklch(1 0 0 / 0.7);
   --glass-border: oklch(0 0 0 / 0.06);
   --glass-blur: 12px;
   --glass-shadow: 0 8px 32px oklch(0 0 0 / 0.08);
 
-  /* Radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --radius-pill: 9999px;
 
-  /* Spacing */
   --gap-xs: 0.125rem;
   --gap-sm: 0.25rem;
   --gap-md: 0.5rem;
@@ -45,12 +38,10 @@
   --gap-2xl: 1.5rem;
   --gap-3xl: 2rem;
 
-  /* Layout */
   --sidebar-width: 260px;
   --header-height: 56px;
   --layout-max-width: 1440px;
 
-  /* Transitions */
   --transition-fast: 0.1s;
   --transition-normal: 0.15s;
   --transition-slow: 0.2s;
@@ -90,11 +81,16 @@
 }
 
 html {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--color-text);
   background: var(--color-bg);
   line-height: 1.6;
-  transition: background-color var(--transition-slow), color var(--transition-slow);
+  transition:
+    background-color var(--transition-slow),
+    color var(--transition-slow);
   scroll-behavior: smooth;
 }
 
@@ -103,22 +99,56 @@ a {
   text-decoration: none;
 }
 
-/* Syntect syntax highlight colours (GitHub-like theme) */
-.sy-keyword                { color: #d73a49; }
-.sy-storage                { color: #d73a49; }
-.sy-string                 { color: #032f62; }
-.sy-comment                { color: #6a737d; font-style: italic; }
-.sy-constant.sy-numeric    { color: #005cc5; }
-.sy-constant.sy-language   { color: #005cc5; }
-.sy-variable.sy-function   { color: #6f42c1; }
-.sy-entity.sy-name         { color: #6f42c1; }
-.sy-punctuation            { color: inherit; }
+.sy-keyword {
+  color: #d73a49;
+}
+.sy-storage {
+  color: #d73a49;
+}
+.sy-string {
+  color: #032f62;
+}
+.sy-comment {
+  color: #6a737d;
+  font-style: italic;
+}
+.sy-constant.sy-numeric {
+  color: #005cc5;
+}
+.sy-constant.sy-language {
+  color: #005cc5;
+}
+.sy-variable.sy-function {
+  color: #6f42c1;
+}
+.sy-entity.sy-name {
+  color: #6f42c1;
+}
+.sy-punctuation {
+  color: inherit;
+}
 
-html[data-theme="dark"] .sy-keyword              { color: #f97583; }
-html[data-theme="dark"] .sy-storage              { color: #f97583; }
-html[data-theme="dark"] .sy-string               { color: #9ecbff; }
-html[data-theme="dark"] .sy-comment              { color: #6a737d; }
-html[data-theme="dark"] .sy-constant.sy-numeric  { color: #79b8ff; }
-html[data-theme="dark"] .sy-constant.sy-language { color: #79b8ff; }
-html[data-theme="dark"] .sy-variable.sy-function { color: #b392f0; }
-html[data-theme="dark"] .sy-entity.sy-name       { color: #b392f0; }
+html[data-theme="dark"] .sy-keyword {
+  color: #f97583;
+}
+html[data-theme="dark"] .sy-storage {
+  color: #f97583;
+}
+html[data-theme="dark"] .sy-string {
+  color: #9ecbff;
+}
+html[data-theme="dark"] .sy-comment {
+  color: #6a737d;
+}
+html[data-theme="dark"] .sy-constant.sy-numeric {
+  color: #79b8ff;
+}
+html[data-theme="dark"] .sy-constant.sy-language {
+  color: #79b8ff;
+}
+html[data-theme="dark"] .sy-variable.sy-function {
+  color: #b392f0;
+}
+html[data-theme="dark"] .sy-entity.sy-name {
+  color: #b392f0;
+}

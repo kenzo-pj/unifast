@@ -68,7 +68,8 @@ pub struct FrontmatterOptions {
 }
 
 impl FrontmatterOptions {
-    pub fn yaml_only() -> Self {
+    #[must_use]
+    pub const fn yaml_only() -> Self {
         Self {
             yaml: true,
             toml: false,
@@ -76,7 +77,8 @@ impl FrontmatterOptions {
         }
     }
 
-    pub fn all() -> Self {
+    #[must_use]
+    pub const fn all() -> Self {
         Self {
             yaml: true,
             toml: true,
@@ -112,6 +114,7 @@ pub enum HighlightEngine {
     #[default]
     None,
     Syntect,
+    TreeSitter,
 }
 
 #[derive(Debug, Clone)]
@@ -162,15 +165,9 @@ pub struct DiagnosticsOptions {
     pub format: DiagnosticsFormat,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct LineNumberOptions {
     pub enabled: bool,
-}
-
-impl Default for LineNumberOptions {
-    fn default() -> Self {
-        Self { enabled: false }
-    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -183,6 +180,132 @@ pub struct CacheOptions {
 pub struct Extension {
     pub name: String,
     pub enabled: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct ExternalLinksOptions {
+    pub enabled: bool,
+    pub rel: String,
+    pub target: Option<String>,
+}
+
+impl Default for ExternalLinksOptions {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            rel: "noopener noreferrer".to_string(),
+            target: Some("_blank".to_string()),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum AutolinkHeadingsBehavior {
+    #[default]
+    Prepend,
+    Append,
+    Wrap,
+}
+
+#[derive(Debug, Clone)]
+pub struct AutolinkHeadingsOptions {
+    pub enabled: bool,
+    pub behavior: AutolinkHeadingsBehavior,
+}
+
+impl Default for AutolinkHeadingsOptions {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            behavior: AutolinkHeadingsBehavior::Prepend,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct SectionizeOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct BreaksOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct SmartypantsOptions {
+    pub enabled: bool,
+    pub quotes: bool,
+    pub dashes: bool,
+    pub ellipses: bool,
+}
+
+impl SmartypantsOptions {
+    #[must_use]
+    pub const fn all() -> Self {
+        Self {
+            enabled: true,
+            quotes: true,
+            dashes: true,
+            ellipses: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct EmojiOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct GithubAlertOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct MathOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct DirectiveOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct WikiLinkOptions {
+    pub enabled: bool,
+    pub href_template: String,
+}
+
+impl Default for WikiLinkOptions {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            href_template: "/wiki/{slug}".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct DefinitionListOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct RubyAnnotationOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct CjkOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct CodeImportOptions {
+    pub enabled: bool,
+    pub root_dir: Option<String>,
 }
 
 #[derive(Default)]
@@ -201,6 +324,20 @@ pub struct CompileOptions {
     pub cache: CacheOptions,
     pub extensions: Vec<Extension>,
     pub plugins: Vec<Box<dyn Plugin>>,
+    pub external_links: ExternalLinksOptions,
+    pub autolink_headings: AutolinkHeadingsOptions,
+    pub sectionize: SectionizeOptions,
+    pub breaks: BreaksOptions,
+    pub smartypants: SmartypantsOptions,
+    pub emoji: EmojiOptions,
+    pub github_alert: GithubAlertOptions,
+    pub math: MathOptions,
+    pub directive: DirectiveOptions,
+    pub wiki_link: WikiLinkOptions,
+    pub definition_list: DefinitionListOptions,
+    pub ruby_annotation: RubyAnnotationOptions,
+    pub cjk: CjkOptions,
+    pub code_import: CodeImportOptions,
 }
 
 impl std::fmt::Debug for CompileOptions {
@@ -220,6 +357,20 @@ impl std::fmt::Debug for CompileOptions {
             .field("cache", &self.cache)
             .field("extensions", &self.extensions)
             .field("plugins", &format_args!("[{} plugins]", self.plugins.len()))
+            .field("external_links", &self.external_links)
+            .field("autolink_headings", &self.autolink_headings)
+            .field("sectionize", &self.sectionize)
+            .field("breaks", &self.breaks)
+            .field("smartypants", &self.smartypants)
+            .field("emoji", &self.emoji)
+            .field("github_alert", &self.github_alert)
+            .field("math", &self.math)
+            .field("directive", &self.directive)
+            .field("wiki_link", &self.wiki_link)
+            .field("definition_list", &self.definition_list)
+            .field("ruby_annotation", &self.ruby_annotation)
+            .field("cjk", &self.cjk)
+            .field("code_import", &self.code_import)
             .finish()
     }
 }
@@ -256,7 +407,7 @@ mod tests {
     #[test]
     fn compile_options_debug_format() {
         let opts = CompileOptions::default();
-        let debug_str = format!("{:?}", opts);
+        let debug_str = format!("{opts:?}");
         assert!(debug_str.contains("CompileOptions"));
         assert!(debug_str.contains("[0 plugins]"));
     }

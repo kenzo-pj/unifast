@@ -1,9 +1,7 @@
 ---
 title: "What is unifast?"
-description: "A high-performance Markdown/MDX compiler built with Rust"
+description: "unifast is a high-performance Markdown and MDX compiler with a Rust core. Built-in passes for GFM, sanitization, highlighting, and TOC."
 ---
-
-## What is unifast?
 
 unifast is a high-performance Markdown and MDX compiler with a Rust core. It covers the mainstream use-cases of remark/rehype by implementing features directly as built-in passes - not through JS plugin compatibility.
 

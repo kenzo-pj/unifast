@@ -3,7 +3,7 @@ use crate::ast::hast::nodes::*;
 use super::escape::escape_html;
 use super::void_elements::is_void_element;
 
-/// Stringify an HRoot into an HTML string.
+#[must_use]
 pub fn stringify(root: &HRoot) -> String {
     let mut output = String::new();
     stringify_children(&root.children, &mut output);
@@ -24,7 +24,6 @@ fn stringify_node(node: &HNode, output: &mut String) {
             output.push('<');
             output.push_str(&elem.tag);
 
-            // Attributes in stable order (SmallMap is BTreeMap-backed)
             for (key, value) in elem.attributes.iter() {
                 output.push(' ');
                 output.push_str(key);
@@ -225,7 +224,6 @@ mod tests {
         let text = make_text(&mut id_gen, "x");
         let div = make_element(&mut id_gen, "div", attrs, vec![text]);
         let root = make_root(&mut id_gen, vec![div]);
-        // BTreeMap-backed: alphabetical order
         assert_eq!(
             stringify(&root),
             "<div a-attr=\"a\" m-attr=\"m\" z-attr=\"z\">x</div>"
@@ -320,7 +318,6 @@ mod tests {
         attrs.insert("type".to_string(), "checkbox".to_string());
         let input = make_element(&mut id_gen, "input", attrs, vec![]);
         let root = make_root(&mut id_gen, vec![input]);
-        // Boolean attrs have no ="value"
         assert_eq!(
             stringify(&root),
             "<input checked disabled type=\"checkbox\" />"

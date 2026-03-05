@@ -22,7 +22,6 @@
   }
 }
 
-/* --- Backdrop --- */
 .backdrop {
   position: fixed;
   inset: 0;
@@ -30,7 +29,8 @@
   background: transparent;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: backdrop-filter var(--transition-slow),
+  transition:
+    backdrop-filter var(--transition-slow),
     -webkit-backdrop-filter var(--transition-slow);
 }
 
@@ -40,7 +40,6 @@
   -webkit-backdrop-filter: blur(0);
 }
 
-/* --- Bottom Sheet --- */
 .sheet {
   position: fixed;
   z-index: 50;
@@ -54,7 +53,8 @@
   background: var(--color-bg);
   box-shadow: 0 -8px 32px oklch(0 0 0 / 0.15);
   overflow: hidden;
-  transition: transform var(--transition-slow) ease-out,
+  transition:
+    transform var(--transition-slow) ease-out,
     opacity var(--transition-slow) ease-out;
 }
 
@@ -68,7 +68,6 @@
   box-shadow: 0 -8px 32px oklch(0 0 0 / 0.4);
 }
 
-/* --- Sheet Header (controls + close) --- */
 .sheetHeader {
   display: flex;
   align-items: center;
@@ -112,11 +111,9 @@
   background: var(--color-hover-strong);
 }
 
-/* --- Navigation area --- */
 .nav {
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
-

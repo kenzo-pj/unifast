@@ -1,19 +1,23 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 
+#[must_use]
 pub fn content_hash(content: &str) -> u64 {
     let mut hasher = DefaultHasher::new();
     content.hash(&mut hasher);
     hasher.finish()
 }
 
+#[must_use]
 pub fn options_hash(options_json: &str) -> u64 {
     content_hash(options_json)
 }
 
+#[must_use]
 pub fn version_hash(version: &str) -> u64 {
     content_hash(version)
 }
 
+#[must_use]
 pub fn cache_key(content: &str, options: &str, version: &str) -> String {
     format!(
         "{:016x}-{:016x}-{:016x}",
@@ -44,7 +48,6 @@ mod tests {
     #[test]
     fn cache_key_format() {
         let key = cache_key("content", "options", "1.0.0");
-        // Should be three 16-char hex segments separated by hyphens
         let parts: Vec<&str> = key.split('-').collect();
         assert_eq!(parts.len(), 3);
         for part in &parts {

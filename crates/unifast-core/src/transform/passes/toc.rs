@@ -1,6 +1,5 @@
 use crate::ast::mdast::nodes::*;
 
-/// A single entry in the table of contents.
 #[derive(Debug, Clone)]
 pub struct TocEntry {
     pub depth: u8,
@@ -8,8 +7,7 @@ pub struct TocEntry {
     pub slug: String,
 }
 
-/// Generate a table of contents from the document headings.
-/// Only includes headings up to `max_depth` levels deep.
+#[must_use]
 pub fn generate_toc(doc: &Document, max_depth: u8) -> Vec<TocEntry> {
     let mut entries = Vec::new();
     collect_headings(&doc.children, max_depth, &mut entries);
@@ -27,8 +25,6 @@ fn collect_headings(children: &[MdNode], max_depth: u8, entries: &mut Vec<TocEnt
                 slug: h.slug.clone().unwrap_or_default(),
             });
         }
-        // Recurse into container nodes that might contain headings
-        // (but not into Heading children, which are inline content)
         match child {
             MdNode::Blockquote(bq) => collect_headings(&bq.children, max_depth, entries),
             MdNode::ListItem(li) => collect_headings(&li.children, max_depth, entries),
@@ -197,6 +193,7 @@ mod tests {
             id: id_gen.next_id(),
             span: Span::new(0, 20),
             children: vec![h2],
+            alert_type: None,
         });
         let doc = Document {
             id: id_gen.next_id(),

@@ -1,5 +1,6 @@
+use super::highlight::{self, HighlightEngine, SyntectHighlighter, TreeSitterHighlighter};
+use crate::api::options::HighlightEngine as EngineOption;
 use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
-use super::highlight::{self, SyntectHighlighter};
 
 pub struct HighlightPass;
 
@@ -13,14 +14,18 @@ impl Pass for HighlightPass {
     }
 
     fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        let engine = SyntectHighlighter::new();
+        let engine: Box<dyn HighlightEngine> = match ctx.options.highlight.engine {
+            EngineOption::Syntect => Box::new(SyntectHighlighter::new()),
+            EngineOption::TreeSitter => Box::new(TreeSitterHighlighter),
+            EngineOption::None => return Ok(()),
+        };
         match ast {
             AstPayload::Hast(root) => {
-                highlight::apply_highlight(root, &engine, ctx.id_gen);
+                highlight::apply_highlight(root, engine.as_ref(), ctx.id_gen);
                 Ok(())
             }
             AstPayload::Both { hast, .. } => {
-                highlight::apply_highlight(hast, &engine, ctx.id_gen);
+                highlight::apply_highlight(hast, engine.as_ref(), ctx.id_gen);
                 Ok(())
             }
             _ => Ok(()),

@@ -1,0 +1,32 @@
+pre-commit:
+  parallel: true
+  commands:
+    rust-fmt:
+      glob: "*.rs"
+      run: pnpm fmt:rust:check
+    oxfmt:
+      glob: "*.{ts,tsx,js,jsx}"
+      run: pnpm fmt:oxc:check
+    rust-clippy:
+      glob: "*.rs"
+      run: cargo clippy --all-targets --all-features -- -D warnings
+    oxlint:
+      glob: "*.{ts,tsx,js,jsx}"
+      run: pnpm lint:oxc
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: pnpm typecheck
+    stylelint:
+      glob: "*.css"
+      run: pnpm lint:css
+    markdownlint:
+      glob: "*.md"
+      run: pnpm lint:md
+    textlint:
+      glob: "website/content/ja/**/*.md"
+      run: pnpm lint:text
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm commitlint --edit {1}

@@ -5,13 +5,15 @@ use clap::Parser;
 use std::fs;
 use std::io::{self, Read};
 use unifast_core::api::compile::compile;
-use unifast_core::api::options::*;
+use unifast_core::api::options::{
+    CompileOptions, GfmOptions, HighlightEngine, HighlightOptions, InputKind, OutputKind,
+    RawHtmlPolicy, SanitizeOptions,
+};
 use unifast_core::api::result::Output;
 
 fn main() {
     let cli = Cli::parse();
 
-    // Read input
     let input = if cli.input.to_str() == Some("-") {
         let mut buf = String::new();
         io::stdin()
@@ -25,7 +27,6 @@ fn main() {
         })
     };
 
-    // Build options
     let opts = CompileOptions {
         input_kind: match cli.input_kind.as_str() {
             "mdx" => InputKind::Mdx,
@@ -70,21 +71,19 @@ fn main() {
 
     let result = compile(&input, &opts);
 
-    // Output
     let output_str = match &result.output {
         Output::Html(html) => html.clone(),
         Output::MdxJs { code, .. } => code.clone(),
-        Output::Hast(root) => format!("{:#?}", root),
-        Output::Mdast(doc) => format!("{:#?}", doc),
+        Output::Hast(root) => format!("{root:#?}"),
+        Output::Mdast(doc) => format!("{doc:#?}"),
     };
 
     if let Some(ref path) = cli.output {
         fs::write(path, &output_str).expect("Failed to write output");
     } else {
-        print!("{}", output_str);
+        print!("{output_str}");
     }
 
-    // Optional extras
     if cli.frontmatter {
         eprintln!("\n--- Frontmatter ---");
         eprintln!(

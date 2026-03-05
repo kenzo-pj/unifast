@@ -11,19 +11,16 @@ pub fn cleanup(root: &mut HRoot, options: &CleanupOptions) {
 }
 
 fn cleanup_children(children: &mut Vec<HNode>, options: &CleanupOptions) {
-    // Remove empty elements if enabled
     if options.remove_empty_nodes {
         children.retain(|node| !is_empty_element(node));
     }
 
-    // Recurse into children
     for child in children.iter_mut() {
         if let Some(kids) = child.children_mut() {
             cleanup_children(kids, options);
         }
     }
 
-    // Minify whitespace in text nodes if enabled
     if options.minify_whitespace {
         for child in children.iter_mut() {
             if let HNode::Text(t) = child {
@@ -140,7 +137,6 @@ mod tests {
             },
         );
 
-        // All void elements should be retained
         assert_eq!(root.children.len(), 3);
         if let HNode::Element(ref e) = root.children[0] {
             assert_eq!(e.tag, "hr");
@@ -189,7 +185,6 @@ mod tests {
 
         cleanup(&mut root, &CleanupOptions::default());
 
-        // Nothing changed
         assert_eq!(root.children.len(), 2);
         if let HNode::Element(ref p_elem) = root.children[1] {
             if let HNode::Text(ref t) = p_elem.children[0] {
@@ -218,7 +213,6 @@ mod tests {
             },
         );
 
-        // The div is kept because it has children, but empty span inside is removed
         assert_eq!(root.children.len(), 1);
         if let HNode::Element(ref div_elem) = root.children[0] {
             assert_eq!(div_elem.tag, "div");

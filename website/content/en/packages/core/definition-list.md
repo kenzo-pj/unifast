@@ -1,0 +1,114 @@
+---
+title: "definitionList()"
+description: "Support definition list syntax with `term` and `: description` pairs."
+---
+
+```ts
+import { definitionList } from "@unifast/node";
+```
+
+### Signature
+
+```ts
+function definitionList(): UnifastPlugin
+```
+
+### Parameters
+
+None.
+
+### Returns
+
+`UnifastPlugin`
+
+## Usage
+
+### Basic usage
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+Markdown
+: A lightweight markup language for creating formatted text.
+
+HTML
+: The standard markup language for documents designed to be displayed in a web browser.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+The above Markdown produces the following HTML:
+
+```html
+<dl>
+  <dt>Markdown</dt>
+  <dd>A lightweight markup language for creating formatted text.</dd>
+  <dt>HTML</dt>
+  <dd>The standard markup language for documents designed to be displayed in a web browser.</dd>
+</dl>
+```
+
+### Multiple descriptions per term
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+unifast
+: A fast Markdown/MDX compiler.
+: Built with Rust for maximum performance.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+Output:
+
+```html
+<dl>
+  <dt>unifast</dt>
+  <dd>A fast Markdown/MDX compiler.</dd>
+  <dd>Built with Rust for maximum performance.</dd>
+</dl>
+```
+
+### Multiple terms and descriptions
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+Plugin
+Extension
+: A module that adds functionality to the core system.
+
+Transformer
+: A function that modifies the AST during compilation.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+Output:
+
+```html
+<dl>
+  <dt>Plugin</dt>
+  <dt>Extension</dt>
+  <dd>A module that adds functionality to the core system.</dd>
+  <dt>Transformer</dt>
+  <dd>A function that modifies the AST during compilation.</dd>
+</dl>
+```
+
+### Combined with other plugins
+
+```ts
+import { compile, definitionList, gfm, frontmatter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [definitionList(), gfm(), frontmatter()],
+});
+```

@@ -15,13 +15,10 @@ pub struct FrontmatterResult {
     pub kind: FrontmatterKind,
     pub data: HashMap<String, serde_json::Value>,
     pub raw: String,
-    pub end_offset: usize, // byte offset where content after frontmatter starts
+    pub end_offset: usize,
 }
 
-/// Try to extract frontmatter from the beginning of the input.
-/// Returns `None` if no frontmatter is found.
-///
-/// Tries YAML (`---`) first, then TOML (`+++`), then JSON (`;;;`).
+#[must_use]
 pub fn extract_frontmatter(input: &str) -> Option<FrontmatterResult> {
     if let Some(r) = yaml::extract(input) {
         return Some(r);
@@ -35,17 +32,13 @@ pub fn extract_frontmatter(input: &str) -> Option<FrontmatterResult> {
     None
 }
 
-/// Find the byte offset of a closing delimiter that appears on its own line.
 fn find_closing_delimiter(text: &str, delimiter: &str) -> Option<usize> {
     let mut offset = 0;
     for line in text.lines() {
         if line.trim() == delimiter {
             return Some(offset);
         }
-        // line.len() gives byte length of line content (no newline).
-        // We need to add the newline character(s) to advance the offset.
         offset += line.len();
-        // Advance past the newline in the original text.
         if offset < text.len() {
             if text.as_bytes()[offset] == b'\r' {
                 offset += 1;
@@ -58,7 +51,6 @@ fn find_closing_delimiter(text: &str, delimiter: &str) -> Option<usize> {
     None
 }
 
-/// Skip a newline (LF or CRLF) at `pos` if present.
 fn skip_newline(input: &str, pos: usize) -> usize {
     if pos >= input.len() {
         return pos;

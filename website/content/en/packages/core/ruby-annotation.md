@@ -1,0 +1,76 @@
+---
+title: "rubyAnnotation()"
+description: "Support ruby/furigana annotations with `{漢字|かんじ}` syntax."
+---
+
+```ts
+import { rubyAnnotation } from "@unifast/node";
+```
+
+### Signature
+
+```ts
+function rubyAnnotation(): UnifastPlugin
+```
+
+### Parameters
+
+None.
+
+### Returns
+
+`UnifastPlugin`
+
+## Usage
+
+### Basic usage
+
+```ts
+import { compile, rubyAnnotation } from "@unifast/node";
+
+const md = `
+{漢字|かんじ}の読み方を学びましょう。
+`;
+
+const result = compile(md, { plugins: [rubyAnnotation()] });
+// {漢字|かんじ} becomes <ruby>漢字<rp>(</rp><rt>かんじ</rt><rp>)</rp></ruby>
+```
+
+### Multiple annotations in a sentence
+
+```ts
+import { compile, rubyAnnotation } from "@unifast/node";
+
+const md = `
+{東京|とうきょう}は{日本|にほん}の{首都|しゅと}です。
+`;
+
+const result = compile(md, { plugins: [rubyAnnotation()] });
+```
+
+### Mixed content
+
+```ts
+import { compile, rubyAnnotation } from "@unifast/node";
+
+const md = `
+# {日本語|にほんご}ガイド
+
+{漢字|かんじ}には**たくさん**の{読|よ}み{方|かた}があります。
+
+- {音読|おんよ}み — Chinese-derived reading
+- {訓読|くんよ}み — Native Japanese reading
+`;
+
+const result = compile(md, { plugins: [rubyAnnotation()] });
+```
+
+### Combined with other plugins
+
+```ts
+import { compile, rubyAnnotation, gfm, frontmatter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [rubyAnnotation(), gfm(), frontmatter()],
+});
+```

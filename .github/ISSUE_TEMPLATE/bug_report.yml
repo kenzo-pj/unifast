@@ -1,0 +1,51 @@
+name: 🐛 Bug Report
+description: Report a bug in unifast
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal steps or code to reproduce the issue.
+      placeholder: |
+        1. Install unifast
+        2. Run `compile(...)` with the following input
+        3. See error
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - unifast-core (Rust)
+        - Node.js binding
+        - WASM binding
+        - CLI
+        - TypeScript packages
+        - Website / Docs
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Node.js version, Rust version, etc.
+      placeholder: |
+        OS: macOS 15
+        Node.js: 22.x
+        Rust: 1.85

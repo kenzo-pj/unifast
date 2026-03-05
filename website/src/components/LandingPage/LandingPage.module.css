@@ -4,7 +4,6 @@
   flex-direction: column;
 }
 
-/* --- Header --- */
 .headerBar {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -57,7 +56,6 @@
   background: var(--color-hover-strong);
 }
 
-/* --- Hero --- */
 .hero {
   flex: 1;
   display: flex;
@@ -129,7 +127,6 @@
   background: var(--color-hover-strong);
 }
 
-/* --- SP --- */
 @media (max-width: 768px) {
   .desktopOnly {
     display: none;

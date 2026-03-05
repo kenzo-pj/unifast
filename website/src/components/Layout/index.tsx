@@ -1,14 +1,14 @@
-import { memo, type ReactNode, lazy, Suspense } from "react";
 import { Link } from "@tanstack/react-router";
-import { ThemeToggle } from "~/components/ThemeToggle";
-import { LanguageSwitcher } from "~/components/LanguageSwitcher";
+import { memo, type ReactNode, lazy, Suspense } from "react";
+
 import { GitHubIcon } from "~/components/GitHubIcon";
+import { LanguageSwitcher } from "~/components/LanguageSwitcher";
+import { ThemeToggle } from "~/components/ThemeToggle";
 import { useTranslation, localePath } from "~/i18n";
+
 import styles from "./Layout.module.css";
 
-const Sidebar = lazy(() =>
-  import("~/components/Sidebar").then((m) => ({ default: m.Sidebar })),
-);
+const Sidebar = lazy(() => import("~/components/Sidebar").then((m) => ({ default: m.Sidebar })));
 const SearchDialog = lazy(() =>
   import("~/components/SearchDialog").then((m) => ({ default: m.SearchDialog })),
 );

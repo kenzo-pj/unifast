@@ -1,10 +1,10 @@
 use super::{CacheKey, CacheStore};
 
-/// Stub disk cache -- filesystem backing will be implemented in a later milestone.
 pub struct DiskCache;
 
 impl DiskCache {
-    pub fn new(_dir: Option<&str>) -> Self {
+    #[must_use]
+    pub const fn new(_dir: Option<&str>) -> Self {
         Self
     }
 }
@@ -14,11 +14,7 @@ impl CacheStore for DiskCache {
         None
     }
 
-    fn put(&mut self, _key: CacheKey, _value: Vec<u8>) {
-        // No-op stub
-    }
+    fn put(&mut self, _key: CacheKey, _value: Vec<u8>) {}
 
-    fn clear(&mut self) {
-        // No-op stub
-    }
+    fn clear(&mut self) {}
 }

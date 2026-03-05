@@ -1,0 +1,66 @@
+---
+title: "externalLinks()"
+description: "Add rel and target attributes to external links in your Markdown output."
+---
+
+import { Example } from "~/components/Example"
+import example from "./external-links-example.md?example"
+
+```ts
+import { externalLinks } from "@unifast/node";
+```
+
+### Signature
+
+```ts
+function externalLinks(options?: ExternalLinksPluginOptions): UnifastPlugin
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options?` | `ExternalLinksPluginOptions` | Configuration for external link attributes |
+
+#### `ExternalLinksPluginOptions`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `rel` | `string` | `"nofollow noopener noreferrer"` | Value for the `rel` attribute on external links |
+| `target` | `string` | — | Value for the `target` attribute (e.g., `"_blank"`) |
+
+### Returns
+
+`UnifastPlugin`
+
+## Examples
+
+<Example data={example} />
+
+## Usage
+
+```ts
+import { compile } from "@unifast/node";
+import { externalLinks } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [externalLinks()],
+});
+// External links get rel="nofollow noopener noreferrer"
+```
+
+### Open in new tab
+
+```ts
+const result = compile(md, {
+  plugins: [externalLinks({ target: "_blank" })],
+});
+```
+
+### Custom rel attribute
+
+```ts
+const result = compile(md, {
+  plugins: [externalLinks({ rel: "noopener", target: "_blank" })],
+});
+```

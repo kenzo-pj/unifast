@@ -7,6 +7,7 @@ pub struct MemoryCache {
 }
 
 impl MemoryCache {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             store: HashMap::new(),

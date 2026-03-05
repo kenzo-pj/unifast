@@ -1,22 +1,19 @@
 use crate::ast::mdast::nodes::*;
 use std::collections::HashMap;
 
-/// How to generate slugs from heading text.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SlugMode {
-    /// GitHub-compatible slugification: lowercase, strip non-alphanumeric except hyphens.
     GitHub,
-    /// Unicode-aware slugification: keeps unicode letters/digits.
     Unicode,
 }
 
-/// A slug generator that tracks seen slugs and deduplicates them.
 pub struct SlugGenerator {
     mode: SlugMode,
     seen: HashMap<String, u32>,
 }
 
 impl SlugGenerator {
+    #[must_use]
     pub fn new(mode: SlugMode) -> Self {
         Self {
             mode,
@@ -24,7 +21,6 @@ impl SlugGenerator {
         }
     }
 
-    /// Generate a unique slug from the given text.
     pub fn generate(&mut self, text: &str) -> String {
         let base = match self.mode {
             SlugMode::GitHub => github_slugify(text),
@@ -38,7 +34,7 @@ impl SlugGenerator {
         let slug = if *count == 0 {
             base
         } else {
-            format!("{}-{}", base, count)
+            format!("{base}-{count}")
         };
         *count += 1;
         slug
@@ -77,7 +73,7 @@ fn unicode_slugify(text: &str) -> String {
         .join("-")
 }
 
-/// Extract plain text from MdNode children (for heading text content).
+#[must_use]
 pub fn extract_text(nodes: &[MdNode]) -> String {
     let mut text = String::new();
     for node in nodes {
@@ -94,7 +90,6 @@ pub fn extract_text(nodes: &[MdNode]) -> String {
     text
 }
 
-/// Apply slugs to all headings in the document.
 pub fn apply_slugs(doc: &mut Document, mode: SlugMode) {
     let mut slug_gen = SlugGenerator::new(mode);
     apply_slugs_recursive(&mut doc.children, &mut slug_gen);
@@ -152,7 +147,6 @@ mod tests {
     #[test]
     fn slug_unicode_keeps_letters() {
         let mut slug_gen = SlugGenerator::new(SlugMode::Unicode);
-        // Unicode letters are kept
         assert_eq!(slug_gen.generate("cafe"), "cafe");
     }
 

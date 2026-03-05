@@ -2,14 +2,6 @@ use crate::ast::mdast::nodes::*;
 use crate::diagnostics::sink::DiagnosticSink;
 use std::collections::HashMap;
 
-/// Resolve reference links and images in the document.
-///
-/// This pass:
-/// 1. Removes Definition nodes from the AST (they are only needed during parsing)
-/// 2. Warns about unused definitions (optional, for future use)
-///
-/// The `definitions` map is keyed by lowercase identifier, with values of
-/// `(url, optional_title)`.
 pub fn resolve_definitions(
     doc: &mut Document,
     _definitions: &HashMap<String, (String, Option<String>)>,
@@ -19,13 +11,11 @@ pub fn resolve_definitions(
 }
 
 fn resolve_in_children(children: &mut Vec<MdNode>) {
-    // First recurse into children of each node
     for child in children.iter_mut() {
         if let Some(kids) = child.children_mut() {
             resolve_in_children(kids);
         }
     }
-    // Remove Definition nodes from children (they were only for reference resolution)
     children.retain(|n| !matches!(n, MdNode::Definition(_)));
 }
 
@@ -192,6 +182,7 @@ mod tests {
             id: id_gen.next_id(),
             span: Span::new(0, 30),
             children: vec![def],
+            alert_type: None,
         });
         let mut doc = Document {
             id: id_gen.next_id(),
@@ -203,7 +194,6 @@ mod tests {
         let mut diagnostics = DiagnosticSink::new();
         resolve_definitions(&mut doc, &defs, &mut diagnostics);
 
-        // The blockquote still exists, but the definition inside it is removed
         assert_eq!(doc.children.len(), 1);
         if let MdNode::Blockquote(bq) = &doc.children[0] {
             assert!(bq.children.is_empty());

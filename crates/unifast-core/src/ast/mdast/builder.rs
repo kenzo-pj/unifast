@@ -1,21 +1,21 @@
-use super::nodes::*;
+use super::nodes::{
+    AlignKind, Blockquote, Break, Code, Definition, Delete, Document, Emphasis, FootnoteDefinition,
+    FootnoteReference, Heading, Html, Image, InlineCode, Json, Link, List, ListItem, MdNode,
+    MdxExpression, MdxJsxAttribute, MdxJsxElement, MdxjsEsm, Paragraph, Strong, Table, TableCell,
+    TableRow, Text, ThematicBreak, Toml, Yaml,
+};
 use crate::ast::common::{NodeIdGen, Span};
 
-/// Convenience builder for constructing Markdown AST nodes.
-///
-/// Each method auto-assigns a unique `NodeId` from the shared generator.
 pub struct MdBuilder<'a> {
     id_gen: &'a mut NodeIdGen,
 }
 
 impl<'a> MdBuilder<'a> {
-    pub fn new(id_gen: &'a mut NodeIdGen) -> Self {
+    pub const fn new(id_gen: &'a mut NodeIdGen) -> Self {
         Self { id_gen }
     }
 
-    // ── CommonMark ───────────────────────────────────────────────────
-
-    pub fn document(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
+    pub const fn document(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
         MdNode::Document(Document {
             id: self.id_gen.next_id(),
             span,
@@ -23,7 +23,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn heading(&mut self, span: Span, depth: u8, children: Vec<MdNode>) -> MdNode {
+    pub const fn heading(&mut self, span: Span, depth: u8, children: Vec<MdNode>) -> MdNode {
         MdNode::Heading(Heading {
             id: self.id_gen.next_id(),
             span,
@@ -33,7 +33,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn paragraph(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
+    pub const fn paragraph(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
         MdNode::Paragraph(Paragraph {
             id: self.id_gen.next_id(),
             span,
@@ -49,7 +49,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn emphasis(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
+    pub const fn emphasis(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
         MdNode::Emphasis(Emphasis {
             id: self.id_gen.next_id(),
             span,
@@ -57,7 +57,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn strong(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
+    pub const fn strong(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
         MdNode::Strong(Strong {
             id: self.id_gen.next_id(),
             span,
@@ -89,15 +89,16 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn blockquote(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
+    pub const fn blockquote(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
         MdNode::Blockquote(Blockquote {
             id: self.id_gen.next_id(),
             span,
             children,
+            alert_type: None,
         })
     }
 
-    pub fn list(
+    pub const fn list(
         &mut self,
         span: Span,
         ordered: bool,
@@ -115,7 +116,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn list_item(
+    pub const fn list_item(
         &mut self,
         span: Span,
         spread: bool,
@@ -131,7 +132,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn thematic_break(&mut self, span: Span) -> MdNode {
+    pub const fn thematic_break(&mut self, span: Span) -> MdNode {
         MdNode::ThematicBreak(ThematicBreak {
             id: self.id_gen.next_id(),
             span,
@@ -196,16 +197,19 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn hard_break(&mut self, span: Span) -> MdNode {
+    pub const fn hard_break(&mut self, span: Span) -> MdNode {
         MdNode::Break(Break {
             id: self.id_gen.next_id(),
             span,
         })
     }
 
-    // ── GFM ──────────────────────────────────────────────────────────
-
-    pub fn table(&mut self, span: Span, align: Vec<AlignKind>, children: Vec<MdNode>) -> MdNode {
+    pub const fn table(
+        &mut self,
+        span: Span,
+        align: Vec<AlignKind>,
+        children: Vec<MdNode>,
+    ) -> MdNode {
         MdNode::Table(Table {
             id: self.id_gen.next_id(),
             span,
@@ -214,7 +218,12 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn table_row(&mut self, span: Span, is_header: bool, children: Vec<MdNode>) -> MdNode {
+    pub const fn table_row(
+        &mut self,
+        span: Span,
+        is_header: bool,
+        children: Vec<MdNode>,
+    ) -> MdNode {
         MdNode::TableRow(TableRow {
             id: self.id_gen.next_id(),
             span,
@@ -223,7 +232,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn table_cell(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
+    pub const fn table_cell(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
         MdNode::TableCell(TableCell {
             id: self.id_gen.next_id(),
             span,
@@ -231,7 +240,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn delete(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
+    pub const fn delete(&mut self, span: Span, children: Vec<MdNode>) -> MdNode {
         MdNode::Delete(Delete {
             id: self.id_gen.next_id(),
             span,
@@ -269,8 +278,6 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    // ── Frontmatter ──────────────────────────────────────────────────
-
     pub fn yaml(&mut self, span: Span, value: impl Into<String>) -> MdNode {
         MdNode::Yaml(Yaml {
             id: self.id_gen.next_id(),
@@ -295,9 +302,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    // ── MDX ──────────────────────────────────────────────────────────
-
-    pub fn mdx_jsx_flow_element(
+    pub const fn mdx_jsx_flow_element(
         &mut self,
         span: Span,
         name: Option<String>,
@@ -313,7 +318,7 @@ impl<'a> MdBuilder<'a> {
         })
     }
 
-    pub fn mdx_jsx_text_element(
+    pub const fn mdx_jsx_text_element(
         &mut self,
         span: Span,
         name: Option<String>,

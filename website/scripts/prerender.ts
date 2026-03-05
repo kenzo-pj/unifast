@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import { minify } from "html-minifier-terser";
-import { buildSitemap, buildLlmsTxt, buildLlmsFullTxt } from "../plugins/vite-plugin-meta";
+import { buildSitemap, buildLlmsTxt, buildLlmsFullTxt, collectAllEntries, buildHeadMeta } from "../plugins/vite-plugin-meta";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -76,7 +76,6 @@ async function prerender() {
     "utf-8",
   );
 
-  // Inject modulepreload hints for vendor chunks
   template = injectModulePreloads(template);
 
   const allRoutes: string[] = [];
@@ -94,13 +93,24 @@ async function prerender() {
     }
   }
 
+  const contentEntries = collectAllEntries(contentDir);
+
   console.log(`Prerendering ${allRoutes.length} routes...`);
 
   for (const route of allRoutes) {
     const result = await render(route);
     const lang = route.startsWith("/ja") ? "ja" : "en";
+    const entry = contentEntries.get(route);
+    const headMeta = buildHeadMeta({
+      route,
+      locale: lang,
+      title: entry?.title ?? "unifast",
+      description: entry?.description ?? "",
+    });
     const raw = template
       .replace('<html lang="en">', `<html lang="${lang}">`)
+      .replace("<title>unifast</title>", "")
+      .replace("<!--head-meta-->", headMeta)
       .replace(
         '<div id="root"></div>',
         `<div id="root">${result.html}</div>`,
@@ -117,9 +127,17 @@ async function prerender() {
     console.log(`  ${route} -> ${path.relative(root, filePath)}`);
   }
 
-  // Generate 404.html for static hosting
   const notFoundResult = await render("/this-page-does-not-exist");
+  const notFoundMeta = buildHeadMeta({
+    route: "/404",
+    locale: "en",
+    title: "Page Not Found",
+    description: "The page you are looking for does not exist.",
+    noindex: true,
+  });
   const notFoundRaw = template
+    .replace("<title>unifast</title>", "")
+    .replace("<!--head-meta-->", notFoundMeta)
     .replace(
       '<div id="root"></div>',
       `<div id="root">${notFoundResult.html}</div>`,
@@ -129,7 +147,6 @@ async function prerender() {
   fs.writeFileSync(notFoundPath, notFoundHtml);
   console.log(`  404 -> ${path.relative(root, notFoundPath)}`);
 
-  // Generate sitemap.xml, llms.txt, llms-full.txt
   fs.writeFileSync(path.resolve(distClient, "sitemap.xml"), buildSitemap(contentDir));
   console.log("  Generated sitemap.xml");
   fs.writeFileSync(path.resolve(distClient, "llms.txt"), buildLlmsTxt(contentDir));

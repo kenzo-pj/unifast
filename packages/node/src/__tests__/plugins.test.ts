@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { compile } from "../index.js";
 import type { UnifastPlugin, HastRoot } from "@unifast/core";
+import { describe, expect, it } from "vitest";
+
+import { compile } from "../index.js";
 
 describe("unified plugin API", () => {
   it("compiles with option-based plugin", () => {
@@ -96,7 +97,7 @@ describe("unified plugin API", () => {
       plugins: [plugin],
     });
 
-    const parsed = JSON.parse(result.output as string);
+    const parsed = JSON.parse(result.output as string) as { type: string; children: unknown[] };
     expect(parsed.type).toBe("root");
     expect(parsed.children).toBeDefined();
   });

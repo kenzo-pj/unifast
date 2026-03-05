@@ -1,17 +1,18 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "declaration": false,
     "jsx": "react-jsx",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "types": ["vite/client"],
     "outDir": "dist",
     "baseUrl": ".",
+    "rootDirs": [".", "generated"],
     "paths": {
       "~/*": ["./src/*"]
     }
   },
-  "include": ["src", "plugins", "scripts", "*.ts"]
+  "include": ["src", "plugins", "scripts", "*.ts"],
+  "cmkOptions": {
+    "enabled": true
+  }
 }

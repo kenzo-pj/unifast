@@ -1,10 +1,7 @@
 use super::{FrontmatterKind, FrontmatterResult, find_closing_delimiter, skip_newline};
 use std::collections::HashMap;
 
-/// Extract TOML frontmatter delimited by `+++`.
-///
-/// The opening `+++` must be the very first characters in the input, followed
-/// immediately by a newline.  The closing `+++` must appear on its own line.
+#[must_use]
 pub fn extract(input: &str) -> Option<FrontmatterResult> {
     if !input.starts_with("+++") {
         return None;
@@ -33,7 +30,6 @@ pub fn extract(input: &str) -> Option<FrontmatterResult> {
 }
 
 fn parse_toml_to_map(toml_str: &str) -> Option<HashMap<String, serde_json::Value>> {
-    // Empty TOML is valid and produces an empty table.
     if toml_str.trim().is_empty() {
         return Some(HashMap::new());
     }

@@ -1,6 +1,4 @@
-/// Check if text starts with a task list marker: `[ ] ` or `[x] ` or `[X] `.
-/// Returns `Some((is_checked, bytes_consumed))` if a task marker is found.
-/// The `bytes_consumed` count includes the trailing space after the bracket.
+#[must_use]
 pub fn parse_task_marker(text: &str) -> Option<(bool, usize)> {
     let bytes = text.as_bytes();
     if bytes.len() < 4 {

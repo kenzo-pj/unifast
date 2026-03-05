@@ -1,7 +1,10 @@
 import { createRequire } from "node:module";
 
 interface NativeBinding {
-  compile(input: string, options?: object): {
+  compile(
+    input: string,
+    options?: object,
+  ): {
     output: string;
     frontmatter: string;
     diagnostics: Array<{

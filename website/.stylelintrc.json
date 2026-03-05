@@ -1,0 +1,29 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "@css-modules-kit/stylelint-plugin/recommended"
+  ],
+  "rules": {
+    "selector-class-pattern": null,
+    "custom-property-pattern": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "lightness-notation": null,
+    "hue-degree-notation": null,
+    "alpha-value-notation": null,
+    "property-no-vendor-prefix": null,
+    "media-feature-range-notation": null,
+    "declaration-block-single-line-max-declarations": null,
+    "custom-property-empty-line-before": null,
+    "rule-empty-line-before": null,
+    "comment-empty-line-before": null,
+    "import-notation": null,
+    "value-keyword-case": null,
+    "css-modules-kit/no-missing-component-file": null,
+    "property-no-unknown": [true, {
+      "ignoreProperties": ["composes"]
+    }],
+    "selector-pseudo-class-no-unknown": [true, {
+      "ignorePseudoClasses": ["global"]
+    }]
+  }
+}

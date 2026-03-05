@@ -1,26 +1,19 @@
 use crate::ast::mdast::nodes::*;
 
-/// Normalize the document AST:
-/// - Clamp heading depths to 1..6
-/// - Merge adjacent text nodes
-/// - Recurse into all parent nodes
 pub fn normalize(doc: &mut Document) {
     normalize_children(&mut doc.children);
 }
 
 fn normalize_children(children: &mut Vec<MdNode>) {
-    // 1. Clamp heading depths
     for child in children.iter_mut() {
         if let MdNode::Heading(h) = child {
             h.depth = h.depth.clamp(1, 6);
         }
-        // Recurse into all children
         if let Some(kids) = child.children_mut() {
             normalize_children(kids);
         }
     }
 
-    // 2. Merge adjacent text nodes
     merge_adjacent_text(children);
 }
 
@@ -216,6 +209,7 @@ mod tests {
             id: id_gen.next_id(),
             span: Span::new(0, 15),
             children: vec![heading],
+            alert_type: None,
         });
         let mut doc = make_doc(&mut id_gen, vec![bq]);
 
@@ -251,8 +245,8 @@ mod tests {
         normalize(&mut doc);
 
         if let MdNode::Heading(h) = &doc.children[0] {
-            assert_eq!(h.depth, 6); // clamped
-            assert_eq!(h.children.len(), 1); // merged
+            assert_eq!(h.depth, 6);
+            assert_eq!(h.children.len(), 1);
             if let MdNode::Text(t) = &h.children[0] {
                 assert_eq!(t.value, "Hello World");
             } else {

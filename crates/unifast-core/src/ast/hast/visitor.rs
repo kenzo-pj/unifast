@@ -1,6 +1,5 @@
-use super::nodes::*;
+use super::nodes::{HComment, HDoctype, HElement, HNode, HRaw, HRoot, HText};
 
-/// Immutable visitor trait for walking the HTML AST.
 #[allow(unused_variables)]
 pub trait HVisitor {
     fn visit_node(&mut self, node: &HNode) {
@@ -37,7 +36,6 @@ pub trait HVisitor {
     fn visit_raw(&mut self, node: &HRaw) {}
 }
 
-/// Mutable visitor trait for walking and modifying the HTML AST in place.
 #[allow(unused_variables)]
 pub trait HVisitorMut {
     fn visit_node_mut(&mut self, node: &mut HNode) {
@@ -80,7 +78,6 @@ mod tests {
     use crate::ast::common::{NodeIdGen, Span};
     use crate::util::small_map::SmallMap;
 
-    /// A visitor that counts elements by tag name.
     struct ElementCounter {
         count: usize,
     }
@@ -136,11 +133,9 @@ mod tests {
 
         let mut counter = ElementCounter::new();
         counter.visit_node(&root);
-        // root + div + text + span + text = 5
         assert_eq!(counter.count, 5);
     }
 
-    /// A visitor that collects all tag names.
     struct TagCollector {
         tags: Vec<String>,
     }
@@ -189,7 +184,6 @@ mod tests {
         assert_eq!(collector.tags, vec!["h1", "p"]);
     }
 
-    /// A mutable visitor that adds a class attribute to all elements.
     struct ClassAdder {
         class: String,
     }

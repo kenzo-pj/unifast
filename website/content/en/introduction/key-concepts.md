@@ -1,9 +1,7 @@
 ---
 title: "Key Concepts"
-description: "Understand the compilation pipeline, passes, and plugin architecture"
+description: "Understand unifast's multi-stage compilation pipeline, plugin system, and how MdAst and HAst transformations work."
 ---
-
-## Key Concepts
 
 unifast compiles Markdown through a multi-stage pipeline. Understanding these stages helps you configure the compiler and choose the right plugins.
 
@@ -36,12 +34,14 @@ The parser produces **MdAst**, which is then lowered to **HAst** for HTML emissi
 Passes are transformations applied to the AST at specific phases. unifast has built-in passes for common tasks:
 
 **MdAst passes** (before lowering to HTML):
+
 - **Normalize** - Consistent structure for downstream passes
 - **Slug** - Generate heading IDs from text content
 - **TOC** - Extract table of contents from headings
 - **Definition Resolution** - Resolve link/image reference definitions
 
 **HAst passes** (after lowering to HTML):
+
 - **Sanitize** - Remove disallowed HTML elements and attributes
 - **Highlight** - Apply syntax highlighting to code blocks
 - **Cleanup** - Remove unnecessary nodes and whitespace
@@ -53,9 +53,7 @@ Passes are ordered by phase - you don't need to worry about execution order.
 Plugins are TypeScript packages that configure built-in passes. They don't run arbitrary JavaScript during compilation - instead, they set options that control how the Rust core processes your document.
 
 ```ts
-import { compile } from "@unifast/node";
-import { gfm } from "@unifast/plugin-gfm";
-import { sanitize } from "@unifast/plugin-sanitize";
+import { compile, gfm, sanitize } from "@unifast/node";
 
 const result = compile(source, {
   plugins: [gfm(), sanitize()],

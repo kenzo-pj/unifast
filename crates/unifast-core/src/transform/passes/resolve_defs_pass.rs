@@ -1,5 +1,5 @@
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 use super::resolve_defs;
+use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 use std::collections::HashMap;
 
 pub struct ResolveDefsPass;

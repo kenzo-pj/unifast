@@ -1,13 +1,10 @@
-/// Try to match an extended autolink URL starting at `pos` in `text`.
-/// Handles `http://`, `https://`, and `www.` prefixes.
-/// Returns `Some((url, bytes_consumed))` if a URL is found.
+#[must_use]
 pub fn try_match_url(text: &str, pos: usize) -> Option<(String, usize)> {
     if !text.is_char_boundary(pos) {
         return None;
     }
     let rest = &text[pos..];
 
-    // Check for http:// or https://
     let has_scheme = rest.starts_with("http://") || rest.starts_with("https://");
     let has_www = rest.starts_with("www.");
 
@@ -15,7 +12,6 @@ pub fn try_match_url(text: &str, pos: usize) -> Option<(String, usize)> {
         return None;
     }
 
-    // Find the end of the URL.
     let end = find_url_end(rest);
     if end == 0 {
         return None;
@@ -23,14 +19,12 @@ pub fn try_match_url(text: &str, pos: usize) -> Option<(String, usize)> {
 
     let raw_url = &rest[..end];
 
-    // Must have at least something after the scheme or www.
     if has_scheme {
         let scheme_len = if rest.starts_with("https://") { 8 } else { 7 };
         if end <= scheme_len {
             return None;
         }
     } else if end <= 4 {
-        // "www." alone is not a URL.
         return None;
     }
 
@@ -43,9 +37,7 @@ pub fn try_match_url(text: &str, pos: usize) -> Option<(String, usize)> {
     Some((url, end))
 }
 
-/// Try to match an extended autolink email starting at `pos` in `text`.
-/// Matches patterns like `user@example.com`.
-/// Returns `Some((mailto_url, bytes_consumed))` if an email is found.
+#[must_use]
 pub fn try_match_email(text: &str, pos: usize) -> Option<(String, usize)> {
     if !text.is_char_boundary(pos) {
         return None;
@@ -57,18 +49,15 @@ pub fn try_match_email(text: &str, pos: usize) -> Option<(String, usize)> {
         return None;
     }
 
-    // The local part must start with an alphanumeric character.
     if !bytes[0].is_ascii_alphanumeric() {
         return None;
     }
 
-    // Find the `@` sign.
     let at_pos = bytes.iter().position(|&b| b == b'@')?;
     if at_pos == 0 {
         return None;
     }
 
-    // Validate local part (before @): alphanumeric, `.`, `_`, `+`, `-`
     let local = &rest[..at_pos];
     if !local
         .bytes()
@@ -77,18 +66,15 @@ pub fn try_match_email(text: &str, pos: usize) -> Option<(String, usize)> {
         return None;
     }
 
-    // After the `@`, find the domain.
     let domain_start = at_pos + 1;
     if domain_start >= bytes.len() {
         return None;
     }
 
-    // Domain must start with alphanumeric.
     if !bytes[domain_start].is_ascii_alphanumeric() {
         return None;
     }
 
-    // Find end of domain.
     let mut end = domain_start;
     while end < bytes.len() {
         let b = bytes[end];
@@ -99,22 +85,18 @@ pub fn try_match_email(text: &str, pos: usize) -> Option<(String, usize)> {
         }
     }
 
-    // Domain must contain at least one dot.
     let domain = &rest[domain_start..end];
     if !domain.contains('.') {
         return None;
     }
 
-    // Domain must not end with a dot or hyphen.
     let last = domain.as_bytes().last().copied()?;
     if last == b'.' || last == b'-' {
-        // Trim trailing dots/hyphens.
         let trimmed_end = domain
             .bytes()
             .rev()
             .position(|b| b != b'.' && b != b'-')
-            .map(|p| end - p)
-            .unwrap_or(domain_start);
+            .map_or(domain_start, |p| end - p);
         if trimmed_end <= domain_start {
             return None;
         }
@@ -129,25 +111,21 @@ pub fn try_match_email(text: &str, pos: usize) -> Option<(String, usize)> {
     Some((format!("mailto:{email}"), end))
 }
 
-/// Find the end of a URL in text, handling trailing punctuation stripping.
 fn find_url_end(text: &str) -> usize {
     let bytes = text.as_bytes();
     let mut end = 0;
 
     while end < bytes.len() {
         let b = bytes[end];
-        // URL ends at whitespace or control chars.
         if b == b' ' || b == b'\n' || b == b'\t' || b == b'\r' || b < 0x20 {
             break;
         }
-        // Also stop at certain characters that typically end URLs in prose.
         if b == b'<' {
             break;
         }
         end += 1;
     }
 
-    // Strip trailing punctuation that is unlikely part of the URL.
     while end > 0 {
         let last = bytes[end - 1];
         if last == b'.'
@@ -161,7 +139,6 @@ fn find_url_end(text: &str) -> usize {
         {
             end -= 1;
         } else if last == b')' {
-            // Only strip trailing `)` if there are more `)` than `(` in the URL.
             let open = bytes[..end].iter().filter(|&&b| b == b'(').count();
             let close = bytes[..end].iter().filter(|&&b| b == b')').count();
             if close > open {
@@ -251,8 +228,6 @@ mod tests {
 
     #[test]
     fn test_url_non_char_boundary_returns_none() {
-        // "—" is U+2014 (3 bytes: 0xE2 0x80 0x94).
-        // Passing pos=1 is inside the multi-byte char → should return None, not panic.
         let text = "—http://example.com";
         assert!(try_match_url(text, 1).is_none());
         assert!(try_match_url(text, 2).is_none());
@@ -267,7 +242,6 @@ mod tests {
 
     #[test]
     fn test_url_after_multibyte_char() {
-        // pos=3 is the char boundary after "—", should find the URL.
         let text = "—http://example.com";
         let (url, len) = try_match_url(text, 3).unwrap();
         assert_eq!(url, "http://example.com");

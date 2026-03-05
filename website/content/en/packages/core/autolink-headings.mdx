@@ -1,0 +1,73 @@
+---
+title: "autolinkHeadings()"
+description: "Automatically add anchor links to headings."
+---
+
+```ts
+import { autolinkHeadings } from "@unifast/node";
+```
+
+### Signature
+
+```ts
+function autolinkHeadings(options?: AutolinkHeadingsOptions): UnifastPlugin
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options?` | `AutolinkHeadingsOptions` | Configuration for heading link behavior |
+
+#### `AutolinkHeadingsOptions`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `behavior` | `"prepend" \| "append" \| "wrap"` | `"prepend"` | Where to place the anchor link relative to the heading content |
+
+### Returns
+
+`UnifastPlugin`
+
+## Examples
+
+This documentation site uses `autolinkHeadings({ behavior: "prepend" })`. Hover over any heading on this page to see the anchor link.
+
+The generated HTML for a heading looks like:
+
+```html
+<h2 id="examples">
+  <a href="#examples" class="anchor" aria-hidden="true"></a>
+  Examples
+</h2>
+```
+
+## Usage
+
+```ts
+import { compile } from "@unifast/node";
+import { autolinkHeadings } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [autolinkHeadings()],
+});
+// Each heading gets a prepended anchor link with its slug
+```
+
+### Append mode
+
+```ts
+const result = compile(md, {
+  plugins: [autolinkHeadings({ behavior: "append" })],
+});
+// Anchor links are placed after the heading text
+```
+
+### Wrap mode
+
+```ts
+const result = compile(md, {
+  plugins: [autolinkHeadings({ behavior: "wrap" })],
+});
+// The entire heading content is wrapped in an anchor link
+```

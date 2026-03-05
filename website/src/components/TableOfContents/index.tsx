@@ -1,4 +1,5 @@
 import { memo, useState, useEffect, useRef } from "react";
+
 import styles from "./TableOfContents.module.css";
 
 interface TocEntry {
@@ -7,13 +8,7 @@ interface TocEntry {
   slug: string;
 }
 
-const TocItem = memo(function TocItem({
-  entry,
-  isActive,
-}: {
-  entry: TocEntry;
-  isActive: boolean;
-}) {
+const TocItem = memo(function TocItem({ entry, isActive }: { entry: TocEntry; isActive: boolean }) {
   return (
     <li className={styles.item}>
       <a
@@ -38,9 +33,7 @@ export const TableOfContents = memo(function TableOfContents({ toc }: TableOfCon
     if (toc.length === 0) return;
 
     const slugs = toc.map((e) => e.slug);
-    const headings = slugs
-      .map((s) => document.getElementById(s))
-      .filter(Boolean) as HTMLElement[];
+    const headings = slugs.map((s) => document.getElementById(s)).filter(Boolean) as HTMLElement[];
 
     if (headings.length === 0) return;
 
@@ -70,11 +63,7 @@ export const TableOfContents = memo(function TableOfContents({ toc }: TableOfCon
       <div className={styles.title}>On this page</div>
       <ul className={styles.list}>
         {toc.map((entry) => (
-          <TocItem
-            key={entry.slug}
-            entry={entry}
-            isActive={activeSlug === entry.slug}
-          />
+          <TocItem key={entry.slug} entry={entry} isActive={activeSlug === entry.slug} />
         ))}
       </ul>
     </nav>

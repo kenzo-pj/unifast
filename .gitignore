@@ -11,6 +11,9 @@ pnpm-debug.log*
 # Turborepo
 .turbo/
 
+# css-modules-kit generated type definitions
+website/generated/
+
 # NAPI-RS native build artifacts
 packages/node/native/
 
@@ -26,3 +29,5 @@ docs/plans/
 # OS
 .DS_Store
 Thumbs.db
+
+.claude

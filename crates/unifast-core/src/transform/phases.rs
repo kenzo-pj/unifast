@@ -1,13 +1,14 @@
 pub use super::pass::Phase;
 
 impl Phase {
-    pub fn all() -> &'static [Phase] {
+    #[must_use]
+    pub const fn all() -> &'static [Self] {
         &[
-            Phase::Parse,
-            Phase::Transform,
-            Phase::Lower,
-            Phase::Optimize,
-            Phase::Emit,
+            Self::Parse,
+            Self::Transform,
+            Self::Lower,
+            Self::Optimize,
+            Self::Emit,
         ]
     }
 }

@@ -1,10 +1,13 @@
+import { Link, useRouter } from "@tanstack/react-router";
 import { type ComponentType, useCallback, useEffect, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { Link } from "@tanstack/react-router";
-import { useTranslation, DEFAULT_LOCALE } from "~/i18n";
-import { TableOfContents } from "~/components/TableOfContents";
+
 import { CopyButton } from "~/components/CopyButton";
+import { TableOfContents } from "~/components/TableOfContents";
+import { useTranslation, DEFAULT_LOCALE } from "~/i18n";
+
 import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
+
 import styles from "./DocContent.module.css";
 
 interface PageLink {
@@ -23,19 +26,41 @@ interface DocContentProps {
   nextPage?: PageLink;
 }
 
-export function DocContent({ html, MdxContent, frontmatter, toc, translationStatus, slug, prevPage, nextPage }: DocContentProps) {
+export function DocContent({
+  html,
+  MdxContent,
+  frontmatter,
+  toc,
+  translationStatus,
+  slug,
+  prevPage,
+  nextPage,
+}: DocContentProps) {
   const { t, locale } = useTranslation();
+  const router = useRouter();
   const title = frontmatter.title as string | undefined;
   const description = frontmatter.description as string | undefined;
-  const handleContentClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    const heading = target.closest("h1[id], h2[id], h3[id]");
-    if (heading) {
-      const id = heading.getAttribute("id")!;
-      history.replaceState(null, "", `#${id}`);
-      heading.scrollIntoView({ behavior: "smooth" });
-    }
-  }, []);
+  const handleContentClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a[href]");
+      if (anchor) {
+        const href = anchor.getAttribute("href");
+        if (href && href.startsWith("/") && !anchor.getAttribute("target")) {
+          e.preventDefault();
+          router.navigate({ to: href });
+          return;
+        }
+      }
+      const heading = target.closest("h1[id], h2[id], h3[id]");
+      if (heading) {
+        const id = heading.getAttribute("id")!;
+        history.replaceState(null, "", `#${id}`);
+        heading.scrollIntoView({ behavior: "smooth" });
+      }
+    },
+    [router],
+  );
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -55,12 +80,15 @@ export function DocContent({ html, MdxContent, frontmatter, toc, translationStat
     const roots: Root[] = [];
 
     pres.forEach((pre) => {
-      pre.style.position = "relative";
       const code = pre.querySelector("code");
       const text = (code || pre).textContent || "";
-      const wrapper = document.createElement("span");
-      pre.appendChild(wrapper);
-      const root = createRoot(wrapper);
+      const outer = document.createElement("div");
+      outer.className = styles.codeBlock;
+      pre.parentNode!.insertBefore(outer, pre);
+      outer.appendChild(pre);
+      const btnWrapper = document.createElement("span");
+      outer.appendChild(btnWrapper);
+      const root = createRoot(btnWrapper);
       root.render(<CopyButton text={text} />);
       roots.push(root);
     });
@@ -68,7 +96,8 @@ export function DocContent({ html, MdxContent, frontmatter, toc, translationStat
     return () => roots.forEach((root) => root.unmount());
   }, [html, MdxContent]);
 
-  const showBanner = locale !== DEFAULT_LOCALE && translationStatus && translationStatus !== "translated";
+  const showBanner =
+    locale !== DEFAULT_LOCALE && translationStatus && translationStatus !== "translated";
 
   return (
     <div className={styles.page}>
@@ -81,13 +110,20 @@ export function DocContent({ html, MdxContent, frontmatter, toc, translationStat
                 : t("i18n.outdatedBanner")}
             </span>
             {slug && (
-              <Link to={slug === "index" ? "/" : `/docs/${slug}`} className={styles.bannerLink}>
+              <Link
+                to={(slug === "index" ? "/" : `/docs/${slug}`) as "/"}
+                className={styles.bannerLink}
+              >
                 {t("i18n.viewOriginal")}
               </Link>
             )}
           </div>
         )}
-        {title && <h1 className={`${styles.title}${description ? ` ${styles.titleWithDescription}` : ""}`}>{title}</h1>}
+        {title && (
+          <h1 className={`${styles.title}${description ? ` ${styles.titleWithDescription}` : ""}`}>
+            {title}
+          </h1>
+        )}
         {description && <p className={styles.description}>{description}</p>}
         {MdxContent ? (
           <div ref={contentRef} className={styles.content} onClick={handleContentClick}>
@@ -95,7 +131,12 @@ export function DocContent({ html, MdxContent, frontmatter, toc, translationStat
           </div>
         ) : html ? (
           /* eslint-disable-next-line react/no-danger -- HTML is pre-sanitized by Rust sanitize pass */
-          <div ref={contentRef} className={styles.content} onClick={handleContentClick} dangerouslySetInnerHTML={{ __html: html }} />
+          <div
+            ref={contentRef}
+            className={styles.content}
+            onClick={handleContentClick}
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
         ) : null}
         {slug && (
           <a
@@ -104,7 +145,19 @@ export function DocContent({ html, MdxContent, frontmatter, toc, translationStat
             target="_blank"
             rel="noopener noreferrer"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              <path d="m15 5 4 4" />
+            </svg>
             {t("nav.editThisPage")}
           </a>
         )}
@@ -118,16 +171,23 @@ export function DocContent({ html, MdxContent, frontmatter, toc, translationStat
                   {prevPage.label}
                 </span>
               </Link>
-            ) : <span />}
+            ) : (
+              <span />
+            )}
             {nextPage ? (
-              <Link to={nextPage.href} className={`${styles.pageNavCard} ${styles.pageNavCardNext}`}>
+              <Link
+                to={nextPage.href}
+                className={`${styles.pageNavCard} ${styles.pageNavCardNext}`}
+              >
                 <span className={styles.pageNavDirection}>{t("nav.next")}</span>
                 <span className={styles.pageNavTitle}>
                   {nextPage.label}
                   <span className={styles.pageNavArrow}>&rarr;</span>
                 </span>
               </Link>
-            ) : <span />}
+            ) : (
+              <span />
+            )}
           </nav>
         )}
       </article>

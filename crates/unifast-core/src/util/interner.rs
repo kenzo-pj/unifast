@@ -9,6 +9,7 @@ pub struct Interner {
 }
 
 impl Interner {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             map: HashMap::new(),
@@ -26,6 +27,7 @@ impl Interner {
         sym
     }
 
+    #[must_use]
     pub fn resolve(&self, sym: Symbol) -> &str {
         &self.strings[sym.0 as usize]
     }

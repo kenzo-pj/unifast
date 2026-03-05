@@ -9,16 +9,20 @@
   height: 28px;
   border: none;
   border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-muted);
+  background: var(--color-code-bg);
+  color: var(--color-text);
   cursor: pointer;
-  opacity: var(--copy-btn-opacity, 0);
-  transition: opacity var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+  opacity: 0.7;
+  transition:
+    opacity var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .button:hover {
   background: var(--color-hover-strong);
   color: var(--color-text);
+  opacity: 1;
 }
 
 .tooltip {

@@ -15,7 +15,7 @@ MarkdownまたはMDXをHTMLにコンパイルします。
 
 ### 戻り値
 
-`CompileResult` の内容:
+`CompileResult` の内容。
 
 - `output` - コンパイル済みのHTML文字列
 - `frontmatter` - パースされたYAML/TOML/JSONメタデータ

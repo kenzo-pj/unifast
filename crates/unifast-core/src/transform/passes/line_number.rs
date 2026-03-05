@@ -1,13 +1,7 @@
 use crate::ast::common::NodeIdGen;
-use crate::ast::hast::nodes::*;
+use crate::ast::hast::nodes::{HElement, HNode, HRaw, HRoot, HText};
 use crate::util::small_map::SmallMap;
 
-/// Wrap each line of text inside `<pre><code>` blocks with
-/// `<span class="line" data-line="N">…</span>`.
-///
-/// This runs on the HAST and is independent of any syntax highlighter.
-/// If shiki has already wrapped lines in `<span class="line">`, this pass
-/// adds the `data-line` attribute to those existing spans instead.
 pub fn apply_line_numbers(root: &mut HRoot, id_gen: &mut NodeIdGen) {
     for child in &mut root.children {
         apply_to_node(child, id_gen);
@@ -18,12 +12,12 @@ fn apply_to_node(node: &mut HNode, id_gen: &mut NodeIdGen) {
     match node {
         HNode::Element(elem) => {
             if elem.tag == "pre" {
-                if let Some(code) = elem.children.iter_mut().find(|c| {
-                    matches!(c, HNode::Element(e) if e.tag == "code")
-                }) {
-                    if let HNode::Element(code_elem) = code {
-                        wrap_lines_in_code(code_elem, id_gen);
-                    }
+                if let Some(HNode::Element(code_elem)) = elem
+                    .children
+                    .iter_mut()
+                    .find(|c| matches!(c, HNode::Element(e) if e.tag == "code"))
+                {
+                    wrap_lines_in_code(code_elem, id_gen);
                 }
             } else {
                 for child in &mut elem.children {
@@ -41,36 +35,30 @@ fn apply_to_node(node: &mut HNode, id_gen: &mut NodeIdGen) {
 }
 
 fn wrap_lines_in_code(code: &mut HElement, id_gen: &mut NodeIdGen) {
-    // Check if lines are already wrapped in <span class="line"> (e.g. by shiki)
-    let already_wrapped = code.children.iter().any(|c| {
-        matches!(c, HNode::Element(e) if e.tag == "span" && has_class(&e.attributes, "line"))
-    });
+    let already_wrapped = code.children.iter().any(
+        |c| matches!(c, HNode::Element(e) if e.tag == "span" && has_class(&e.attributes, "line")),
+    );
 
     if already_wrapped {
-        // Just add data-line attributes to existing .line spans
         let mut line_num = 1u32;
         for child in &mut code.children {
-            if let HNode::Element(e) = child {
-                if e.tag == "span" && has_class(&e.attributes, "line") {
-                    e.attributes.insert("data-line".to_string(), line_num.to_string());
-                    line_num += 1;
-                }
+            if let HNode::Element(e) = child
+                && e.tag == "span"
+                && has_class(&e.attributes, "line")
+            {
+                e.attributes
+                    .insert("data-line".to_string(), line_num.to_string());
+                line_num += 1;
             }
         }
         return;
     }
 
-    // Check if children contain HRaw nodes (e.g. from syntect highlighting).
-    // Syntect replaces code children with a single HRaw containing highlighted HTML.
-    // Syntect's output may have spans that cross line boundaries (e.g. a scope span
-    // opened on line 1 and closed on line 3). We must close and re-open such spans
-    // at each line boundary so each line is self-contained for CSS targeting.
     let has_raw = code.children.iter().any(|c| matches!(c, HNode::Raw(_)));
     if has_raw {
         let span = code.span;
         let old_children = std::mem::take(&mut code.children);
 
-        // Concatenate all raw HTML content
         let mut raw_html = String::new();
         for child in &old_children {
             match child {
@@ -85,10 +73,8 @@ fn wrap_lines_in_code(code: &mut HElement, id_gen: &mut NodeIdGen) {
 
         for (i, line_html) in self_contained_lines.iter().enumerate() {
             let line_num = (i + 1) as u32;
-            let wrapped = format!(
-                "<span class=\"line\" data-line=\"{}\">{}</span>",
-                line_num, line_html
-            );
+            let wrapped =
+                format!("<span class=\"line\" data-line=\"{line_num}\">{line_html}</span>");
 
             new_children.push(HNode::Raw(HRaw {
                 id: id_gen.next_id(),
@@ -96,7 +82,6 @@ fn wrap_lines_in_code(code: &mut HElement, id_gen: &mut NodeIdGen) {
                 value: wrapped,
             }));
 
-            // Add newline between lines
             if i < self_contained_lines.len() - 1 {
                 new_children.push(HNode::Text(HText {
                     id: id_gen.next_id(),
@@ -110,7 +95,6 @@ fn wrap_lines_in_code(code: &mut HElement, id_gen: &mut NodeIdGen) {
         return;
     }
 
-    // Plain text content: split by newlines and wrap each in <span class="line" data-line="N">
     let span = code.span;
     let old_children = std::mem::take(&mut code.children);
     let full_text = collect_text(&old_children);
@@ -118,7 +102,6 @@ fn wrap_lines_in_code(code: &mut HElement, id_gen: &mut NodeIdGen) {
 
     let mut new_children = Vec::with_capacity(lines.len());
     for (i, line_text) in lines.iter().enumerate() {
-        // Skip trailing empty line after final newline
         if i == lines.len() - 1 && line_text.is_empty() {
             break;
         }
@@ -145,10 +128,9 @@ fn wrap_lines_in_code(code: &mut HElement, id_gen: &mut NodeIdGen) {
 
         new_children.push(line_span);
 
-        // Add newline text between lines (not after the last)
         if i < lines.len() - 1 {
             let next_is_trailing_empty =
-                i == lines.len() - 2 && lines.last().map_or(false, |l| l.is_empty());
+                i == lines.len() - 2 && lines.last().is_some_and(|l| l.is_empty());
             if !next_is_trailing_empty {
                 new_children.push(HNode::Text(HText {
                     id: id_gen.next_id(),
@@ -162,45 +144,34 @@ fn wrap_lines_in_code(code: &mut HElement, id_gen: &mut NodeIdGen) {
     code.children = new_children;
 }
 
-/// Split raw HTML by newlines and ensure each line is self-contained.
-///
-/// Syntect's output may have `<span>` elements that span multiple lines.
-/// For example: `<span class="sy-source sy-rust">line1\nline2\n</span>`
-/// This function closes open spans at each line boundary and re-opens
-/// them at the start of the next line, so each resulting line can be
-/// independently wrapped without breaking DOM nesting.
 fn make_lines_self_contained(html: &str) -> Vec<String> {
     let raw_lines: Vec<&str> = html.split('\n').collect();
     let mut result = Vec::new();
-    // Stack of class attribute values for currently open spans that carry across lines
     let mut carry_spans: Vec<String> = Vec::new();
 
     for (line_idx, raw_line) in raw_lines.iter().enumerate() {
-        // Skip trailing empty line after final newline
         if line_idx == raw_lines.len() - 1 && raw_line.is_empty() {
             break;
         }
 
         let mut line_html = String::new();
 
-        // Re-open spans carried from previous line
         for span_class in &carry_spans {
             line_html.push_str("<span class=\"");
             line_html.push_str(span_class);
             line_html.push_str("\">");
         }
 
-        // Parse the line, tracking span opens/closes
         let mut pos = 0;
         let bytes = raw_line.as_bytes();
         while pos < bytes.len() {
             if bytes[pos] == b'<' {
-                // Find end of tag
-                let tag_end = raw_line[pos..].find('>').map(|p| pos + p + 1).unwrap_or(raw_line.len());
+                let tag_end = raw_line[pos..]
+                    .find('>')
+                    .map_or(raw_line.len(), |p| pos + p + 1);
                 let tag = &raw_line[pos..tag_end];
 
                 if tag.starts_with("<span ") {
-                    // Extract class value from <span class="...">
                     if let Some(cls_start) = tag.find("class=\"") {
                         let val_start = cls_start + 7;
                         if let Some(val_len) = tag[val_start..].find('"') {
@@ -222,7 +193,6 @@ fn make_lines_self_contained(html: &str) -> Vec<String> {
             }
         }
 
-        // Close all spans that are still open (they'll be re-opened on the next line)
         for _ in 0..carry_spans.len() {
             line_html.push_str("</span>");
         }
@@ -236,8 +206,7 @@ fn make_lines_self_contained(html: &str) -> Vec<String> {
 fn has_class(attrs: &SmallMap<String, String>, class: &str) -> bool {
     attrs
         .get(&"class".to_string())
-        .map(|v| v.split_whitespace().any(|c| c == class))
-        .unwrap_or(false)
+        .is_some_and(|v| v.split_whitespace().any(|c| c == class))
 }
 
 fn collect_text(nodes: &[HNode]) -> String {
@@ -280,7 +249,7 @@ mod tests {
 
         let mut code_attrs = SmallMap::new();
         if let Some(l) = lang {
-            code_attrs.insert("class".to_string(), format!("language-{}", l));
+            code_attrs.insert("class".to_string(), format!("language-{l}"));
         }
 
         let code_elem = HNode::Element(HElement {
@@ -337,7 +306,6 @@ mod tests {
     fn adds_data_line_to_existing_shiki_spans() {
         let mut id_gen = NodeIdGen::new();
 
-        // Simulate shiki output: <code><span class="line">...</span>\n<span class="line">...</span></code>
         let line1 = HNode::Element(HElement {
             id: id_gen.next_id(),
             span: Span::new(0, 50),
@@ -400,7 +368,6 @@ mod tests {
         let html = stringify::stringify(&root);
         assert!(html.contains("data-line=\"1\""));
         assert!(html.contains("data-line=\"2\""));
-        // Original class preserved
         assert!(html.contains("class=\"line\""));
     }
 

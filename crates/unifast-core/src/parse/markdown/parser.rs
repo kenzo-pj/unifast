@@ -1,23 +1,19 @@
 use std::collections::HashMap;
 
 use crate::ast::common::{NodeIdGen, Span};
-use crate::ast::mdast::nodes::*;
+use crate::ast::mdast::nodes::{
+    AlignKind, Blockquote, Break, Code, Delete, Document, Emphasis, FootnoteDefinition,
+    FootnoteReference, Heading, Html, Image, InlineCode, Link, List, ListItem, MdNode, Paragraph,
+    Strong, Table, TableCell, TableRow, Text, ThematicBreak,
+};
 use crate::diagnostics::sink::DiagnosticSink;
 use crate::parse::gfm;
 
-// ── Public entry point ───────────────────────────────────────────────
-
-/// Parse a Markdown source string into a `Document` AST node.
 pub fn parse(source: &str, id_gen: &mut NodeIdGen, diagnostics: &mut DiagnosticSink) -> Document {
     let mut parser = Parser::new(source, id_gen, diagnostics);
     parser.parse_document()
 }
 
-/// Parse a Markdown source string starting from a byte offset.
-///
-/// This is used when frontmatter has been extracted from the beginning of the
-/// input.  By keeping the original source and simply starting from `offset`,
-/// all `Span` values remain correct relative to the original input.
 pub fn parse_from_offset(
     source: &str,
     offset: usize,
@@ -31,22 +27,17 @@ pub fn parse_from_offset(
     parser.parse_document_from(offset)
 }
 
-// ── ASCII punctuation for backslash escapes ──────────────────────────
-
 const ESCAPABLE: &[u8] = b"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 
 fn is_escapable(ch: u8) -> bool {
     ESCAPABLE.contains(&ch)
 }
 
-// ── Parser ───────────────────────────────────────────────────────────
-
 struct Parser<'a> {
     source: &'a str,
     pos: usize,
     id_gen: &'a mut NodeIdGen,
     diagnostics: &'a mut DiagnosticSink,
-    /// Link reference definitions: label (lower-cased) -> (url, optional title).
     definitions: HashMap<String, (String, Option<String>)>,
 }
 
@@ -65,13 +56,8 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // ── Document ─────────────────────────────────────────────────────
-
     fn parse_document(&mut self) -> Document {
-        // First pass: collect link reference definitions.
         self.collect_definitions();
-
-        // Reset position for the real parse.
         self.pos = 0;
 
         let children = self.parse_blocks();
@@ -83,10 +69,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    /// Parse the document starting from a byte offset (used after frontmatter
-    /// extraction so that spans remain relative to the original source).
     fn parse_document_from(&mut self, offset: usize) -> Document {
-        // Collect link reference definitions starting from the offset.
         self.pos = offset;
         while self.pos < self.source.len() {
             let line_start = self.pos;
@@ -95,13 +78,11 @@ impl<'a> Parser<'a> {
                 None => break,
             };
             if self.try_collect_definition(&line, line_start) {
-                // consumed
             } else {
                 self.advance_line();
             }
         }
 
-        // Reset to the offset for the real parse.
         self.pos = offset;
 
         let children = self.parse_blocks();
@@ -113,27 +94,21 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // ── Definition collection pass ───────────────────────────────────
-
     fn collect_definitions(&mut self) {
         self.pos = 0;
         while self.pos < self.source.len() {
             let line_start = self.pos;
-            // Get the line content as an owned String to avoid borrow conflict.
             let line = match self.peek_line_raw() {
                 Some(l) => l.to_string(),
                 None => break,
             };
             if self.try_collect_definition(&line, line_start) {
-                // consumed, pos already advanced inside
             } else {
                 self.advance_line();
             }
         }
     }
 
-    /// Try to parse a link reference definition starting at `line_start`.
-    /// Returns true if we consumed it (and advanced pos past it).
     fn try_collect_definition(&mut self, line: &str, line_start: usize) -> bool {
         let trimmed = line.trim_start();
         let indent = line.len() - trimmed.len();
@@ -143,15 +118,11 @@ impl<'a> Parser<'a> {
         if !trimmed.starts_with('[') {
             return false;
         }
-        // We need to parse: [label]: <url> "title"
-        // across potentially multiple lines. Work on the remaining source.
         let src = &self.source[line_start + indent..];
         if let Some((label, url, title, consumed)) = parse_link_reference_definition(src) {
             let key = normalize_label(&label);
-            // Only store first definition for a given label.
             self.definitions.entry(key).or_insert((url, title));
             self.pos = line_start + indent + consumed;
-            // Skip trailing whitespace/newline if any
             if self.pos < self.source.len() && self.source.as_bytes()[self.pos] == b'\n' {
                 self.pos += 1;
             }
@@ -161,12 +132,9 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // ── Block parsing ────────────────────────────────────────────────
-
     fn parse_blocks(&mut self) -> Vec<MdNode> {
         let mut blocks: Vec<MdNode> = Vec::new();
-        // Accumulator for paragraph lines.
-        let mut para_lines: Vec<(usize, usize)> = Vec::new(); // (start, end) byte offsets
+        let mut para_lines: Vec<(usize, usize)> = Vec::new();
 
         while self.pos < self.source.len() {
             let line_start = self.pos;
@@ -175,18 +143,14 @@ impl<'a> Parser<'a> {
                 None => break,
             };
 
-            // Blank line
             if Self::is_blank_line(&line) {
                 if !para_lines.is_empty() {
-                    // Check if next non-blank line is a setext underline -- if so, don't flush yet.
-                    // Actually, setext needs to be checked differently.
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
                 self.advance_line();
                 continue;
             }
 
-            // Skip link reference definitions (already collected).
             if self.is_definition_line(&line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
@@ -195,8 +159,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // Setext heading: must be checked BEFORE thematic break when we have
-            // accumulated paragraph lines, because `---` is setext h2 in that context.
             if !para_lines.is_empty()
                 && let Some(depth) = Self::setext_underline_depth(&line)
             {
@@ -206,7 +168,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // Thematic break (must be checked before list because `---` could look like list marker)
             if let Some(node) = self.try_parse_thematic_break(&line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
@@ -215,7 +176,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // ATX heading
             if let Some(node) = self.try_parse_atx_heading(&line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
@@ -224,7 +184,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // Code fence
             if let Some(node) = self.try_parse_code_fence(&line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
@@ -233,7 +192,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // Indented code block (4+ leading spaces, but not inside a paragraph continuation).
             if para_lines.is_empty()
                 && let Some(node) = self.try_parse_indented_code(&line, line_start)
             {
@@ -241,7 +199,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // Blockquote
             if let Some(node) = self.try_parse_blockquote(&line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
@@ -250,7 +207,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // List
             if let Some(node) = self.try_parse_list(&line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
@@ -259,7 +215,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // HTML block
             if para_lines.is_empty()
                 && let Some(node) = self.try_parse_html_block(&line, line_start)
             {
@@ -267,7 +222,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // GFM: Footnote definition `[^id]: content`
             if para_lines.is_empty()
                 && let Some(node) = self.try_parse_footnote_definition(&line, line_start)
             {
@@ -275,9 +229,6 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            // GFM: Table detection.
-            // If the current line contains `|` and the next line is a table separator,
-            // parse it as a table.
             if para_lines.is_empty()
                 && gfm::tables::could_be_table_row(&line)
                 && let Some(node) = self.try_parse_table(&line, line_start)
@@ -285,8 +236,6 @@ impl<'a> Parser<'a> {
                 blocks.push(node);
                 continue;
             }
-            // Also check if we have exactly one accumulated paragraph line and the
-            // current line is a separator (handles case where header was already accumulated).
             if para_lines.len() == 1 && gfm::tables::is_table_separator(&line).is_some() {
                 let header_range = para_lines[0];
                 let header_line = self.source[header_range.0..header_range.1]
@@ -303,7 +252,6 @@ impl<'a> Parser<'a> {
                 }
             }
 
-            // Otherwise: paragraph continuation line.
             let line_end = self.pos + line.len();
             para_lines.push((line_start, line_end));
             self.advance_line();
@@ -315,8 +263,6 @@ impl<'a> Parser<'a> {
 
         blocks
     }
-
-    // ── ATX heading ──────────────────────────────────────────────────
 
     fn try_parse_atx_heading(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
         let trimmed = line.trim_start();
@@ -338,7 +284,6 @@ impl<'a> Parser<'a> {
             return None;
         }
 
-        // After the `#`s there must be a space or end-of-line.
         if level < bytes.len() && bytes[level] != b' ' && bytes[level] != b'\t' {
             return None;
         }
@@ -346,7 +291,6 @@ impl<'a> Parser<'a> {
         self.advance_line();
         let line_end = self.pos;
 
-        // Extract content: skip `# ` prefix and optional closing `#`s.
         let content_start_in_trimmed = if level < trimmed.len() {
             level + 1
         } else {
@@ -354,7 +298,6 @@ impl<'a> Parser<'a> {
         };
         let mut content = trimmed[content_start_in_trimmed..].to_string();
 
-        // Remove trailing closing #s.
         let stripped = content.trim_end();
         if stripped.ends_with('#') {
             let without_trailing = stripped.trim_end_matches('#');
@@ -381,8 +324,6 @@ impl<'a> Parser<'a> {
         }))
     }
 
-    // ── Setext heading ───────────────────────────────────────────────
-
     fn setext_underline_depth(line: &str) -> Option<u8> {
         let trimmed = line.trim();
         if trimmed.is_empty() {
@@ -393,13 +334,7 @@ impl<'a> Parser<'a> {
             return None;
         }
         if trimmed.bytes().all(|b| b == ch) {
-            if ch == b'=' {
-                Some(1)
-            } else {
-                // Needs at least 1 char. A single `-` could be ambiguous, but CommonMark
-                // recognises it as setext heading when preceded by paragraph text.
-                Some(2)
-            }
+            if ch == b'=' { Some(1) } else { Some(2) }
         } else {
             None
         }
@@ -426,8 +361,6 @@ impl<'a> Parser<'a> {
         })
     }
 
-    // ── Thematic break ───────────────────────────────────────────────
-
     fn try_parse_thematic_break(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
         let trimmed = line.trim();
         if trimmed.len() < 3 {
@@ -450,8 +383,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // ── Fenced code block ────────────────────────────────────────────
-
     fn try_parse_code_fence(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
         let trimmed = line.trim_start();
         let indent = line.len() - trimmed.len();
@@ -469,7 +400,6 @@ impl<'a> Parser<'a> {
             return None;
         }
 
-        // Backtick fences cannot have backticks in the info string.
         let info = trimmed[fence_len..].trim();
         if fence_char == b'`' && info.contains('`') {
             return None;
@@ -496,32 +426,24 @@ impl<'a> Parser<'a> {
         self.advance_line();
 
         let mut code_content = String::new();
-        let mut closed = false;
         while self.pos < self.source.len() {
             let cl = self.peek_line_raw().unwrap_or("");
             let cl_trimmed = cl.trim_start();
             let cl_indent = cl.len() - cl_trimmed.len();
-            // Closing fence: same char, at least same length, only fence chars + optional trailing spaces.
             if cl_indent <= 3
                 && cl_trimmed.bytes().take_while(|&b| b == fence_char).count() >= fence_len
                 && cl_trimmed.trim().bytes().all(|b| b == fence_char)
             {
                 self.advance_line();
-                closed = true;
+
                 break;
             }
-            // Strip up to `indent` leading spaces from content lines.
             let stripped = strip_indent(cl, indent);
             code_content.push_str(stripped);
             code_content.push('\n');
             self.advance_line();
         }
 
-        if !closed {
-            // Unclosed code fence -- still valid, just goes to end.
-        }
-
-        // Remove trailing newline from content.
         if code_content.ends_with('\n') {
             code_content.pop();
         }
@@ -536,15 +458,12 @@ impl<'a> Parser<'a> {
         }))
     }
 
-    // ── Indented code block ──────────────────────────────────────────
-
     fn try_parse_indented_code(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
         if !line.starts_with("    ") && !line.starts_with('\t') {
             return None;
         }
 
         let mut code_lines: Vec<String> = Vec::new();
-        // Don't consume indented code if line looks like it could be a list continuation.
 
         while self.pos < self.source.len() {
             let cl = match self.peek_line_raw() {
@@ -564,8 +483,7 @@ impl<'a> Parser<'a> {
             }
         }
 
-        // Remove trailing blank lines.
-        while code_lines.last().is_some_and(|l| l.is_empty()) {
+        while code_lines.last().is_some_and(std::string::String::is_empty) {
             code_lines.pop();
         }
 
@@ -584,8 +502,6 @@ impl<'a> Parser<'a> {
         }))
     }
 
-    // ── Blockquote ───────────────────────────────────────────────────
-
     fn try_parse_blockquote(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
         let trimmed = line.trim_start();
         if !trimmed.starts_with('>') {
@@ -600,32 +516,25 @@ impl<'a> Parser<'a> {
             };
             let ct = cl.trim_start();
             if let Some(after) = ct.strip_prefix('>') {
-                // Strip optional following space.
                 let stripped = after.strip_prefix(' ').unwrap_or(after);
                 inner_lines.push_str(stripped);
                 inner_lines.push('\n');
                 self.advance_line();
-            } else if Self::is_blank_line(&cl) {
-                break;
             } else {
-                // Lazy continuation is allowed for paragraphs, but for simplicity
-                // we stop at non-`>` lines.
                 break;
             }
         }
 
         let span = Span::new(line_start as u32, self.pos as u32);
-        // Recursively parse the inner content using a sub-parser.
         let children = self.parse_sub_blocks(&inner_lines);
 
         Some(MdNode::Blockquote(Blockquote {
             id: self.id_gen.next_id(),
             span,
             children,
+            alert_type: None,
         }))
     }
-
-    // ── List ─────────────────────────────────────────────────────────
 
     fn try_parse_list(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
         let (marker_info, _) = Self::list_marker_info(line)?;
@@ -652,7 +561,6 @@ impl<'a> Parser<'a> {
                 None => break,
             };
 
-            // Must be same list type.
             if mi.ordered != ordered {
                 break;
             }
@@ -660,15 +568,12 @@ impl<'a> Parser<'a> {
                 break;
             }
 
-            // Gather all lines of this item.
             let mut item_lines = String::new();
-            // First line: content after marker.
             let first_content = &current_line[content_indent..];
             item_lines.push_str(first_content);
             item_lines.push('\n');
             self.advance_line();
 
-            // Continuation lines: indented at least `content_indent` spaces, or blank.
             let mut item_has_blank = false;
             while self.pos < self.source.len() {
                 let cl = match self.peek_line_raw() {
@@ -681,14 +586,12 @@ impl<'a> Parser<'a> {
                     self.advance_line();
                     continue;
                 }
-                // Check indent.
                 let cl_indent = cl.len() - cl.trim_start().len();
                 if cl_indent >= content_indent {
                     item_lines.push_str(&cl[content_indent..]);
                     item_lines.push('\n');
                     self.advance_line();
                 } else {
-                    // Could be next list item or end of list.
                     break;
                 }
             }
@@ -697,19 +600,15 @@ impl<'a> Parser<'a> {
                 had_blank_between = true;
             }
 
-            // GFM: Check for task list marker at the start of item content.
             let checked = if let Some((is_checked, consumed)) =
                 gfm::task_list::parse_task_marker(&item_lines)
             {
-                // Strip the task marker from the content so it doesn't
-                // appear as text in the children.
                 item_lines = item_lines[consumed..].to_string();
                 Some(is_checked)
             } else {
                 None
             };
 
-            // Parse item content using a sub-parser.
             let children = self.parse_sub_blocks(&item_lines);
 
             let item_span = Span::new(item_start as u32, self.pos as u32);
@@ -737,7 +636,6 @@ impl<'a> Parser<'a> {
         }))
     }
 
-    /// Returns (MarkerInfo, content_indent) if the line starts with a list marker.
     fn list_marker_info(line: &str) -> Option<(ListMarkerInfo, usize)> {
         let leading = line.len() - line.trim_start().len();
         if leading > 3 {
@@ -749,12 +647,10 @@ impl<'a> Parser<'a> {
             return None;
         }
 
-        // Unordered: `- `, `* `, `+ `
         if (bytes[0] == b'-' || bytes[0] == b'*' || bytes[0] == b'+')
             && bytes.len() > 1
             && bytes[1] == b' '
         {
-            // Make sure this is not a thematic break.
             let trimmed = line.trim();
             if trimmed.len() >= 3 {
                 let ch = trimmed.as_bytes()[0];
@@ -775,7 +671,6 @@ impl<'a> Parser<'a> {
             ));
         }
 
-        // Ordered: `1. `, `1) `
         let mut i = 0;
         while i < bytes.len() && bytes[i].is_ascii_digit() {
             i += 1;
@@ -801,23 +696,17 @@ impl<'a> Parser<'a> {
         None
     }
 
-    // ── HTML block ───────────────────────────────────────────────────
-
     fn try_parse_html_block(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
         let trimmed = line.trim_start();
         if !trimmed.starts_with('<') {
             return None;
         }
 
-        // Must be followed by a letter, `/`, or `!` to look like an HTML tag.
         let second = trimmed.as_bytes().get(1).copied()?;
         if !second.is_ascii_alphabetic() && second != b'/' && second != b'!' {
             return None;
         }
 
-        // Reject autolinks: if the content between `<` and `>` contains `://` or `@`,
-        // it's an autolink, not an HTML block. Also reject if no `>` on the line (not
-        // a self-contained tag start).
         if let Some(close_angle) = trimmed.find('>') {
             let between = &trimmed[1..close_angle];
             if between.contains("://") || between.contains('@') {
@@ -825,13 +714,6 @@ impl<'a> Parser<'a> {
             }
         }
 
-        // Additionally, the tag must start with a known block-level HTML tag or
-        // be an HTML comment/processing instruction. For simplicity, we check
-        // that the text after `<` (and optional `/`) starts with an ASCII letter
-        // and is followed by tag-name characters. We already checked that `second`
-        // is alphabetic or `/` or `!`.
-        // Require that this actually looks like a block-level construct:
-        // must be a known block-level HTML element or start with `<!` or `<?`.
         if second.is_ascii_alphabetic() {
             let tag_name = extract_tag_name(trimmed);
             if !is_block_html_tag(&tag_name) {
@@ -853,7 +735,6 @@ impl<'a> Parser<'a> {
             }
         }
 
-        // Trim trailing newlines.
         while html_content.ends_with('\n') {
             html_content.pop();
         }
@@ -866,58 +747,45 @@ impl<'a> Parser<'a> {
         }))
     }
 
-    // ── GFM: Table parsing ─────────────────────────────────────────────
-
-    /// Try to parse a table starting at the current line. The current line
-    /// is the potential header row; we peek ahead for a separator.
     fn try_parse_table(&mut self, header_line: &str, line_start: usize) -> Option<MdNode> {
-        // Save position so we can peek at the next line.
         let saved_pos = self.pos;
-        self.advance_line(); // advance past header line
+        self.advance_line();
 
-        let sep_line = match self.peek_line_raw() {
-            Some(l) => l.to_string(),
-            None => {
-                self.pos = saved_pos;
-                return None;
-            }
+        let sep_line = if let Some(l) = self.peek_line_raw() {
+            l.to_string()
+        } else {
+            self.pos = saved_pos;
+            return None;
         };
 
-        let aligns = match gfm::tables::is_table_separator(&sep_line) {
-            Some(a) => a,
-            None => {
-                self.pos = saved_pos;
-                return None;
-            }
+        let aligns = if let Some(a) = gfm::tables::is_table_separator(&sep_line) {
+            a
+        } else {
+            self.pos = saved_pos;
+            return None;
         };
 
-        // We have a valid table. Parse header, separator is consumed, then body rows.
-        self.advance_line(); // consume separator line
+        self.advance_line();
         self.parse_table_body(header_line, &aligns, line_start)
     }
 
-    /// Parse a table when the header line was already accumulated in para_lines
-    /// and the current line (not yet consumed) is the separator.
     fn parse_table_from_header(
         &mut self,
         header_line: &str,
         _sep_line: &str,
         table_start: usize,
     ) -> Option<MdNode> {
-        // Current pos is at the separator line. Peek it for alignment.
         let sep_line = match self.peek_line_raw() {
             Some(l) => l.to_string(),
             None => return None,
         };
 
         let aligns = gfm::tables::is_table_separator(&sep_line)?;
-        self.advance_line(); // consume separator line
+        self.advance_line();
 
         self.parse_table_body(header_line, &aligns, table_start)
     }
 
-    /// Shared helper: given a header line and alignments, consume body rows
-    /// and produce a Table node.
     fn parse_table_body(
         &mut self,
         header_line: &str,
@@ -926,7 +794,6 @@ impl<'a> Parser<'a> {
     ) -> Option<MdNode> {
         let col_count = aligns.len();
 
-        // Parse header row.
         let header_cells = gfm::tables::parse_table_row(header_line);
         let mut header_cell_nodes: Vec<MdNode> = Vec::new();
         for (idx, cell_text) in header_cells.iter().enumerate() {
@@ -940,7 +807,6 @@ impl<'a> Parser<'a> {
                 children,
             }));
         }
-        // Pad with empty cells if fewer cells than columns.
         while header_cell_nodes.len() < col_count {
             header_cell_nodes.push(MdNode::TableCell(TableCell {
                 id: self.id_gen.next_id(),
@@ -958,14 +824,12 @@ impl<'a> Parser<'a> {
 
         let mut rows = vec![header_row];
 
-        // Parse body rows.
         while self.pos < self.source.len() {
             let body_line = match self.peek_line_raw() {
                 Some(l) => l.to_string(),
                 None => break,
             };
 
-            // Stop at blank lines or lines that don't contain pipes.
             if Self::is_blank_line(&body_line) || !gfm::tables::could_be_table_row(&body_line) {
                 break;
             }
@@ -985,7 +849,6 @@ impl<'a> Parser<'a> {
                     children,
                 }));
             }
-            // Pad with empty cells.
             while body_cell_nodes.len() < col_count {
                 body_cell_nodes.push(MdNode::TableCell(TableCell {
                     id: self.id_gen.next_id(),
@@ -1011,8 +874,6 @@ impl<'a> Parser<'a> {
         }))
     }
 
-    // ── GFM: Footnote definition parsing ─────────────────────────────
-
     fn try_parse_footnote_definition(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
         let (identifier, first_content) = gfm::footnotes::is_footnote_definition(line)?;
         let identifier = identifier.to_string();
@@ -1021,7 +882,6 @@ impl<'a> Parser<'a> {
 
         self.advance_line();
 
-        // Collect continuation lines (indented by 4+ spaces or 1+ tab).
         while self.pos < self.source.len() {
             let cl = match self.peek_line_raw() {
                 Some(l) => l.to_string(),
@@ -1032,7 +892,6 @@ impl<'a> Parser<'a> {
                 self.advance_line();
                 continue;
             }
-            // Continuation: must be indented.
             let indent = cl.len() - cl.trim_start().len();
             if indent >= 2 {
                 content.push_str(cl.trim_start());
@@ -1053,8 +912,6 @@ impl<'a> Parser<'a> {
             children,
         }))
     }
-
-    // ── Link reference definition detection ──────────────────────────
 
     fn is_definition_line(&self, line: &str, line_start: usize) -> bool {
         let trimmed = line.trim_start();
@@ -1081,8 +938,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-    // ── Paragraph flushing ───────────────────────────────────────────
-
     fn flush_paragraph(&mut self, para_lines: &mut Vec<(usize, usize)>) -> MdNode {
         let start = para_lines[0].0;
         let raw = self.join_para_lines(para_lines);
@@ -1107,7 +962,6 @@ impl<'a> Parser<'a> {
         for (i, &(start, end)) in lines.iter().enumerate() {
             let e = end.min(self.source.len());
             let slice = &self.source[start..e];
-            // Strip trailing newline from each line slice.
             let trimmed = slice.trim_end_matches('\n');
             s.push_str(trimmed);
             if i + 1 < lines.len() {
@@ -1116,8 +970,6 @@ impl<'a> Parser<'a> {
         }
         s
     }
-
-    // ── Inline parsing ───────────────────────────────────────────────
 
     fn parse_inlines(&mut self, text: &str, base_offset: usize) -> Vec<MdNode> {
         let mut result = Vec::new();
@@ -1130,7 +982,6 @@ impl<'a> Parser<'a> {
             match bytes[i] {
                 b'\\' if i + 1 < len => {
                     if is_escapable(bytes[i + 1]) {
-                        // Flush preceding text.
                         if i > text_start {
                             result.push(self.make_text(
                                 &text[text_start..i],
@@ -1138,14 +989,12 @@ impl<'a> Parser<'a> {
                                 base_offset + i,
                             ));
                         }
-                        // Escaped character becomes literal text.
                         let ch = text[i + 1..i + 2].to_string();
                         result.push(self.make_text(&ch, base_offset + i, base_offset + i + 2));
                         i += 2;
                         text_start = i;
                         continue;
                     } else if i + 1 < len && bytes[i + 1] == b'\n' {
-                        // Hard line break with backslash.
                         if i > text_start {
                             result.push(self.make_text(
                                 &text[text_start..i],
@@ -1164,9 +1013,7 @@ impl<'a> Parser<'a> {
                     i += 1;
                 }
                 b'`' => {
-                    // Inline code.
                     let backtick_count = bytes[i..].iter().take_while(|&&b| b == b'`').count();
-                    // Find matching closing backticks.
                     let after_open = i + backtick_count;
                     if let Some(close_pos) =
                         find_closing_backticks(bytes, after_open, backtick_count)
@@ -1179,15 +1026,12 @@ impl<'a> Parser<'a> {
                             ));
                         }
                         let mut code_content = text[after_open..close_pos].to_string();
-                        // Collapse internal newlines to spaces.
                         code_content = code_content.replace('\n', " ");
-                        // Strip one leading and one trailing space if both present and
-                        // content is not all spaces.
                         if code_content.len() >= 2
                             && code_content.starts_with(' ')
                             && code_content.ends_with(' ')
-                            && code_content.trim().len() < code_content.len() - 2 + code_content.trim().len()
-                            // Simpler check: not all spaces
+                            && code_content.trim().len()
+                                < code_content.len() - 2 + code_content.trim().len()
                             && !code_content.chars().all(|c| c == ' ')
                         {
                             code_content = code_content[1..code_content.len() - 1].to_string();
@@ -1205,15 +1049,12 @@ impl<'a> Parser<'a> {
                         text_start = i;
                         continue;
                     }
-                    // No closing backticks: treat as literal.
                     i += backtick_count;
                 }
                 b'*' | b'_' => {
-                    // Emphasis / Strong.
                     let delim_char = bytes[i];
                     let delim_count = bytes[i..].iter().take_while(|&&b| b == delim_char).count();
 
-                    // Try strong first (** or __), then emphasis (* or _).
                     if delim_count >= 2
                         && let Some((inner, consumed)) =
                             self.try_parse_delimited(text, i, delim_char, 2)
@@ -1261,11 +1102,9 @@ impl<'a> Parser<'a> {
                         text_start = i;
                         continue;
                     }
-                    // Not a valid delimiter run; treat as literal.
                     i += 1;
                 }
                 b'!' if i + 1 < len && bytes[i + 1] == b'[' => {
-                    // Image: ![alt](url "title")
                     if let Some((alt, url, title, consumed)) =
                         self.try_parse_image_or_link(text, i + 1, true)
                     {
@@ -1293,7 +1132,6 @@ impl<'a> Parser<'a> {
                     i += 1;
                 }
                 b'[' => {
-                    // GFM: Footnote reference [^id]
                     if let Some((fn_id, consumed)) = gfm::footnotes::is_footnote_reference(text, i)
                     {
                         if i > text_start {
@@ -1317,7 +1155,6 @@ impl<'a> Parser<'a> {
                         text_start = i;
                         continue;
                     }
-                    // Link: [text](url "title") or reference link [text][ref]
                     if let Some((link_text, url, title, consumed)) =
                         self.try_parse_image_or_link(text, i, false)
                     {
@@ -1346,7 +1183,6 @@ impl<'a> Parser<'a> {
                     i += 1;
                 }
                 b'<' => {
-                    // Autolink or inline HTML.
                     if let Some((url, consumed)) = try_parse_autolink(&text[i..]) {
                         if i > text_start {
                             result.push(self.make_text(
@@ -1375,7 +1211,6 @@ impl<'a> Parser<'a> {
                         text_start = i;
                         continue;
                     }
-                    // Inline HTML tag.
                     if let Some(consumed) = try_parse_html_tag(&text[i..]) {
                         if i > text_start {
                             result.push(self.make_text(
@@ -1399,7 +1234,6 @@ impl<'a> Parser<'a> {
                     i += 1;
                 }
                 b'&' => {
-                    // HTML entities.
                     if let Some((decoded, consumed)) = try_parse_entity(&text[i..]) {
                         if i > text_start {
                             result.push(self.make_text(
@@ -1420,8 +1254,6 @@ impl<'a> Parser<'a> {
                     i += 1;
                 }
                 b'\n' => {
-                    // Check for hard line break: two or more spaces before newline.
-                    // We need to look backwards in the accumulated text.
                     let trailing_spaces = text[text_start..i]
                         .bytes()
                         .rev()
@@ -1447,7 +1279,6 @@ impl<'a> Parser<'a> {
                         text_start = i;
                         continue;
                     }
-                    // Soft line break: replace newline with space in text.
                     if i > text_start {
                         result.push(self.make_text(
                             &text[text_start..i],
@@ -1455,14 +1286,11 @@ impl<'a> Parser<'a> {
                             base_offset + i,
                         ));
                     }
-                    // Represent the soft break as a space in the text node that follows
-                    // (or just skip it, producing separate text nodes).
                     i += 1;
                     text_start = i;
                     continue;
                 }
                 b'~' => {
-                    // GFM: Strikethrough ~~text~~
                     if let Some((content_start, end_pos)) =
                         gfm::strikethrough::find_strikethrough(text, i)
                     {
@@ -1490,8 +1318,6 @@ impl<'a> Parser<'a> {
                     i += 1;
                 }
                 _ => {
-                    // GFM: Extended autolink for URLs (http://, https://, www.)
-                    // and emails (user@domain.com).
                     if let Some((url, consumed)) = self.try_gfm_autolink(text, i) {
                         if i > text_start {
                             result.push(self.make_text(
@@ -1520,14 +1346,11 @@ impl<'a> Parser<'a> {
                         text_start = i;
                         continue;
                     }
-                    // Advance by full UTF-8 character width to avoid landing
-                    // inside a multi-byte character.
-                    i += text[i..].chars().next().map_or(1, |c| c.len_utf8());
+                    i += text[i..].chars().next().map_or(1, char::len_utf8);
                 }
             }
         }
 
-        // Flush remaining text.
         if text_start < len {
             result.push(self.make_text(
                 &text[text_start..len],
@@ -1539,10 +1362,6 @@ impl<'a> Parser<'a> {
         result
     }
 
-    // ── Emphasis/Strong delimiter matching ────────────────────────────
-
-    /// Try to find a matching closing delimiter for `delim_char` repeated `count` times
-    /// starting at position `start` in `text`. Returns (inner_content, total_consumed).
     fn try_parse_delimited(
         &self,
         text: &str,
@@ -1556,12 +1375,10 @@ impl<'a> Parser<'a> {
             return None;
         }
 
-        // The character right after the opening delimiter must not be a space.
         if bytes[open_end] == b' ' || bytes[open_end] == b'\n' {
             return None;
         }
 
-        // Search for matching closing delimiter.
         let mut j = open_end;
         let mut depth = 0;
         while j < bytes.len() {
@@ -1571,16 +1388,13 @@ impl<'a> Parser<'a> {
             }
             if bytes[j] == delim_char {
                 let run = bytes[j..].iter().take_while(|&&b| b == delim_char).count();
-                if run >= count {
-                    // Check that character before closing delimiter is not a space.
-                    if j > open_end && bytes[j - 1] != b' ' && bytes[j - 1] != b'\n' {
-                        if depth == 0 {
-                            let inner = &text[open_end..j];
-                            let consumed = j + count - start;
-                            return Some((inner.to_string(), consumed));
-                        }
-                        depth -= 1;
+                if run >= count && j > open_end && bytes[j - 1] != b' ' && bytes[j - 1] != b'\n' {
+                    if depth == 0 {
+                        let inner = &text[open_end..j];
+                        let consumed = j + count - start;
+                        return Some((inner.to_string(), consumed));
                     }
+                    depth -= 1;
                 }
                 j += run;
                 continue;
@@ -1590,41 +1404,32 @@ impl<'a> Parser<'a> {
         None
     }
 
-    // ── Link / Image parsing ─────────────────────────────────────────
-
-    /// Parse `[text](url "title")` or `[text][ref]` or `[text][]` or `[text]`.
-    /// `start` points to the `[`. For images, the caller already stripped the `!`.
-    /// Returns (label_text, url, title, consumed_from_start).
     fn try_parse_image_or_link(
         &self,
         text: &str,
         start: usize,
-        is_image: bool,
+        _is_image: bool,
     ) -> Option<(String, String, Option<String>, usize)> {
         let bytes = text.as_bytes();
         if start >= bytes.len() || bytes[start] != b'[' {
             return None;
         }
 
-        // Find closing `]`.
         let label_start = start + 1;
         let close_bracket = find_unescaped_char(bytes, label_start, b']')?;
         let label = text[label_start..close_bracket].to_string();
 
         let after_bracket = close_bracket + 1;
 
-        // Inline link: `](url "title")`
         if after_bracket < bytes.len()
             && bytes[after_bracket] == b'('
             && let Some((url, title, paren_consumed)) =
                 parse_inline_link_dest(&text[after_bracket..])
         {
             let consumed = after_bracket + paren_consumed - start;
-            let label_for_return = if is_image { label } else { label.clone() };
-            return Some((label_for_return, url, title, consumed));
+            return Some((label, url, title, consumed));
         }
 
-        // Full reference link: `[text][ref]`
         if after_bracket < bytes.len() && bytes[after_bracket] == b'[' {
             let ref_start = after_bracket + 1;
             if let Some(ref_close) = find_unescaped_char(bytes, ref_start, b']') {
@@ -1641,10 +1446,6 @@ impl<'a> Parser<'a> {
             }
         }
 
-        // Collapsed reference link: `[text][]`
-        // (already handled above when ref_label is empty)
-
-        // Shortcut reference link: `[text]`
         let key = normalize_label(&label);
         if let Some((url, title)) = self.definitions.get(&key) {
             let consumed = after_bracket - start;
@@ -1654,10 +1455,6 @@ impl<'a> Parser<'a> {
         None
     }
 
-    // ── Sub-parser for nested blocks ─────────────────────────────────
-
-    /// Parse blocks from a sub-string using a fresh sub-parser, sharing the
-    /// same `id_gen` and `definitions`.
     fn parse_sub_blocks(&mut self, inner: &str) -> Vec<MdNode> {
         let mut sub_diag = DiagnosticSink::new();
         let mut sub_parser = Parser {
@@ -1668,27 +1465,18 @@ impl<'a> Parser<'a> {
             definitions: self.definitions.clone(),
         };
         let children = sub_parser.parse_blocks();
-        // Merge diagnostics.
         for d in sub_diag.into_diagnostics() {
             self.diagnostics.push(d);
         }
         children
     }
 
-    // ── GFM: Extended autolink helper ────────────────────────────────
-
-    /// Try to match a GFM extended autolink (URL or email) at position `pos`.
-    /// Returns `(url, bytes_consumed)` if matched.
     fn try_gfm_autolink(&self, text: &str, pos: usize) -> Option<(String, usize)> {
-        // Try URL first (http://, https://, www.).
         if let Some(result) = gfm::autolink::try_match_url(text, pos) {
             return Some(result);
         }
-        // Try email.
         gfm::autolink::try_match_email(text, pos)
     }
-
-    // ── Helpers ──────────────────────────────────────────────────────
 
     fn make_text(&mut self, value: &str, start: usize, end: usize) -> MdNode {
         MdNode::Text(Text {
@@ -1698,8 +1486,6 @@ impl<'a> Parser<'a> {
         })
     }
 
-    /// Peek at the current line without advancing. Returns the line content *without* the
-    /// trailing `\n` but the `advance_line` call will skip past the `\n`.
     fn peek_line_raw(&self) -> Option<&str> {
         if self.pos >= self.source.len() {
             return None;
@@ -1723,21 +1509,15 @@ impl<'a> Parser<'a> {
     }
 }
 
-// ── List marker helper struct ────────────────────────────────────────
-
 struct ListMarkerInfo {
     ordered: bool,
     number: u32,
     marker_char: u8,
 }
 
-// ── Free-standing helper functions ───────────────────────────────────
-
-/// Extract the tag name from an HTML-like string starting with `<`.
 fn extract_tag_name(s: &str) -> String {
     let bytes = s.as_bytes();
-    let mut i = 1; // skip `<`
-    // Skip optional `/` for closing tags.
+    let mut i = 1;
     if i < bytes.len() && bytes[i] == b'/' {
         i += 1;
     }
@@ -1748,7 +1528,6 @@ fn extract_tag_name(s: &str) -> String {
     s[start..i].to_lowercase()
 }
 
-/// Check if a tag name is a block-level HTML element per CommonMark spec.
 fn is_block_html_tag(tag: &str) -> bool {
     matches!(
         tag,
@@ -1880,14 +1659,12 @@ fn find_unescaped_char(bytes: &[u8], start: usize, target: u8) -> Option<usize> 
     None
 }
 
-/// Parse `(url "title")` returning (url, title, bytes_consumed_including_parens).
 fn parse_inline_link_dest(s: &str) -> Option<(String, Option<String>, usize)> {
     let bytes = s.as_bytes();
     if bytes.is_empty() || bytes[0] != b'(' {
         return None;
     }
     let mut i = 1;
-    // Skip whitespace.
     while i < bytes.len() && (bytes[i] == b' ' || bytes[i] == b'\n') {
         i += 1;
     }
@@ -1895,14 +1672,11 @@ fn parse_inline_link_dest(s: &str) -> Option<(String, Option<String>, usize)> {
         return None;
     }
 
-    // Parse URL.
     let (url, url_end) = if bytes[i] == b'<' {
-        // Angle-bracket URL.
         let start = i + 1;
         let close = bytes[start..].iter().position(|&b| b == b'>')?;
         (s[start..start + close].to_string(), start + close + 1)
     } else {
-        // Bare URL -- read until whitespace or `)`.
         let start = i;
         let mut paren_depth = 0i32;
         while i < bytes.len() {
@@ -1924,12 +1698,10 @@ fn parse_inline_link_dest(s: &str) -> Option<(String, Option<String>, usize)> {
     };
     i = url_end;
 
-    // Skip whitespace.
     while i < bytes.len() && (bytes[i] == b' ' || bytes[i] == b'\n') {
         i += 1;
     }
 
-    // Optional title.
     let title = if i < bytes.len() && (bytes[i] == b'"' || bytes[i] == b'\'' || bytes[i] == b'(') {
         let close_char = if bytes[i] == b'(' { b')' } else { bytes[i] };
         let t_start = i + 1;
@@ -1941,26 +1713,22 @@ fn parse_inline_link_dest(s: &str) -> Option<(String, Option<String>, usize)> {
         None
     };
 
-    // Skip whitespace then expect `)`.
     while i < bytes.len() && (bytes[i] == b' ' || bytes[i] == b'\n') {
         i += 1;
     }
     if i >= bytes.len() || bytes[i] != b')' {
         return None;
     }
-    i += 1; // consume `)`
+    i += 1;
 
     Some((url, title, i))
 }
 
-/// Parse a link reference definition: `[label]: url "title"`
-/// Returns (label, url, title, consumed_bytes).
 fn parse_link_reference_definition(s: &str) -> Option<(String, String, Option<String>, usize)> {
     let bytes = s.as_bytes();
     if bytes.is_empty() || bytes[0] != b'[' {
         return None;
     }
-    // Find `]:`.
     let mut i = 1;
     while i < bytes.len() && bytes[i] != b']' {
         if bytes[i] == b'\\' && i + 1 < bytes.len() {
@@ -1973,13 +1741,12 @@ fn parse_link_reference_definition(s: &str) -> Option<(String, String, Option<St
         return None;
     }
     let label = s[1..i].to_string();
-    i += 1; // skip `]`
+    i += 1;
     if i >= bytes.len() || bytes[i] != b':' {
         return None;
     }
-    i += 1; // skip `:`
+    i += 1;
 
-    // Skip whitespace (including optional newline).
     while i < bytes.len() && (bytes[i] == b' ' || bytes[i] == b'\t') {
         i += 1;
     }
@@ -1990,7 +1757,6 @@ fn parse_link_reference_definition(s: &str) -> Option<(String, String, Option<St
         }
     }
 
-    // Parse URL.
     if i >= bytes.len() {
         return None;
     }
@@ -2010,12 +1776,10 @@ fn parse_link_reference_definition(s: &str) -> Option<(String, String, Option<St
     };
     i = url_end;
 
-    // Skip whitespace.
     while i < bytes.len() && (bytes[i] == b' ' || bytes[i] == b'\t') {
         i += 1;
     }
 
-    // Optional title on same line.
     let title = if i < bytes.len() && (bytes[i] == b'"' || bytes[i] == b'\'' || bytes[i] == b'(') {
         let close_char = if bytes[i] == b'(' { b')' } else { bytes[i] };
         let t_start = i + 1;
@@ -2031,11 +1795,9 @@ fn parse_link_reference_definition(s: &str) -> Option<(String, String, Option<St
         None
     };
 
-    // Skip trailing whitespace.
     while i < bytes.len() && (bytes[i] == b' ' || bytes[i] == b'\t') {
         i += 1;
     }
-    // Must be at end-of-line or end-of-string.
     if i < bytes.len() && bytes[i] != b'\n' {
         return None;
     }
@@ -2051,23 +1813,19 @@ fn normalize_label(label: &str) -> String {
         .to_lowercase()
 }
 
-/// Try to parse an autolink: `<scheme:...>` or `<email@domain>`.
 fn try_parse_autolink(s: &str) -> Option<(String, usize)> {
     let bytes = s.as_bytes();
     if bytes.is_empty() || bytes[0] != b'<' {
         return None;
     }
     let close = bytes[1..].iter().position(|&b| b == b'>')?;
-    let inner = &s[1..1 + close];
-    // Contains no spaces or `<`.
+    let inner = &s[1..=close];
     if inner.contains(' ') || inner.contains('<') || inner.contains('\n') {
         return None;
     }
-    // Check for URI autolink (contains `://` or well-known scheme).
     if inner.contains("://") || inner.starts_with("mailto:") {
         return Some((inner.to_string(), close + 2));
     }
-    // Check for email autolink.
     if inner.contains('@') && !inner.starts_with('@') && !inner.ends_with('@') {
         let url = format!("mailto:{inner}");
         return Some((url, close + 2));
@@ -2075,24 +1833,19 @@ fn try_parse_autolink(s: &str) -> Option<(String, usize)> {
     None
 }
 
-/// Try to parse an HTML tag starting at s (which starts with `<`).
-/// Returns number of bytes consumed if successful.
 fn try_parse_html_tag(s: &str) -> Option<usize> {
     let bytes = s.as_bytes();
     if bytes.len() < 3 || bytes[0] != b'<' {
         return None;
     }
-    // Must be followed by letter, `/`, or `!`.
     let second = bytes[1];
     if !second.is_ascii_alphabetic() && second != b'/' && second != b'!' {
         return None;
     }
-    // Find matching `>`.
     let close = bytes[1..].iter().position(|&b| b == b'>')?;
     Some(close + 2)
 }
 
-/// Try to parse an HTML entity: `&name;`, `&#digits;`, `&#xhex;`.
 fn try_parse_entity(s: &str) -> Option<(String, usize)> {
     let bytes = s.as_bytes();
     if bytes.len() < 3 || bytes[0] != b'&' {
@@ -2102,10 +1855,9 @@ fn try_parse_entity(s: &str) -> Option<(String, usize)> {
     if semi == 0 || semi > 31 {
         return None;
     }
-    let entity_body = &s[1..1 + semi];
+    let entity_body = &s[1..=semi];
 
     if let Some(num_str) = entity_body.strip_prefix('#') {
-        // Numeric entity.
         let code_point = if let Some(hex) = num_str
             .strip_prefix('x')
             .or_else(|| num_str.strip_prefix('X'))
@@ -2117,7 +1869,6 @@ fn try_parse_entity(s: &str) -> Option<(String, usize)> {
         let ch = char::from_u32(code_point)?;
         Some((ch.to_string(), semi + 2))
     } else {
-        // Named entity -- support a few common ones.
         let decoded = match entity_body {
             "amp" => "&",
             "lt" => "<",
@@ -2139,14 +1890,10 @@ fn try_parse_entity(s: &str) -> Option<(String, usize)> {
     }
 }
 
-// ── Tests ────────────────────────────────────────────────────────────
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::parse::parse_markdown;
-
-    // ── Block-level tests ────────────────────────────────────────────
 
     #[test]
     fn test_atx_heading_h1() {
@@ -2345,8 +2092,6 @@ mod tests {
         }
     }
 
-    // ── Inline tests ─────────────────────────────────────────────────
-
     #[test]
     fn test_emphasis() {
         let r = parse_markdown("Hello *world*\n");
@@ -2469,7 +2214,6 @@ mod tests {
         let r = parse_markdown("Hello \\*world\\*\n");
         match &r.document.children[0] {
             MdNode::Paragraph(p) => {
-                // Should produce: Text("Hello "), Text("*"), Text("world"), Text("*")
                 let combined: String = p
                     .children
                     .iter()
@@ -2492,7 +2236,6 @@ mod tests {
         let r = parse_markdown("Hello  \nworld\n");
         match &r.document.children[0] {
             MdNode::Paragraph(p) => {
-                // Expect: text("Hello"), break, text("world")
                 let has_break = p.children.iter().any(|n| matches!(n, MdNode::Break(_)));
                 assert!(
                     has_break,
@@ -2841,16 +2584,13 @@ mod tests {
         }
     }
 
-    // ── GFM integration tests ─────────────────────────────────────────
-
     #[test]
     fn test_gfm_simple_table() {
         let r = parse_markdown("| a | b |\n|---|---|\n| 1 | 2 |\n");
         match &r.document.children[0] {
             MdNode::Table(t) => {
                 assert_eq!(t.align.len(), 2);
-                assert_eq!(t.children.len(), 2); // header + 1 body row
-                // Check header row.
+                assert_eq!(t.children.len(), 2);
                 match &t.children[0] {
                     MdNode::TableRow(tr) => {
                         assert!(tr.is_header);
@@ -2858,7 +2598,6 @@ mod tests {
                     }
                     other => panic!("expected table row, got {other:?}"),
                 }
-                // Check body row.
                 match &t.children[1] {
                     MdNode::TableRow(tr) => {
                         assert!(!tr.is_header);
@@ -2894,22 +2633,19 @@ mod tests {
     fn test_gfm_table_cell_content() {
         let r = parse_markdown("| head |\n|------|\n| body |\n");
         match &r.document.children[0] {
-            MdNode::Table(t) => {
-                // Check header cell content.
-                match &t.children[0] {
-                    MdNode::TableRow(tr) => match &tr.children[0] {
-                        MdNode::TableCell(tc) => {
-                            assert!(!tc.children.is_empty());
-                            match &tc.children[0] {
-                                MdNode::Text(txt) => assert_eq!(txt.value, "head"),
-                                other => panic!("expected text, got {other:?}"),
-                            }
+            MdNode::Table(t) => match &t.children[0] {
+                MdNode::TableRow(tr) => match &tr.children[0] {
+                    MdNode::TableCell(tc) => {
+                        assert!(!tc.children.is_empty());
+                        match &tc.children[0] {
+                            MdNode::Text(txt) => assert_eq!(txt.value, "head"),
+                            other => panic!("expected text, got {other:?}"),
                         }
-                        other => panic!("expected table cell, got {other:?}"),
-                    },
-                    other => panic!("expected table row, got {other:?}"),
-                }
-            }
+                    }
+                    other => panic!("expected table cell, got {other:?}"),
+                },
+                other => panic!("expected table row, got {other:?}"),
+            },
             other => panic!("expected table, got {other:?}"),
         }
     }
@@ -2919,7 +2655,7 @@ mod tests {
         let r = parse_markdown("| h |\n|---|\n| r1 |\n| r2 |\n| r3 |\n");
         match &r.document.children[0] {
             MdNode::Table(t) => {
-                assert_eq!(t.children.len(), 4); // 1 header + 3 body
+                assert_eq!(t.children.len(), 4);
             }
             other => panic!("expected table, got {other:?}"),
         }
@@ -3050,7 +2786,6 @@ mod tests {
         let r = parse_markdown("Visit http://example.com today\n");
         match &r.document.children[0] {
             MdNode::Paragraph(p) => {
-                // Should contain: text("Visit "), link, text(" today")
                 let has_link = p.children.iter().any(|n| {
                     if let MdNode::Link(l) = n {
                         l.url == "http://example.com"
@@ -3155,7 +2890,6 @@ mod tests {
     #[test]
     fn test_gfm_footnote_definition_and_reference() {
         let r = parse_markdown("Text[^1]\n\n[^1]: Footnote content\n");
-        // Should have paragraph with FootnoteReference, and FootnoteDefinition.
         let has_para_with_ref = r.document.children.iter().any(|n| {
             if let MdNode::Paragraph(p) = n {
                 p.children
@@ -3183,10 +2917,9 @@ mod tests {
         match &r.document.children[0] {
             MdNode::Paragraph(p) => match &p.children[0] {
                 MdNode::Delete(d) => {
-                    // The inner content should be parsed as emphasis.
                     assert!(!d.children.is_empty());
                     match &d.children[0] {
-                        MdNode::Emphasis(_) => {} // ok
+                        MdNode::Emphasis(_) => {}
                         other => panic!("expected emphasis inside delete, got {other:?}"),
                     }
                 }
@@ -3200,23 +2933,20 @@ mod tests {
     fn test_gfm_table_with_inline_formatting() {
         let r = parse_markdown("| **bold** | *em* |\n|----------|------|\n| a | b |\n");
         match &r.document.children[0] {
-            MdNode::Table(t) => {
-                match &t.children[0] {
-                    MdNode::TableRow(tr) => {
-                        assert!(tr.is_header);
-                        // First cell should contain strong.
-                        match &tr.children[0] {
-                            MdNode::TableCell(tc) => {
-                                let has_strong =
-                                    tc.children.iter().any(|n| matches!(n, MdNode::Strong(_)));
-                                assert!(has_strong, "expected strong in table cell");
-                            }
-                            other => panic!("expected table cell, got {other:?}"),
+            MdNode::Table(t) => match &t.children[0] {
+                MdNode::TableRow(tr) => {
+                    assert!(tr.is_header);
+                    match &tr.children[0] {
+                        MdNode::TableCell(tc) => {
+                            let has_strong =
+                                tc.children.iter().any(|n| matches!(n, MdNode::Strong(_)));
+                            assert!(has_strong, "expected strong in table cell");
                         }
+                        other => panic!("expected table cell, got {other:?}"),
                     }
-                    other => panic!("expected table row, got {other:?}"),
                 }
-            }
+                other => panic!("expected table row, got {other:?}"),
+            },
             other => panic!("expected table, got {other:?}"),
         }
     }
@@ -3228,7 +2958,6 @@ mod tests {
             MdNode::List(l) => match &l.children[0] {
                 MdNode::ListItem(li) => {
                     assert_eq!(li.checked, Some(false));
-                    // The children should contain a paragraph with "remaining task text".
                     let has_text = li.children.iter().any(|n| {
                         if let MdNode::Paragraph(p) = n {
                             p.children.iter().any(|c| {
@@ -3255,7 +2984,7 @@ mod tests {
         let r = parse_markdown("| h1 | h2 |\n|----|----|\n");
         match &r.document.children[0] {
             MdNode::Table(t) => {
-                assert_eq!(t.children.len(), 1); // header only, no body rows
+                assert_eq!(t.children.len(), 1);
                 match &t.children[0] {
                     MdNode::TableRow(tr) => assert!(tr.is_header),
                     other => panic!("expected table row, got {other:?}"),
@@ -3267,10 +2996,9 @@ mod tests {
 
     #[test]
     fn test_gfm_not_a_table_without_separator() {
-        // A line with pipes but no separator line should be a paragraph.
         let r = parse_markdown("| not a | table |\n");
         match &r.document.children[0] {
-            MdNode::Paragraph(_) => {} // correct: no separator, so it's a paragraph
+            MdNode::Paragraph(_) => {}
             other => panic!("expected paragraph (no table separator), got {other:?}"),
         }
     }
@@ -3286,15 +3014,12 @@ mod tests {
         }
     }
 
-    // ── Frontmatter integration tests ─────────────────────────────────
-
     #[test]
     fn test_yaml_frontmatter_basic() {
         let input = "---\ntitle: Hello\nauthor: World\n---\n\n# Content\n";
         let r = parse_markdown(input);
         assert_eq!(r.frontmatter.get("title").unwrap(), "Hello");
         assert_eq!(r.frontmatter.get("author").unwrap(), "World");
-        // Document should start with the heading, not frontmatter.
         assert!(matches!(&r.document.children[0], MdNode::Heading(_)));
     }
 
@@ -3357,8 +3082,6 @@ mod tests {
     fn test_frontmatter_span_correctness() {
         let input = "---\ntitle: Test\n---\n\n# Heading\n";
         let r = parse_markdown(input);
-        // The first real content node should have its span pointing into
-        // the correct bytes of the original input.
         match &r.document.children[0] {
             MdNode::Heading(h) => {
                 let heading_text = &input[h.span.start as usize..h.span.end as usize];
@@ -3461,7 +3184,6 @@ mod tests {
 
     #[test]
     fn test_frontmatter_only_at_beginning() {
-        // `---` in the middle of a document should not be treated as frontmatter
         let input = "# Title\n\n---\ntitle: Test\n---\n";
         let r = parse_markdown(input);
         assert!(
@@ -3475,7 +3197,6 @@ mod tests {
         let input = "---\ntitle: Hello\n---\n\n[click][hw]\n\n[hw]: http://example.com\n";
         let r = parse_markdown(input);
         assert_eq!(r.frontmatter.get("title").unwrap(), "Hello");
-        // The link reference should still work correctly
         match &r.document.children[0] {
             MdNode::Paragraph(p) => {
                 let has_link = p.children.iter().any(|c| matches!(c, MdNode::Link(_)));

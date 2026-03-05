@@ -1,11 +1,7 @@
 use super::{FrontmatterKind, FrontmatterResult, find_closing_delimiter, skip_newline};
 use std::collections::HashMap;
 
-/// Extract JSON frontmatter delimited by `;;;`.
-///
-/// The opening `;;;` must be the very first characters in the input, followed
-/// immediately by a newline.  The closing `;;;` must appear on its own line.
-/// The content between the delimiters must be a valid JSON object.
+#[must_use]
 pub fn extract(input: &str) -> Option<FrontmatterResult> {
     if !input.starts_with(";;;") {
         return None;
@@ -40,7 +36,7 @@ fn parse_json_to_map(json_str: &str) -> Option<HashMap<String, serde_json::Value
     let value: serde_json::Value = serde_json::from_str(json_str).ok()?;
     match value {
         serde_json::Value::Object(map) => Some(map.into_iter().collect()),
-        _ => None, // frontmatter must be an object
+        _ => None,
     }
 }
 

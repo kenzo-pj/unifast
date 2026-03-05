@@ -1,12 +1,10 @@
-/// Golden corpus integration tests.
-/// Each test compiles a corpus file and verifies the output is non-empty and valid.
 use unifast_core::api::compile::compile;
 use unifast_core::api::options::*;
 
 fn read_corpus(name: &str) -> String {
     let path = format!("{}/tests/corpus/{}", env!("CARGO_MANIFEST_DIR"), name);
     std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("Failed to read corpus file {}: {}", path, e))
+        .unwrap_or_else(|e| panic!("Failed to read corpus file {path}: {e}"))
 }
 
 #[test]
@@ -16,7 +14,7 @@ fn corpus_commonmark_to_html() {
     let result = compile(&input, &opts);
     let html = match &result.output {
         unifast_core::api::result::Output::Html(h) => h,
-        other => panic!("Expected HTML output, got {:?}", other),
+        other => panic!("Expected HTML output, got {other:?}"),
     };
     assert!(
         !html.is_empty(),
@@ -46,7 +44,7 @@ fn corpus_gfm_to_html() {
     let result = compile(&input, &opts);
     let html = match &result.output {
         unifast_core::api::result::Output::Html(h) => h,
-        other => panic!("Expected HTML output, got {:?}", other),
+        other => panic!("Expected HTML output, got {other:?}"),
     };
     assert!(!html.is_empty(), "GFM HTML output should not be empty");
     assert!(html.contains("<table>"), "Should contain table");
@@ -71,7 +69,6 @@ fn corpus_frontmatter() {
     };
     let result = compile(&input, &opts);
 
-    // FrontmatterData is HashMap<String, Value> — non-empty means parsed
     assert!(
         !result.frontmatter.is_empty(),
         "Frontmatter should be parsed"
@@ -91,10 +88,9 @@ fn corpus_frontmatter() {
         Some("unifast")
     );
 
-    // Verify HTML output doesn't contain frontmatter delimiters
     let html = match &result.output {
         unifast_core::api::result::Output::Html(h) => h,
-        other => panic!("Expected HTML output, got {:?}", other),
+        other => panic!("Expected HTML output, got {other:?}"),
     };
     assert!(
         !html.contains("---\ntitle"),
@@ -116,14 +112,13 @@ fn corpus_highlight() {
     let result = compile(&input, &opts);
     let html = match &result.output {
         unifast_core::api::result::Output::Html(h) => h,
-        other => panic!("Expected HTML output, got {:?}", other),
+        other => panic!("Expected HTML output, got {other:?}"),
     };
     assert!(
         !html.is_empty(),
         "Highlight HTML output should not be empty"
     );
     assert!(html.contains("<pre>"), "Should contain code blocks");
-    // Highlighted code should have span elements with hljs classes
     assert!(
         html.contains("hljs-keyword") || html.contains("<span"),
         "Should contain highlighted tokens"
@@ -140,12 +135,10 @@ fn corpus_sanitize_disallow() {
     let result = compile(&input, &opts);
     let html = match &result.output {
         unifast_core::api::result::Output::Html(h) => h,
-        other => panic!("Expected HTML output, got {:?}", other),
+        other => panic!("Expected HTML output, got {other:?}"),
     };
-    // With Disallow policy, script/iframe tags should not appear
     assert!(!html.contains("<script"), "Script tags should be stripped");
     assert!(!html.contains("<iframe"), "Iframe tags should be stripped");
-    // Safe markdown content should be present
     assert!(html.contains("<strong>"), "Safe markdown should render");
 }
 
@@ -154,7 +147,6 @@ fn corpus_compile_stats() {
     let input = read_corpus("commonmark.md");
     let opts = CompileOptions::default();
     let result = compile(&input, &opts);
-    // Stats should be populated
     assert!(
         result.stats.parse_ms >= 0.0,
         "parse_ms should be non-negative"
@@ -181,7 +173,7 @@ fn corpus_mdast_output() {
         unifast_core::api::result::Output::Mdast(doc) => {
             assert!(!doc.children.is_empty(), "MdAst should have children");
         }
-        other => panic!("Expected Mdast output, got {:?}", other),
+        other => panic!("Expected Mdast output, got {other:?}"),
     }
 }
 
@@ -197,6 +189,6 @@ fn corpus_hast_output() {
         unifast_core::api::result::Output::Hast(root) => {
             assert!(!root.children.is_empty(), "HAst root should have children");
         }
-        other => panic!("Expected Hast output, got {:?}", other),
+        other => panic!("Expected Hast output, got {other:?}"),
     }
 }

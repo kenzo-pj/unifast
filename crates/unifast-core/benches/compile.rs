@@ -1,7 +1,9 @@
 use std::hint::black_box;
 use std::time::Instant;
 use unifast_core::api::compile::compile;
-use unifast_core::api::options::*;
+use unifast_core::api::options::{
+    CompileOptions, FrontmatterOptions, GfmOptions, HighlightEngine, HighlightOptions,
+};
 
 fn bench_compile_simple(iterations: u32) {
     let input = "# Hello World\n\nThis is a paragraph with **bold** and *italic* text.\n\n- Item 1\n- Item 2\n- Item 3\n";
@@ -15,7 +17,7 @@ fn bench_compile_simple(iterations: u32) {
         "compile_simple: {} iterations in {:?} ({:.2} µs/iter)",
         iterations,
         elapsed,
-        elapsed.as_micros() as f64 / iterations as f64
+        elapsed.as_micros() as f64 / f64::from(iterations)
     );
 }
 
@@ -100,14 +102,14 @@ Footnote reference[^1].
         "compile_complex: {} iterations in {:?} ({:.2} µs/iter)",
         iterations,
         elapsed,
-        elapsed.as_micros() as f64 / iterations as f64
+        elapsed.as_micros() as f64 / f64::from(iterations)
     );
 }
 
 fn bench_compile_large(iterations: u32) {
     let mut input = String::with_capacity(50_000);
     for i in 0..100 {
-        input.push_str(&format!("## Section {}\n\n", i));
+        input.push_str(&format!("## Section {i}\n\n"));
         input.push_str("Lorem ipsum dolor sit amet, consectetur adipiscing elit. ");
         input.push_str("Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n");
         input.push_str("- Item A with **bold**\n");
@@ -136,7 +138,7 @@ fn bench_compile_large(iterations: u32) {
         "compile_large (100 sections): {} iterations in {:?} ({:.2} µs/iter)",
         iterations,
         elapsed,
-        elapsed.as_micros() as f64 / iterations as f64
+        elapsed.as_micros() as f64 / f64::from(iterations)
     );
 }
 

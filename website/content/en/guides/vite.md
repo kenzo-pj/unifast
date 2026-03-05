@@ -1,16 +1,14 @@
 ---
 title: "Vite Integration"
-description: "Use unifast as a Vite plugin for build-time Markdown/MDX compilation"
+description: "Use @unifast/vite to compile Markdown and MDX files at build time and import them directly in your Vite application."
 ---
 
-## Vite Integration
-
-`@unifast/plugin-vite` provides a Vite plugin that compiles Markdown and MDX files at build time. Import `.md` and `.mdx` files directly in your application.
+`@unifast/vite` provides a Vite plugin that compiles Markdown and MDX files at build time. Import `.md` and `.mdx` files directly in your application.
 
 ### Installation
 
 ```sh
-npm install @unifast/node @unifast/plugin-vite
+npm install @unifast/node @unifast/vite
 ```
 
 ### Setup
@@ -20,7 +18,7 @@ Add the plugin to your Vite config:
 ```ts
 // vite.config.ts
 import { defineConfig } from "vite";
-import unifast from "@unifast/plugin-vite";
+import unifast from "@unifast/vite";
 
 export default defineConfig({
   plugins: [
@@ -59,10 +57,8 @@ Pass plugins through the Vite plugin options:
 ```ts
 // vite.config.ts
 import { defineConfig } from "vite";
-import unifast from "@unifast/plugin-vite";
-import { frontmatter } from "@unifast/plugin-frontmatter";
-import { gfm } from "@unifast/plugin-gfm";
-import { syntect } from "@unifast/plugin-syntect";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
 
 export default defineConfig({
   plugins: [

@@ -5,9 +5,7 @@ type ResolvedTheme = "light" | "dark";
 
 function getSystemTheme(): ResolvedTheme {
   if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function getStoredMode(): ThemeMode {
@@ -51,8 +49,7 @@ export function useTheme() {
 
   const cycle = useCallback(() => {
     setMode((prev) => {
-      const next: ThemeMode =
-        prev === "system" ? "light" : prev === "light" ? "dark" : "system";
+      const next: ThemeMode = prev === "system" ? "light" : prev === "light" ? "dark" : "system";
       if (next === "system") {
         localStorage.removeItem("theme");
       } else {

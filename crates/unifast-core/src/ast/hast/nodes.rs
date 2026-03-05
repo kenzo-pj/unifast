@@ -2,7 +2,6 @@ use crate::ast::common::{NodeId, Span};
 use crate::util::small_map::SmallMap;
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
-/// HTML Abstract Syntax Tree node types.
 #[derive(Debug, Clone)]
 pub enum HNode {
     Root(HRoot),
@@ -10,49 +9,48 @@ pub enum HNode {
     Text(HText),
     Comment(HComment),
     Doctype(HDoctype),
-    Raw(HRaw), // for raw HTML passthrough
+    Raw(HRaw),
 }
 
 impl HNode {
-    /// Returns the source span for any node variant.
-    pub fn span(&self) -> Span {
+    #[must_use]
+    pub const fn span(&self) -> Span {
         match self {
-            HNode::Root(n) => n.span,
-            HNode::Element(n) => n.span,
-            HNode::Text(n) => n.span,
-            HNode::Comment(n) => n.span,
-            HNode::Doctype(n) => n.span,
-            HNode::Raw(n) => n.span,
+            Self::Root(n) => n.span,
+            Self::Element(n) => n.span,
+            Self::Text(n) => n.span,
+            Self::Comment(n) => n.span,
+            Self::Doctype(n) => n.span,
+            Self::Raw(n) => n.span,
         }
     }
 
-    /// Returns the unique node ID for any node variant.
-    pub fn id(&self) -> NodeId {
+    #[must_use]
+    pub const fn id(&self) -> NodeId {
         match self {
-            HNode::Root(n) => n.id,
-            HNode::Element(n) => n.id,
-            HNode::Text(n) => n.id,
-            HNode::Comment(n) => n.id,
-            HNode::Doctype(n) => n.id,
-            HNode::Raw(n) => n.id,
+            Self::Root(n) => n.id,
+            Self::Element(n) => n.id,
+            Self::Text(n) => n.id,
+            Self::Comment(n) => n.id,
+            Self::Doctype(n) => n.id,
+            Self::Raw(n) => n.id,
         }
     }
 
-    /// Returns a slice of children if the node has children, or `None` for leaf nodes.
-    pub fn children(&self) -> Option<&[HNode]> {
+    #[must_use]
+    pub fn children(&self) -> Option<&[Self]> {
         match self {
-            HNode::Root(n) => Some(&n.children),
-            HNode::Element(n) => Some(&n.children),
-            HNode::Text(_) | HNode::Comment(_) | HNode::Doctype(_) | HNode::Raw(_) => None,
+            Self::Root(n) => Some(&n.children),
+            Self::Element(n) => Some(&n.children),
+            Self::Text(_) | Self::Comment(_) | Self::Doctype(_) | Self::Raw(_) => None,
         }
     }
 
-    /// Returns a mutable reference to the children vec if the node has children.
-    pub fn children_mut(&mut self) -> Option<&mut Vec<HNode>> {
+    pub const fn children_mut(&mut self) -> Option<&mut Vec<Self>> {
         match self {
-            HNode::Root(n) => Some(&mut n.children),
-            HNode::Element(n) => Some(&mut n.children),
-            HNode::Text(_) | HNode::Comment(_) | HNode::Doctype(_) | HNode::Raw(_) => None,
+            Self::Root(n) => Some(&mut n.children),
+            Self::Element(n) => Some(&mut n.children),
+            Self::Text(_) | Self::Comment(_) | Self::Doctype(_) | Self::Raw(_) => None,
         }
     }
 }
@@ -69,7 +67,7 @@ pub struct HElement {
     pub id: NodeId,
     pub span: Span,
     pub tag: String,
-    pub attributes: SmallMap<String, String>, // BTreeMap-backed for stable ordering
+    pub attributes: SmallMap<String, String>,
     pub children: Vec<HNode>,
     pub self_closing: bool,
 }
@@ -104,12 +102,12 @@ pub struct HRaw {
 impl Serialize for HNode {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         match self {
-            HNode::Root(n) => n.serialize(serializer),
-            HNode::Element(n) => n.serialize(serializer),
-            HNode::Text(n) => n.serialize(serializer),
-            HNode::Comment(n) => n.serialize(serializer),
-            HNode::Doctype(n) => n.serialize(serializer),
-            HNode::Raw(n) => n.serialize(serializer),
+            Self::Root(n) => n.serialize(serializer),
+            Self::Element(n) => n.serialize(serializer),
+            Self::Text(n) => n.serialize(serializer),
+            Self::Comment(n) => n.serialize(serializer),
+            Self::Doctype(n) => n.serialize(serializer),
+            Self::Raw(n) => n.serialize(serializer),
         }
     }
 }
@@ -237,7 +235,6 @@ mod tests {
         attrs.insert("aria-label".into(), "test".into());
 
         let keys: Vec<&String> = attrs.iter().map(|(k, _)| k).collect();
-        // BTreeMap ordering: alphabetical
         assert_eq!(keys, vec!["aria-label", "class", "id", "z-index"]);
     }
 
@@ -363,9 +360,10 @@ mod tests {
         let json: serde_json::Value = serde_json::to_value(&node).unwrap();
         assert_eq!(json["type"], "element");
         assert_eq!(json["tagName"], "code");
-        // class -> className as array
-        assert_eq!(json["properties"]["className"], serde_json::json!(["language-rust"]));
-        // other attrs stay as strings
+        assert_eq!(
+            json["properties"]["className"],
+            serde_json::json!(["language-rust"])
+        );
         assert_eq!(json["properties"]["id"], "code1");
         assert_eq!(json["children"][0]["type"], "text");
     }

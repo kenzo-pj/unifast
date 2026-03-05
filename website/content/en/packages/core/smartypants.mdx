@@ -1,0 +1,67 @@
+---
+title: "smartypants()"
+description: "Apply typographic replacements for quotes, dashes, and ellipses."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+### Signature
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options?` | `SmartypantsOptions` | Configuration for which replacements to apply |
+
+#### `SmartypantsOptions`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | Replace straight quotes with curly quotes |
+| `dashes` | `boolean` | `true` | Replace `--` with en-dash and `---` with em-dash |
+| `ellipses` | `boolean` | `true` | Replace `...` with an ellipsis character |
+
+### Returns
+
+`UnifastPlugin`
+
+## Examples
+
+<Example data={example} />
+
+| Source | Result |
+|--------|--------|
+| `"Hello"` | curly double quotes |
+| `'Hi'` | curly single quotes |
+| `--` | en-dash (–) |
+| `---` | em-dash (—) |
+| `...` | ellipsis (…) |
+
+## Usage
+
+```ts
+import { compile } from "@unifast/node";
+import { smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [smartypants()],
+});
+```
+
+### Disable specific replacements
+
+```ts
+const result = compile(md, {
+  plugins: [smartypants({ dashes: false, ellipses: false })],
+});
+// Only straight quotes are replaced
+```

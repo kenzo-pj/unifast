@@ -1,7 +1,9 @@
-import { memo, useState, useCallback, useMemo } from "react";
-import { Tabs } from "@base-ui-components/react/tabs";
+import { Tabs } from "@base-ui/react/tabs";
 import { ComputerTerminal01Icon } from "hugeicons-react";
+import { memo, useState, useCallback, useMemo } from "react";
+
 import { CopyButton } from "~/components/CopyButton";
+
 import styles from "./PackageInstall.module.css";
 
 const STORAGE_KEY = "unifast-pkg-manager";
@@ -32,9 +34,7 @@ const ManagerPanel = memo(function ManagerPanel({
     <Tabs.Panel value={id} className={styles.panel}>
       <code>
         <span className={styles.prompt}>$</span>
-        {highlighted
-          ? <span dangerouslySetInnerHTML={{ __html: highlighted }} />
-          : command}
+        {highlighted ? <span dangerouslySetInnerHTML={{ __html: highlighted }} /> : command}
       </code>
     </Tabs.Panel>
   );

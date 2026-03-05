@@ -1,11 +1,13 @@
-import { useState, useCallback, useEffect, useRef } from "react";
-import { Dialog } from "@base-ui-components/react/dialog";
-import { Menu01Icon, Cancel01Icon } from "hugeicons-react";
+import { Dialog } from "@base-ui/react/dialog";
 import { useRouterState } from "@tanstack/react-router";
+import { Menu01Icon, Cancel01Icon } from "hugeicons-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+
+import { GitHubIcon } from "~/components/GitHubIcon";
+import { LanguageSwitcher } from "~/components/LanguageSwitcher";
 import { Sidebar } from "~/components/Sidebar";
 import { ThemeToggle } from "~/components/ThemeToggle";
-import { LanguageSwitcher } from "~/components/LanguageSwitcher";
-import { GitHubIcon } from "~/components/GitHubIcon";
+
 import styles from "./MobileMenu.module.css";
 
 export function MobileMenu() {
@@ -13,7 +15,6 @@ export function MobileMenu() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const pathnameRef = useRef(pathname);
 
-  // Close drawer when pathname changes (user tapped a nav link)
   useEffect(() => {
     if (pathnameRef.current !== pathname) {
       pathnameRef.current = pathname;
@@ -21,10 +22,7 @@ export function MobileMenu() {
     }
   }, [pathname]);
 
-  const handleOpenChange = useCallback(
-    (nextOpen: boolean) => setOpen(nextOpen),
-    [],
-  );
+  const handleOpenChange = useCallback((nextOpen: boolean) => setOpen(nextOpen), []);
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>

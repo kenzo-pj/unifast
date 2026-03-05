@@ -1,5 +1,5 @@
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 use super::toc::generate_toc;
+use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 
 pub struct TocPass;
 
