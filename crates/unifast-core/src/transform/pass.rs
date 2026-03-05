@@ -1,9 +1,9 @@
 use crate::api::options::CompileOptions;
+use crate::ast::common::NodeIdGen;
 use crate::ast::hast::nodes::HRoot;
 use crate::ast::mdast::nodes::Document;
 use crate::diagnostics::sink::DiagnosticSink;
-use crate::util::interner::Interner;
-use crate::util::line_index::LineIndex;
+use crate::transform::passes::toc::TocEntry;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Phase {
@@ -22,10 +22,10 @@ pub enum AstPayload {
 
 pub struct PassContext<'a> {
     pub source: &'a str,
-    pub line_index: &'a LineIndex,
-    pub interner: &'a mut Interner,
     pub diagnostics: &'a mut DiagnosticSink,
     pub options: &'a CompileOptions,
+    pub id_gen: &'a mut NodeIdGen,
+    pub toc: Vec<TocEntry>,
 }
 
 pub type PassResult = Result<(), PassError>;
@@ -80,5 +80,25 @@ mod tests {
     fn pass_error_is_error_trait() {
         let err = PassError::new("test error");
         let _: &dyn std::error::Error = &err;
+    }
+
+    #[test]
+    fn pass_context_construction() {
+        use crate::diagnostics::sink::DiagnosticSink;
+        use crate::api::options::CompileOptions;
+        use crate::ast::common::NodeIdGen;
+
+        let source = "# Hello";
+        let mut diag = DiagnosticSink::new();
+        let opts = CompileOptions::default();
+        let mut id_gen = NodeIdGen::new();
+        let ctx = PassContext {
+            source,
+            diagnostics: &mut diag,
+            options: &opts,
+            id_gen: &mut id_gen,
+            toc: Vec::new(),
+        };
+        assert_eq!(ctx.source, "# Hello");
     }
 }

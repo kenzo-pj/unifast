@@ -1520,7 +1520,9 @@ impl<'a> Parser<'a> {
                         text_start = i;
                         continue;
                     }
-                    i += 1;
+                    // Advance by full UTF-8 character width to avoid landing
+                    // inside a multi-byte character.
+                    i += text[i..].chars().next().map_or(1, |c| c.len_utf8());
                 }
             }
         }

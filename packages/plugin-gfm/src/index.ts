@@ -1,4 +1,4 @@
-import type { CompileOptions } from "@unifast/core";
+import type { UnifastPlugin } from "@unifast/core";
 
 export type GfmPluginOptions = {
   tables?: boolean;
@@ -8,14 +8,17 @@ export type GfmPluginOptions = {
   autolink?: boolean;
 };
 
-export function gfm(options?: GfmPluginOptions): Partial<CompileOptions> {
+export function gfm(options?: GfmPluginOptions): UnifastPlugin {
   return {
-    gfm: {
-      tables: options?.tables ?? true,
-      taskList: options?.taskList ?? true,
-      strikethrough: options?.strikethrough ?? true,
-      footnotes: options?.footnotes ?? true,
-      autolink: options?.autolink ?? true,
+    name: "gfm",
+    options: {
+      gfm: {
+        tables: options?.tables ?? true,
+        taskList: options?.taskList ?? true,
+        strikethrough: options?.strikethrough ?? true,
+        footnotes: options?.footnotes ?? true,
+        autolink: options?.autolink ?? true,
+      },
     },
   };
 }

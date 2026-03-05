@@ -86,7 +86,7 @@ Footnote reference[^1].
         },
         highlight: HighlightOptions {
             enabled: true,
-            engine: HighlightEngine::Builtin,
+            engine: HighlightEngine::Syntect,
         },
         ..Default::default()
     };
@@ -122,7 +122,7 @@ fn bench_compile_large(iterations: u32) {
         gfm: GfmOptions::default(),
         highlight: HighlightOptions {
             enabled: true,
-            engine: HighlightEngine::Builtin,
+            engine: HighlightEngine::Syntect,
         },
         ..Default::default()
     };

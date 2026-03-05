@@ -5,7 +5,10 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "native"],
+  "files": [
+    "dist",
+    "native"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run"
@@ -14,7 +17,8 @@
     "@unifast/core": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "@types/node": "^25.3.3",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

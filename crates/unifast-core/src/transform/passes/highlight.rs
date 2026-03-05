@@ -1,5 +1,7 @@
 use crate::ast::common::NodeIdGen;
 use crate::ast::hast::nodes::*;
+use syntect::html::ClassStyle;
+use syntect::parsing::SyntaxSet;
 
 /// Trait for pluggable highlight engines.
 pub trait HighlightEngine: Send + Sync {
@@ -8,28 +10,62 @@ pub trait HighlightEngine: Send + Sync {
     fn highlight(&self, code: &str, language: &str) -> Option<String>;
 }
 
-/// Simple builtin highlighter that adds language class and wraps code.
-/// For a real implementation, this would use syntect or tree-sitter.
-pub struct BuiltinHighlighter;
+/// Syntect-based highlighter using CSS classes.
+pub struct SyntectHighlighter {
+    syntax_set: SyntaxSet,
+}
 
-impl HighlightEngine for BuiltinHighlighter {
-    fn name(&self) -> &str {
-        "builtin"
+impl SyntectHighlighter {
+    pub fn new() -> Self {
+        Self {
+            syntax_set: SyntaxSet::load_defaults_newlines(),
+        }
     }
 
-    fn highlight(&self, code: &str, language: &str) -> Option<String> {
-        match language {
-            "rust" | "rs" => Some(highlight_rust(code)),
-            "javascript" | "js" => Some(highlight_javascript(code)),
-            "typescript" | "ts" => Some(highlight_typescript(code)),
-            "python" | "py" => Some(highlight_python(code)),
-            "html" => Some(highlight_generic(code)),
-            _ => None,
-        }
+    fn find_syntax(&self, language: &str) -> Option<&syntect::parsing::SyntaxReference> {
+        self.syntax_set
+            .find_syntax_by_token(language)
+            .or_else(|| self.syntax_set.find_syntax_by_name(language))
+            .or_else(|| {
+                // Fallback aliases not covered by syntect's defaults
+                let alias = match language {
+                    "ts" | "typescript" | "tsx" => Some("javascript"),
+                    "sh" | "zsh" | "fish" => Some("bash"),
+                    "yml" => Some("yaml"),
+                    "dockerfile" => Some("Dockerfile"),
+                    _ => None,
+                };
+                alias.and_then(|a| {
+                    self.syntax_set
+                        .find_syntax_by_token(a)
+                        .or_else(|| self.syntax_set.find_syntax_by_name(a))
+                })
+            })
     }
 }
 
-/// Apply syntax highlighting to code blocks in the HAst.
+impl HighlightEngine for SyntectHighlighter {
+    fn name(&self) -> &str {
+        "syntect"
+    }
+
+    fn highlight(&self, code: &str, language: &str) -> Option<String> {
+        let syntax = self.find_syntax(language)?;
+        let mut generator = syntect::html::ClassedHTMLGenerator::new_with_class_style(
+            syntax,
+            &self.syntax_set,
+            ClassStyle::SpacedPrefixed { prefix: "sy-" },
+        );
+        for line in syntect::util::LinesWithEndings::from(code) {
+            generator
+                .parse_html_for_line_which_includes_newline(line)
+                .ok()?;
+        }
+        Some(generator.finalize())
+    }
+}
+
+/// Apply syntax highlighting to code blocks in the HAST.
 pub fn apply_highlight(root: &mut HRoot, engine: &dyn HighlightEngine, id_gen: &mut NodeIdGen) {
     apply_to_children(&mut root.children, engine, id_gen);
 }
@@ -97,150 +133,6 @@ fn extract_text_content(nodes: &[HNode]) -> String {
     text
 }
 
-// Language-specific highlight functions
-
-fn highlight_rust(code: &str) -> String {
-    let keywords = [
-        "fn", "let", "mut", "pub", "use", "struct", "enum", "impl", "trait", "for", "while",
-        "loop", "if", "else", "match", "return", "self", "mod", "crate", "super", "where", "type",
-        "const", "static", "async", "await", "move", "ref", "true", "false",
-    ];
-    simple_keyword_highlight(code, &keywords)
-}
-
-fn highlight_javascript(code: &str) -> String {
-    let keywords = [
-        "function", "const", "let", "var", "return", "if", "else", "for", "while", "class", "new",
-        "this", "import", "export", "from", "async", "await", "try", "catch", "throw", "true",
-        "false", "null",
-    ];
-    simple_keyword_highlight(code, &keywords)
-}
-
-fn highlight_typescript(code: &str) -> String {
-    highlight_javascript(code)
-}
-
-fn highlight_python(code: &str) -> String {
-    let keywords = [
-        "def", "class", "return", "if", "elif", "else", "for", "while", "import", "from", "try",
-        "except", "raise", "with", "as", "True", "False", "None", "self", "lambda", "yield",
-    ];
-    simple_keyword_highlight(code, &keywords)
-}
-
-fn highlight_generic(code: &str) -> String {
-    escape_for_html(code)
-}
-
-fn simple_keyword_highlight(code: &str, keywords: &[&str]) -> String {
-    let mut result = String::new();
-    let bytes = code.as_bytes();
-    let len = bytes.len();
-    let mut i = 0;
-
-    while i < len {
-        let ch = bytes[i];
-
-        // String literals
-        if ch == b'"' || ch == b'\'' {
-            let quote = ch;
-            let mut s = String::new();
-            s.push(quote as char);
-            i += 1;
-            while i < len {
-                let c = bytes[i];
-                s.push(c as char);
-                i += 1;
-                if c == quote {
-                    break;
-                }
-                if c == b'\\' && i < len {
-                    s.push(bytes[i] as char);
-                    i += 1;
-                }
-            }
-            result.push_str(&format!(
-                "<span class=\"hljs-string\">{}</span>",
-                escape_for_html(&s)
-            ));
-            continue;
-        }
-
-        // Line comments (// style)
-        if ch == b'/' && i + 1 < len && bytes[i + 1] == b'/' {
-            let start = i;
-            while i < len && bytes[i] != b'\n' {
-                i += 1;
-            }
-            result.push_str(&format!(
-                "<span class=\"hljs-comment\">{}</span>",
-                escape_for_html(&code[start..i])
-            ));
-            continue;
-        }
-
-        // Hash comments (# style - for Python)
-        if ch == b'#' {
-            let start = i;
-            while i < len && bytes[i] != b'\n' {
-                i += 1;
-            }
-            result.push_str(&format!(
-                "<span class=\"hljs-comment\">{}</span>",
-                escape_for_html(&code[start..i])
-            ));
-            continue;
-        }
-
-        // Identifiers/keywords
-        if ch.is_ascii_alphabetic() || ch == b'_' {
-            let start = i;
-            while i < len && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_') {
-                i += 1;
-            }
-            let word = &code[start..i];
-            if keywords.contains(&word) {
-                result.push_str(&format!(
-                    "<span class=\"hljs-keyword\">{}</span>",
-                    escape_for_html(word)
-                ));
-            } else {
-                result.push_str(&escape_for_html(word));
-            }
-            continue;
-        }
-
-        // Numbers
-        if ch.is_ascii_digit() {
-            let start = i;
-            while i < len
-                && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'.' || bytes[i] == b'_')
-            {
-                i += 1;
-            }
-            result.push_str(&format!(
-                "<span class=\"hljs-number\">{}</span>",
-                escape_for_html(&code[start..i])
-            ));
-            continue;
-        }
-
-        // Default: escape and emit single character
-        result.push_str(&escape_for_html(&(ch as char).to_string()));
-        i += 1;
-    }
-
-    result
-}
-
-fn escape_for_html(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -293,21 +185,19 @@ mod tests {
         let code_block = make_code_block(&mut id_gen, "rust", "fn main() {}");
         let mut root = make_root(&mut id_gen, vec![code_block]);
 
-        let engine = BuiltinHighlighter;
+        let engine = SyntectHighlighter::new();
         let mut highlight_id_gen = NodeIdGen::new();
         apply_highlight(&mut root, &engine, &mut highlight_id_gen);
 
-        // The code element should now contain a Raw node with span elements
         if let HNode::Element(ref pre) = root.children[0] {
             if let HNode::Element(ref code_elem) = pre.children[0] {
                 assert_eq!(code_elem.children.len(), 1);
                 if let HNode::Raw(ref raw) = code_elem.children[0] {
-                    assert!(raw.value.contains("<span class=\"hljs-keyword\">fn</span>"));
-                    assert!(raw.value.contains("main"));
+                    assert!(raw.value.contains("<span"), "expected span elements in: {}", raw.value);
+                    assert!(raw.value.contains("sy-"), "expected sy- prefixed classes in: {}", raw.value);
                 } else {
                     panic!("expected Raw node after highlighting");
                 }
-                // Check the highlighted class was added
                 let class = code_elem.attributes.get(&"class".to_string()).unwrap();
                 assert!(class.contains("highlighted"));
             } else {
@@ -321,19 +211,17 @@ mod tests {
     #[test]
     fn highlight_unknown_lang_fallback() {
         let mut id_gen = NodeIdGen::new();
-        let code_block = make_code_block(&mut id_gen, "cobol", "PERFORM SOMETHING");
+        let code_block = make_code_block(&mut id_gen, "zzz_nonexistent_lang", "PERFORM SOMETHING");
         let mut root = make_root(&mut id_gen, vec![code_block]);
 
-        let engine = BuiltinHighlighter;
+        let engine = SyntectHighlighter::new();
         let mut highlight_id_gen = NodeIdGen::new();
         apply_highlight(&mut root, &engine, &mut highlight_id_gen);
 
-        // Should remain unchanged (Text node, not Raw)
         if let HNode::Element(ref pre) = root.children[0] {
             if let HNode::Element(ref code_elem) = pre.children[0] {
                 assert_eq!(code_elem.children.len(), 1);
                 assert!(matches!(code_elem.children[0], HNode::Text(_)));
-                // No "highlighted" class added
                 let class = code_elem.attributes.get(&"class".to_string()).unwrap();
                 assert!(!class.contains("highlighted"));
             } else {
@@ -346,30 +234,32 @@ mod tests {
 
     #[test]
     fn highlight_engine_trait() {
-        let engine = BuiltinHighlighter;
-        assert_eq!(engine.name(), "builtin");
-        // Known language returns Some
-        assert!(engine.highlight("let x = 1;", "rust").is_some());
-        // Unknown language returns None
-        assert!(engine.highlight("code", "brainfuck").is_none());
+        let engine = SyntectHighlighter::new();
+        assert_eq!(engine.name(), "syntect");
+        assert!(engine.highlight("fn main(){}", "rust").is_some());
+        assert!(engine.highlight("code", "zzz_nonexistent_lang").is_none());
     }
 
     #[test]
-    fn highlight_rust_keywords() {
-        let result = highlight_rust("fn main() { let x = true; }");
-        assert!(result.contains("<span class=\"hljs-keyword\">fn</span>"));
-        assert!(result.contains("<span class=\"hljs-keyword\">let</span>"));
-        assert!(result.contains("<span class=\"hljs-keyword\">true</span>"));
-        assert!(result.contains("main"));
-        // main is not a keyword
-        assert!(!result.contains("<span class=\"hljs-keyword\">main</span>"));
+    fn highlight_rust_produces_spans() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("fn main() { let x = true; }", "rust").unwrap();
+        assert!(result.contains("<span"), "expected spans in: {}", result);
+        assert!(result.contains("sy-"), "expected sy- prefix in: {}", result);
     }
 
     #[test]
-    fn highlight_string_literals() {
-        let result = highlight_rust("let s = \"hello\";");
-        assert!(result.contains("<span class=\"hljs-string\">"));
-        assert!(result.contains("hello"));
+    fn highlight_javascript_produces_spans() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("function foo() { return true; }", "js").unwrap();
+        assert!(result.contains("<span"), "expected spans in: {}", result);
+    }
+
+    #[test]
+    fn highlight_python_produces_spans() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("def foo():\n    return None\n", "py").unwrap();
+        assert!(result.contains("<span"), "expected spans in: {}", result);
     }
 
     #[test]
@@ -379,12 +269,10 @@ mod tests {
         let p = make_element(&mut id_gen, "p", SmallMap::new(), vec![text]);
         let mut root = make_root(&mut id_gen, vec![p]);
 
-        let engine = BuiltinHighlighter;
+        let engine = SyntectHighlighter::new();
         let mut highlight_id_gen = NodeIdGen::new();
-        // Should not crash
         apply_highlight(&mut root, &engine, &mut highlight_id_gen);
 
-        // Paragraph unchanged
         if let HNode::Element(ref p_elem) = root.children[0] {
             assert_eq!(p_elem.tag, "p");
             if let HNode::Text(ref t) = p_elem.children[0] {
@@ -398,76 +286,55 @@ mod tests {
     }
 
     #[test]
-    fn highlight_comments_detected() {
-        let result = highlight_rust("// a comment\nfn main() {}");
-        assert!(result.contains("<span class=\"hljs-comment\">// a comment</span>"));
+    fn highlight_html_is_escaped() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("<div>hello</div>", "html").unwrap();
+        assert!(result.contains("&lt;"), "expected HTML escaping in: {}", result);
+        assert!(!result.contains("<div>"), "raw HTML should be escaped");
     }
 
     #[test]
-    fn highlight_numbers_detected() {
-        let result = highlight_rust("let x = 42;");
-        assert!(result.contains("<span class=\"hljs-number\">42</span>"));
-    }
-
-    #[test]
-    fn highlight_javascript_keywords() {
-        let result = highlight_javascript("function foo() { return true; }");
-        assert!(result.contains("<span class=\"hljs-keyword\">function</span>"));
-        assert!(result.contains("<span class=\"hljs-keyword\">return</span>"));
-        assert!(result.contains("<span class=\"hljs-keyword\">true</span>"));
-    }
-
-    #[test]
-    fn highlight_python_keywords() {
-        let result = highlight_python("def foo():\n    return None");
-        assert!(result.contains("<span class=\"hljs-keyword\">def</span>"));
-        assert!(result.contains("<span class=\"hljs-keyword\">return</span>"));
-        assert!(result.contains("<span class=\"hljs-keyword\">None</span>"));
-    }
-
-    #[test]
-    fn highlight_python_comments() {
-        let result = highlight_python("# a comment\ndef foo(): pass");
-        assert!(result.contains("<span class=\"hljs-comment\"># a comment</span>"));
-    }
-
-    #[test]
-    fn highlight_html_escapes() {
-        let result = highlight_generic("<div>hello</div>");
-        assert!(result.contains("&lt;div&gt;"));
-        assert!(result.contains("&lt;/div&gt;"));
-    }
-
-    #[test]
-    fn highlight_typescript_same_as_js() {
-        let js = highlight_javascript("const x = 1;");
-        let ts = highlight_typescript("const x = 1;");
-        assert_eq!(js, ts);
-    }
-
-    #[test]
-    fn highlight_escaped_string_literals() {
-        let result = highlight_rust(r#"let s = "hello \"world\"";"#);
-        assert!(result.contains("<span class=\"hljs-string\">"));
-    }
-
-    #[test]
-    fn escape_for_html_basic() {
-        assert_eq!(escape_for_html("<>&\""), "&lt;&gt;&amp;&quot;");
-    }
-
-    #[test]
-    fn highlight_empty_code() {
-        let result = highlight_rust("");
-        assert_eq!(result, "");
+    fn highlight_typescript_works() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("const x: number = 1;", "ts");
+        assert!(result.is_some(), "TypeScript should be recognized");
     }
 
     #[test]
     fn highlight_lang_aliases() {
-        let engine = BuiltinHighlighter;
+        let engine = SyntectHighlighter::new();
         assert!(engine.highlight("fn main(){}", "rs").is_some());
         assert!(engine.highlight("const x=1", "js").is_some());
         assert!(engine.highlight("const x=1", "ts").is_some());
         assert!(engine.highlight("def f(): pass", "py").is_some());
+    }
+
+    #[test]
+    fn highlight_empty_code() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("", "rust").unwrap();
+        // Empty code should produce empty or minimal output
+        assert!(!result.contains("error"));
+    }
+
+    #[test]
+    fn highlight_shell_works() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("echo hello", "sh");
+        assert!(result.is_some(), "Shell should be recognized");
+    }
+
+    #[test]
+    fn highlight_css_works() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("body { color: red; }", "css");
+        assert!(result.is_some(), "CSS should be recognized");
+    }
+
+    #[test]
+    fn highlight_json_works() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("{\"key\": \"value\"}", "json");
+        assert!(result.is_some(), "JSON should be recognized");
     }
 }

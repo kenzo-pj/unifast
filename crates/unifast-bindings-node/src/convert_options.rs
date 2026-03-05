@@ -34,6 +34,11 @@ pub struct JsSlugOptions {
 }
 
 #[napi(object)]
+pub struct JsLineNumberOptions {
+    pub enabled: Option<bool>,
+}
+
+#[napi(object)]
 pub struct JsTocOptions {
     pub enabled: Option<bool>,
     pub max_depth: Option<u32>,
@@ -59,6 +64,7 @@ pub struct JsCompileOptions {
     pub raw_html: Option<String>,
     pub sanitize: Option<JsSanitizeOptions>,
     pub highlight: Option<JsHighlightOptions>,
+    pub line_numbers: Option<JsLineNumberOptions>,
     pub slug: Option<JsSlugOptions>,
     pub toc: Option<JsTocOptions>,
     pub diagnostics: Option<JsDiagnosticsOptions>,
@@ -110,12 +116,37 @@ pub fn convert_options(js_opts: Option<JsCompileOptions>) -> CompileOptions {
             HighlightOptions {
                 enabled: h.enabled.unwrap_or(false),
                 engine: match h.engine.as_deref() {
-                    Some("builtin") => HighlightEngine::Builtin,
+                    Some("syntect") => HighlightEngine::Syntect,
                     _ => HighlightEngine::None,
                 },
             }
         } else {
             HighlightOptions::default()
+        },
+        line_numbers: if let Some(ln) = js.line_numbers {
+            LineNumberOptions {
+                enabled: ln.enabled.unwrap_or(false),
+            }
+        } else {
+            LineNumberOptions::default()
+        },
+        slug: if let Some(s) = js.slug {
+            SlugOptions {
+                mode: match s.mode.as_deref() {
+                    Some("unicode") => SlugMode::Unicode,
+                    _ => SlugMode::GitHub,
+                },
+            }
+        } else {
+            SlugOptions::default()
+        },
+        toc: if let Some(t) = js.toc {
+            TocOptions {
+                enabled: t.enabled.unwrap_or(false),
+                max_depth: t.max_depth.map(|d| d as u8).unwrap_or(6),
+            }
+        } else {
+            TocOptions::default()
         },
         ..Default::default()
     }

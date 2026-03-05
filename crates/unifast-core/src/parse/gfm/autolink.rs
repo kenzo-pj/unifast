@@ -2,6 +2,9 @@
 /// Handles `http://`, `https://`, and `www.` prefixes.
 /// Returns `Some((url, bytes_consumed))` if a URL is found.
 pub fn try_match_url(text: &str, pos: usize) -> Option<(String, usize)> {
+    if !text.is_char_boundary(pos) {
+        return None;
+    }
     let rest = &text[pos..];
 
     // Check for http:// or https://
@@ -44,6 +47,9 @@ pub fn try_match_url(text: &str, pos: usize) -> Option<(String, usize)> {
 /// Matches patterns like `user@example.com`.
 /// Returns `Some((mailto_url, bytes_consumed))` if an email is found.
 pub fn try_match_email(text: &str, pos: usize) -> Option<(String, usize)> {
+    if !text.is_char_boundary(pos) {
+        return None;
+    }
     let rest = &text[pos..];
     let bytes = rest.as_bytes();
 
@@ -241,5 +247,30 @@ mod tests {
     #[test]
     fn test_www_alone_not_url() {
         assert!(try_match_url("www. more", 0).is_none());
+    }
+
+    #[test]
+    fn test_url_non_char_boundary_returns_none() {
+        // "—" is U+2014 (3 bytes: 0xE2 0x80 0x94).
+        // Passing pos=1 is inside the multi-byte char → should return None, not panic.
+        let text = "—http://example.com";
+        assert!(try_match_url(text, 1).is_none());
+        assert!(try_match_url(text, 2).is_none());
+    }
+
+    #[test]
+    fn test_email_non_char_boundary_returns_none() {
+        let text = "—user@example.com";
+        assert!(try_match_email(text, 1).is_none());
+        assert!(try_match_email(text, 2).is_none());
+    }
+
+    #[test]
+    fn test_url_after_multibyte_char() {
+        // pos=3 is the char boundary after "—", should find the URL.
+        let text = "—http://example.com";
+        let (url, len) = try_match_url(text, 3).unwrap();
+        assert_eq!(url, "http://example.com");
+        assert_eq!(len, 18);
     }
 }

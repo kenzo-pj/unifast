@@ -1,0 +1,122 @@
+.menuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition-normal);
+}
+
+.menuButton:hover {
+  background: var(--color-hover-strong);
+}
+
+@media (max-width: 768px) {
+  .menuButton {
+    display: flex;
+  }
+}
+
+/* --- Backdrop --- */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: backdrop-filter var(--transition-slow),
+    -webkit-backdrop-filter var(--transition-slow);
+}
+
+.backdrop[data-starting-style],
+.backdrop[data-ending-style] {
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
+}
+
+/* --- Bottom Sheet --- */
+.sheet {
+  position: fixed;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px 16px 0 0;
+  background: var(--color-bg);
+  box-shadow: 0 -8px 32px oklch(0 0 0 / 0.15);
+  overflow: hidden;
+  transition: transform var(--transition-slow) ease-out,
+    opacity var(--transition-slow) ease-out;
+}
+
+.sheet[data-starting-style],
+.sheet[data-ending-style] {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+[data-theme="dark"] .sheet {
+  box-shadow: 0 -8px 32px oklch(0 0 0 / 0.4);
+}
+
+/* --- Sheet Header (controls + close) --- */
+.sheetHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  padding: var(--gap-lg) var(--gap-2xl);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.githubLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  transition: background var(--transition-normal);
+}
+
+.githubLink:hover {
+  background: var(--color-hover-strong);
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: auto;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition-normal);
+}
+
+.closeButton:hover {
+  background: var(--color-hover-strong);
+}
+
+/* --- Navigation area --- */
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+

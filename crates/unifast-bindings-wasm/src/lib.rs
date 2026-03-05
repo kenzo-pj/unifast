@@ -103,7 +103,7 @@ fn parse_options_from_json(json: &str) -> CompileOptions {
         {
             HighlightOptions {
                 enabled: true,
-                engine: HighlightEngine::Builtin,
+                engine: HighlightEngine::Syntect,
             }
         } else {
             HighlightOptions::default()

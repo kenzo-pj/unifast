@@ -1,0 +1,82 @@
+---
+title: "@unifast/plugin-gfm"
+description: "GitHub Flavored Markdown (GFM) plugin for unifast"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Overview
+
+`@unifast/plugin-gfm` enables GitHub Flavored Markdown extensions including tables, task lists, strikethrough, footnotes, and auto-linking. All features are enabled by default and can be individually toggled.
+
+## Installation
+
+<PackageInstall package="@unifast/plugin-gfm" />
+
+## Type Definitions
+
+### `GfmPluginOptions`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | Enable pipe tables with `\|` syntax |
+| `taskList` | `boolean` | `true` | Enable `- [x]` / `- [ ]` task list checkboxes |
+| `strikethrough` | `boolean` | `true` | Enable `~~deleted~~` strikethrough syntax |
+| `footnotes` | `boolean` | `true` | Enable `[^1]` footnote references and definitions |
+| `autolink` | `boolean` | `true` | Automatically link bare URLs |
+
+### Produced `CompileOptions`
+
+```ts
+{
+  gfm: {
+    tables: boolean,
+    taskList: boolean,
+    strikethrough: boolean,
+    footnotes: boolean,
+    autolink: boolean,
+  }
+}
+```
+
+## GFM Feature Reference
+
+### Tables
+
+```md
+| Left | Center | Right |
+|:-----|:------:|------:|
+| A    |   B    |     C |
+```
+
+### Task Lists
+
+```md
+- [x] Completed task
+- [ ] Pending task
+```
+
+### Strikethrough
+
+```md
+This is ~~deleted~~ text.
+```
+
+### Footnotes
+
+```md
+Here is a statement[^1].
+
+[^1]: This is the footnote content.
+```
+
+### Autolinks
+
+Bare URLs like `https://example.com` are automatically converted to clickable links.
+
+## Exports Summary
+
+| Export | Kind | Description |
+|--------|------|-------------|
+| `gfm` | function | Create a GFM plugin instance |
+| `GfmPluginOptions` | type | Plugin configuration options |

@@ -1,0 +1,31 @@
+.button {
+  position: absolute;
+  top: var(--gap-md);
+  right: var(--gap-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: var(--copy-btn-opacity, 0);
+  transition: opacity var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.button:hover {
+  background: var(--color-hover-strong);
+  color: var(--color-text);
+}
+
+.tooltip {
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}

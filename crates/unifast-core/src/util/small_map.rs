@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use serde::ser::{Serialize, SerializeMap, Serializer};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SmallMap<K: Ord, V>(BTreeMap<K, V>);
 
@@ -49,6 +51,16 @@ impl<K: Ord, V> IntoIterator for SmallMap<K, V> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+impl<K: Ord + Serialize, V: Serialize> Serialize for SmallMap<K, V> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(self.len()))?;
+        for (k, v) in self.iter() {
+            map.serialize_entry(k, v)?;
+        }
+        map.end()
     }
 }
 
@@ -102,5 +114,15 @@ mod tests {
         map.insert(2, "b");
         let collected: Vec<_> = map.into_iter().collect();
         assert_eq!(collected, vec![(1, "a"), (2, "b")]);
+    }
+
+    #[test]
+    fn serialize_to_json() {
+        let mut map = SmallMap::new();
+        map.insert("href".to_string(), "http://example.com".to_string());
+        map.insert("class".to_string(), "link".to_string());
+        let json = serde_json::to_string(&map).unwrap();
+        // BTreeMap ordering: alphabetical
+        assert_eq!(json, r#"{"class":"link","href":"http://example.com"}"#);
     }
 }

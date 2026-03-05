@@ -1,0 +1,137 @@
+import { type ComponentType, useCallback, useEffect, useRef } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { Link } from "@tanstack/react-router";
+import { useTranslation, DEFAULT_LOCALE } from "~/i18n";
+import { TableOfContents } from "~/components/TableOfContents";
+import { CopyButton } from "~/components/CopyButton";
+import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
+import styles from "./DocContent.module.css";
+
+interface PageLink {
+  label: string;
+  href: string;
+}
+
+interface DocContentProps {
+  html?: string;
+  MdxContent?: ComponentType;
+  frontmatter: Record<string, unknown>;
+  toc: Array<{ depth: number; text: string; slug: string }>;
+  translationStatus?: TranslationStatus;
+  slug?: string;
+  prevPage?: PageLink;
+  nextPage?: PageLink;
+}
+
+export function DocContent({ html, MdxContent, frontmatter, toc, translationStatus, slug, prevPage, nextPage }: DocContentProps) {
+  const { t, locale } = useTranslation();
+  const title = frontmatter.title as string | undefined;
+  const description = frontmatter.description as string | undefined;
+  const handleContentClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const heading = target.closest("h1[id], h2[id], h3[id]");
+    if (heading) {
+      const id = heading.getAttribute("id")!;
+      history.replaceState(null, "", `#${id}`);
+      heading.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
+
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+
+    container.querySelectorAll("table").forEach((table) => {
+      if (table.parentElement?.classList.contains(styles.tableWrapper)) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = styles.tableWrapper;
+      table.parentNode!.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    });
+
+    const pres = container.querySelectorAll("pre");
+    const roots: Root[] = [];
+
+    pres.forEach((pre) => {
+      pre.style.position = "relative";
+      const code = pre.querySelector("code");
+      const text = (code || pre).textContent || "";
+      const wrapper = document.createElement("span");
+      pre.appendChild(wrapper);
+      const root = createRoot(wrapper);
+      root.render(<CopyButton text={text} />);
+      roots.push(root);
+    });
+
+    return () => roots.forEach((root) => root.unmount());
+  }, [html, MdxContent]);
+
+  const showBanner = locale !== DEFAULT_LOCALE && translationStatus && translationStatus !== "translated";
+
+  return (
+    <div className={styles.page}>
+      <article className={styles.wrapper} data-pagefind-body>
+        {showBanner && (
+          <div className={`${styles.banner} ${styles[`banner_${translationStatus}`]}`}>
+            <span>
+              {translationStatus === "missing"
+                ? t("i18n.untranslatedBanner")
+                : t("i18n.outdatedBanner")}
+            </span>
+            {slug && (
+              <Link to={slug === "index" ? "/" : `/docs/${slug}`} className={styles.bannerLink}>
+                {t("i18n.viewOriginal")}
+              </Link>
+            )}
+          </div>
+        )}
+        {title && <h1 className={`${styles.title}${description ? ` ${styles.titleWithDescription}` : ""}`}>{title}</h1>}
+        {description && <p className={styles.description}>{description}</p>}
+        {MdxContent ? (
+          <div ref={contentRef} className={styles.content} onClick={handleContentClick}>
+            <MdxContent />
+          </div>
+        ) : html ? (
+          /* eslint-disable-next-line react/no-danger -- HTML is pre-sanitized by Rust sanitize pass */
+          <div ref={contentRef} className={styles.content} onClick={handleContentClick} dangerouslySetInnerHTML={{ __html: html }} />
+        ) : null}
+        {slug && (
+          <a
+            className={styles.editLink}
+            href={`https://github.com/kenzwada/unifast/edit/main/website/content/en/${slug}${MdxContent ? ".mdx" : ".md"}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
+            {t("nav.editThisPage")}
+          </a>
+        )}
+        {(prevPage || nextPage) && (
+          <nav className={styles.pageNav}>
+            {prevPage ? (
+              <Link to={prevPage.href} className={styles.pageNavCard}>
+                <span className={styles.pageNavDirection}>{t("nav.previous")}</span>
+                <span className={styles.pageNavTitle}>
+                  <span className={styles.pageNavArrow}>&larr;</span>
+                  {prevPage.label}
+                </span>
+              </Link>
+            ) : <span />}
+            {nextPage ? (
+              <Link to={nextPage.href} className={`${styles.pageNavCard} ${styles.pageNavCardNext}`}>
+                <span className={styles.pageNavDirection}>{t("nav.next")}</span>
+                <span className={styles.pageNavTitle}>
+                  {nextPage.label}
+                  <span className={styles.pageNavArrow}>&rarr;</span>
+                </span>
+              </Link>
+            ) : <span />}
+          </nav>
+        )}
+      </article>
+      <TableOfContents toc={toc} />
+    </div>
+  );
+}

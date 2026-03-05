@@ -1,6 +1,7 @@
 use crate::ast::hast::nodes::HRoot;
 use crate::ast::mdast::nodes::Document;
 use crate::diagnostics::diagnostic::Diagnostic;
+use crate::transform::passes::toc::TocEntry;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -25,4 +26,5 @@ pub struct CompileResult {
     pub frontmatter: FrontmatterData,
     pub diagnostics: Vec<Diagnostic>,
     pub stats: CompileStats,
+    pub toc: Vec<TocEntry>,
 }

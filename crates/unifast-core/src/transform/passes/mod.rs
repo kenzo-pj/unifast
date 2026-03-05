@@ -8,3 +8,14 @@ pub mod rewrite_links;
 pub mod sanitize;
 pub mod slug;
 pub mod toc;
+
+pub mod normalize_pass;
+pub mod slug_pass;
+pub mod resolve_defs_pass;
+pub mod lower_pass;
+pub mod sanitize_pass;
+pub mod highlight_pass;
+pub mod line_number;
+pub mod line_number_pass;
+pub mod cleanup_pass;
+pub mod toc_pass;

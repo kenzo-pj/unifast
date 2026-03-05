@@ -120,9 +120,14 @@ impl MdxJsPrinter {
         let pad = " ".repeat(indent);
         match node {
             MdNode::Heading(h) => {
+                let id_prop = h
+                    .slug
+                    .as_ref()
+                    .map(|s| format!(", id: \"{}\"", escape_js_string(s)))
+                    .unwrap_or_default();
                 self.emit(&format!("{pad}_jsx(\"h{}\", {{ children: ", h.depth));
                 self.print_inline_children(&h.children);
-                self.emit(" })");
+                self.emit(&format!("{id_prop} }})"));
             }
             MdNode::Paragraph(p) => {
                 self.emit(&format!("{pad}_jsx(\"p\", {{ children: "));
@@ -227,23 +232,26 @@ impl MdxJsPrinter {
             }
             MdNode::Table(t) => {
                 self.emit(&format!("{pad}_jsxs(\"table\", {{ children: [\n"));
-                for (i, child) in t.children.iter().enumerate() {
-                    self.print_mdx_node(child, indent + 2);
-                    if i < t.children.len() - 1 {
+                if let Some(head_row) = t.children.first() {
+                    self.emit(&format!("{pad}  _jsx(\"thead\", {{ children: \n"));
+                    self.print_table_row(head_row, indent + 4, true);
+                    self.emit(&format!("\n{pad}  }})"));
+                    if t.children.len() > 1 {
                         self.emit(",\n");
+                        self.emit(&format!("{pad}  _jsxs(\"tbody\", {{ children: [\n"));
+                        for (i, child) in t.children[1..].iter().enumerate() {
+                            self.print_table_row(child, indent + 4, false);
+                            if i < t.children.len() - 2 {
+                                self.emit(",\n");
+                            }
+                        }
+                        self.emit(&format!("\n{pad}  ] }})"));
                     }
                 }
                 self.emit(&format!("\n{pad}] }})"));
             }
-            MdNode::TableRow(tr) => {
-                self.emit(&format!("{pad}_jsxs(\"tr\", {{ children: [\n"));
-                for (i, child) in tr.children.iter().enumerate() {
-                    self.print_mdx_node(child, indent + 2);
-                    if i < tr.children.len() - 1 {
-                        self.emit(",\n");
-                    }
-                }
-                self.emit(&format!("\n{pad}] }})"));
+            MdNode::TableRow(_) => {
+                self.print_table_row(node, indent, false);
             }
             MdNode::TableCell(tc) => {
                 self.emit(&format!("{pad}_jsx(\"td\", {{ children: "));
@@ -286,7 +294,8 @@ impl MdxJsPrinter {
         }
 
         if el.children.is_empty() {
-            self.emit(&format!("{pad}_jsx({name}, {{{props}}})",));
+            let clean_props = props.strip_prefix(", ").unwrap_or(&props);
+            self.emit(&format!("{pad}_jsx({name}, {{ {clean_props} }})",));
         } else {
             self.emit(&format!("{pad}_jsxs({name}, {{ children: [\n"));
             for (i, child) in el.children.iter().enumerate() {
@@ -296,6 +305,28 @@ impl MdxJsPrinter {
                 }
             }
             self.emit(&format!("\n{pad}]{props}}})",));
+        }
+    }
+
+    fn print_table_row(&mut self, node: &MdNode, indent: usize, is_header: bool) {
+        let pad = " ".repeat(indent * 2);
+        if let MdNode::TableRow(tr) = node {
+            self.emit(&format!("{pad}_jsxs(\"tr\", {{ children: [\n"));
+            let tag = if is_header { "th" } else { "td" };
+            for (i, child) in tr.children.iter().enumerate() {
+                if let MdNode::TableCell(tc) = child {
+                    let cpad = " ".repeat((indent + 1) * 2);
+                    self.emit(&format!("{cpad}_jsx(\"{tag}\", {{ children: "));
+                    self.print_inline_children(&tc.children);
+                    self.emit(" })");
+                } else {
+                    self.print_mdx_node(child, indent + 1);
+                }
+                if i < tr.children.len() - 1 {
+                    self.emit(",\n");
+                }
+            }
+            self.emit(&format!("\n{pad}] }})"));
         }
     }
 

@@ -1,0 +1,32 @@
+{
+  "name": "@unifast/plugin-react",
+  "version": "0.1.0",
+  "description": "Convert HAST to React elements for unifast",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@unifast/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@unifast/node": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@unifast/node": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "react": "^19.2.4",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

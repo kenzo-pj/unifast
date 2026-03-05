@@ -51,7 +51,7 @@ fn main() {
         highlight: HighlightOptions {
             enabled: cli.highlight,
             engine: if cli.highlight {
-                HighlightEngine::Builtin
+                HighlightEngine::Syntect
             } else {
                 HighlightEngine::None
             },

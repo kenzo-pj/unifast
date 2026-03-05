@@ -1,0 +1,33 @@
+{
+  "name": "@unifast/website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build --ssr && node --import tsx scripts/prerender.ts && npx pagefind --site dist/client",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@base-ui-components/react": "1.0.0-rc.0",
+    "@tanstack/react-router": "^1.166.2",
+    "@unifast/node": "workspace:*",
+    "@unifast/plugin-syntect": "workspace:*",
+    "@unifast/plugin-vite": "workspace:*",
+    "hugeicons-react": "^0.4.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tanstack/router-plugin": "^1.166.2",
+    "@types/html-minifier-terser": "^7.0.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "html-minifier-terser": "^7.2.0",
+    "pagefind": "^1.4.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vite": "npm:rolldown-vite@^7.3.1"
+  }
+}

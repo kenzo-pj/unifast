@@ -1,1 +1,28 @@
+# Rust
 /target
+
+# Node.js
+node_modules/
+dist/
+
+# pnpm
+pnpm-debug.log*
+
+# Turborepo
+.turbo/
+
+# NAPI-RS native build artifacts
+packages/node/native/
+
+# AI-generated plans
+docs/plans/
+
+# Playwright MCP
+.playwright-mcp/
+
+# Screenshots (temporary)
+*.png
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,55 @@
+---
+title: "@unifast/node"
+description: "Node.js binding for the unifast Markdown/MDX compiler powered by native Rust"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Overview
+
+`@unifast/node` is the primary entry point for using unifast in Node.js. It provides the [`compile()`](/docs/packages/node/compile) function that invokes the native Rust compiler via napi-rs for maximum performance. It also supports the plugin system, allowing HAST transforms to be applied in JavaScript after the Rust compilation step.
+
+## Installation
+
+<PackageInstall package="@unifast/node" />
+
+> The native Rust addon must be pre-built. Run `cargo build -p unifast-bindings-node --release` if the native binary is not available.
+
+## Quick Start
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## Plugin Pipeline
+
+When plugins are provided, `compile()` executes the following pipeline:
+
+1. **Extract plugins** - Separates `plugins` from the rest of the options
+2. **Merge options** - Deep-merges each plugin's `options` into the compile options
+3. **Force HAST** - If any plugin has a `hastTransform`, the native call uses `outputKind: "hast"`
+4. **Native compilation** - Calls the Rust compiler via napi-rs
+5. **HAST transforms** - Applies each plugin's `hastTransform` in order
+6. **Convert output** - If the user didn't request HAST output, converts back to HTML via `hastToHtml`
+
+## Exports Summary
+
+| Export | Kind | Description |
+|--------|------|-------------|
+| `compile` | function | Compile Markdown/MDX to HTML or other formats |
+| `hastToHtml` | function | HAST-to-HTML serializer (re-exported from `@unifast/core`) |
+| `CompileOptions` | type | Compilation configuration |
+| `CompileResult` | type | Compilation result |
+| `UnifastPlugin` | type | Plugin interface |
+| `TocEntry` | type | Table of contents entry |
+| `HastRoot` | type | HAST root node |
+| `HastElement` | type | HAST element node |
+| `HastText` | type | HAST text node |
+| `HastNode` | type | Union of all HAST node types |
+| `UnifastError` | class | Base error class |
+| `ParseError` | class | Parse error class |
+| `CompileError` | class | Compile error class |

@@ -109,7 +109,7 @@ fn corpus_highlight() {
     let opts = CompileOptions {
         highlight: HighlightOptions {
             enabled: true,
-            engine: HighlightEngine::Builtin,
+            engine: HighlightEngine::Syntect,
         },
         ..Default::default()
     };

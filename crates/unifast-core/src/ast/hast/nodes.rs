@@ -1,5 +1,6 @@
 use crate::ast::common::{NodeId, Span};
 use crate::util::small_map::SmallMap;
+use serde::ser::{Serialize, SerializeMap, Serializer};
 
 /// HTML Abstract Syntax Tree node types.
 #[derive(Debug, Clone)]
@@ -98,6 +99,87 @@ pub struct HRaw {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
+}
+
+impl Serialize for HNode {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            HNode::Root(n) => n.serialize(serializer),
+            HNode::Element(n) => n.serialize(serializer),
+            HNode::Text(n) => n.serialize(serializer),
+            HNode::Comment(n) => n.serialize(serializer),
+            HNode::Doctype(n) => n.serialize(serializer),
+            HNode::Raw(n) => n.serialize(serializer),
+        }
+    }
+}
+
+impl Serialize for HRoot {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(2))?;
+        map.serialize_entry("type", "root")?;
+        map.serialize_entry("children", &self.children)?;
+        map.end()
+    }
+}
+
+fn attrs_to_properties(attrs: &SmallMap<String, String>) -> serde_json::Value {
+    let mut props = serde_json::Map::new();
+    for (key, value) in attrs.iter() {
+        if key == "class" {
+            let classes: Vec<&str> = value.split_whitespace().collect();
+            props.insert("className".to_string(), serde_json::json!(classes));
+        } else {
+            props.insert(key.clone(), serde_json::Value::String(value.clone()));
+        }
+    }
+    serde_json::Value::Object(props)
+}
+
+impl Serialize for HElement {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(4))?;
+        map.serialize_entry("type", "element")?;
+        map.serialize_entry("tagName", &self.tag)?;
+        map.serialize_entry("properties", &attrs_to_properties(&self.attributes))?;
+        map.serialize_entry("children", &self.children)?;
+        map.end()
+    }
+}
+
+impl Serialize for HText {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(2))?;
+        map.serialize_entry("type", "text")?;
+        map.serialize_entry("value", &self.value)?;
+        map.end()
+    }
+}
+
+impl Serialize for HComment {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(2))?;
+        map.serialize_entry("type", "comment")?;
+        map.serialize_entry("value", &self.value)?;
+        map.end()
+    }
+}
+
+impl Serialize for HDoctype {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(1))?;
+        map.serialize_entry("type", "doctype")?;
+        map.end()
+    }
+}
+
+impl Serialize for HRaw {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(2))?;
+        map.serialize_entry("type", "raw")?;
+        map.serialize_entry("value", &self.value)?;
+        map.end()
+    }
 }
 
 #[cfg(test)]
@@ -243,6 +325,103 @@ mod tests {
         }));
 
         assert_eq!(root.children().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn serialize_text_node() {
+        let mut id_gen = NodeIdGen::new();
+        let node = HNode::Text(HText {
+            id: id_gen.next_id(),
+            span: Span::new(0, 5),
+            value: "hello".to_string(),
+        });
+        let json: serde_json::Value = serde_json::to_value(&node).unwrap();
+        assert_eq!(json["type"], "text");
+        assert_eq!(json["value"], "hello");
+        assert!(json.get("id").is_none());
+        assert!(json.get("span").is_none());
+    }
+
+    #[test]
+    fn serialize_element_node() {
+        let mut id_gen = NodeIdGen::new();
+        let mut attrs = SmallMap::new();
+        attrs.insert("class".into(), "language-rust".into());
+        attrs.insert("id".into(), "code1".into());
+        let node = HNode::Element(HElement {
+            id: id_gen.next_id(),
+            span: Span::new(0, 50),
+            tag: "code".into(),
+            attributes: attrs,
+            children: vec![HNode::Text(HText {
+                id: id_gen.next_id(),
+                span: Span::new(5, 20),
+                value: "fn main()".into(),
+            })],
+            self_closing: false,
+        });
+        let json: serde_json::Value = serde_json::to_value(&node).unwrap();
+        assert_eq!(json["type"], "element");
+        assert_eq!(json["tagName"], "code");
+        // class -> className as array
+        assert_eq!(json["properties"]["className"], serde_json::json!(["language-rust"]));
+        // other attrs stay as strings
+        assert_eq!(json["properties"]["id"], "code1");
+        assert_eq!(json["children"][0]["type"], "text");
+    }
+
+    #[test]
+    fn serialize_root_node() {
+        let mut id_gen = NodeIdGen::new();
+        let root = HNode::Root(HRoot {
+            id: id_gen.next_id(),
+            span: Span::new(0, 100),
+            children: vec![HNode::Text(HText {
+                id: id_gen.next_id(),
+                span: Span::new(0, 5),
+                value: "hi".into(),
+            })],
+        });
+        let json: serde_json::Value = serde_json::to_value(&root).unwrap();
+        assert_eq!(json["type"], "root");
+        assert_eq!(json["children"].as_array().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn serialize_raw_node() {
+        let mut id_gen = NodeIdGen::new();
+        let node = HNode::Raw(HRaw {
+            id: id_gen.next_id(),
+            span: Span::new(0, 10),
+            value: "<b>bold</b>".into(),
+        });
+        let json: serde_json::Value = serde_json::to_value(&node).unwrap();
+        assert_eq!(json["type"], "raw");
+        assert_eq!(json["value"], "<b>bold</b>");
+    }
+
+    #[test]
+    fn serialize_comment_node() {
+        let mut id_gen = NodeIdGen::new();
+        let node = HNode::Comment(HComment {
+            id: id_gen.next_id(),
+            span: Span::new(0, 20),
+            value: " todo ".into(),
+        });
+        let json: serde_json::Value = serde_json::to_value(&node).unwrap();
+        assert_eq!(json["type"], "comment");
+        assert_eq!(json["value"], " todo ");
+    }
+
+    #[test]
+    fn serialize_doctype_node() {
+        let mut id_gen = NodeIdGen::new();
+        let node = HNode::Doctype(HDoctype {
+            id: id_gen.next_id(),
+            span: Span::new(0, 15),
+        });
+        let json: serde_json::Value = serde_json::to_value(&node).unwrap();
+        assert_eq!(json["type"], "doctype");
     }
 
     #[test]

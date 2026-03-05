@@ -18,18 +18,27 @@ pub struct JsCompileStats {
 }
 
 #[napi(object)]
+pub struct JsTocEntry {
+    pub depth: u32,
+    pub text: String,
+    pub slug: String,
+}
+
+#[napi(object)]
 pub struct JsCompileResult {
     pub output: String,
     pub frontmatter: String, // JSON string
     pub diagnostics: Vec<JsDiagnostic>,
     pub stats: JsCompileStats,
+    pub toc: Vec<JsTocEntry>,
 }
 
 pub fn convert_result(result: CompileResult) -> JsCompileResult {
     let output = match &result.output {
         Output::Html(html) => html.clone(),
         Output::MdxJs { code, .. } => code.clone(),
-        Output::Hast(root) => format!("{:#?}", root),
+        Output::Hast(root) => serde_json::to_string(root)
+            .unwrap_or_else(|e| format!("{{\"error\":\"{}\"}}", e)),
         Output::Mdast(doc) => format!("{:#?}", doc),
     };
 
@@ -55,5 +64,10 @@ pub fn convert_result(result: CompileResult) -> JsCompileResult {
             transform_ms: result.stats.transform_ms,
             emit_ms: result.stats.emit_ms,
         },
+        toc: result.toc.iter().map(|e| JsTocEntry {
+            depth: e.depth as u32,
+            text: e.text.clone(),
+            slug: e.slug.clone(),
+        }).collect(),
     }
 }

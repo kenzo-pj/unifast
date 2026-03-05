@@ -111,7 +111,7 @@ impl Default for SanitizeOptions {
 pub enum HighlightEngine {
     #[default]
     None,
-    Builtin,
+    Syntect,
 }
 
 #[derive(Debug, Clone)]
@@ -162,6 +162,17 @@ pub struct DiagnosticsOptions {
     pub format: DiagnosticsFormat,
 }
 
+#[derive(Debug, Clone)]
+pub struct LineNumberOptions {
+    pub enabled: bool,
+}
+
+impl Default for LineNumberOptions {
+    fn default() -> Self {
+        Self { enabled: false }
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct CacheOptions {
     pub enabled: bool,
@@ -183,6 +194,7 @@ pub struct CompileOptions {
     pub raw_html: RawHtmlPolicy,
     pub sanitize: SanitizeOptions,
     pub highlight: HighlightOptions,
+    pub line_numbers: LineNumberOptions,
     pub slug: SlugOptions,
     pub toc: TocOptions,
     pub diagnostics: DiagnosticsOptions,
@@ -201,6 +213,7 @@ impl std::fmt::Debug for CompileOptions {
             .field("raw_html", &self.raw_html)
             .field("sanitize", &self.sanitize)
             .field("highlight", &self.highlight)
+            .field("line_numbers", &self.line_numbers)
             .field("slug", &self.slug)
             .field("toc", &self.toc)
             .field("diagnostics", &self.diagnostics)

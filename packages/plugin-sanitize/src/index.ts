@@ -1,4 +1,4 @@
-import type { CompileOptions, SanitizeSchema } from "@unifast/core";
+import type { UnifastPlugin, SanitizeSchema } from "@unifast/core";
 
 export type SanitizePluginOptions = {
   enabled?: boolean;
@@ -7,11 +7,14 @@ export type SanitizePluginOptions = {
 
 export function sanitize(
   options?: SanitizePluginOptions,
-): Partial<CompileOptions> {
+): UnifastPlugin {
   return {
-    sanitize: {
-      enabled: options?.enabled ?? true,
-      schema: options?.schema,
+    name: "sanitize",
+    options: {
+      sanitize: {
+        enabled: options?.enabled ?? true,
+        schema: options?.schema,
+      },
     },
   };
 }

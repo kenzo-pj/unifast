@@ -1,0 +1,69 @@
+.container {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: var(--gap-xl) 0;
+  border: 1px solid var(--color-border);
+}
+
+.tabList {
+  display: flex;
+  align-items: center;
+  background: var(--color-code-bg);
+  padding: var(--gap-sm) var(--gap-sm);
+  gap: var(--gap-xs);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.terminalIcon {
+  color: var(--color-text-muted);
+  margin: 0 var(--gap-xs) 0 var(--gap-sm);
+  flex-shrink: 0;
+}
+
+.tab {
+  padding: var(--gap-sm) var(--gap-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+  line-height: 1.4;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tab[data-active] {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.codeArea {
+  position: relative;
+  background: var(--color-code-bg);
+  padding: var(--gap-lg) var(--gap-xl);
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.panel code {
+  color: var(--color-text);
+  background: none;
+  padding: 0;
+}
+
+.prompt {
+  color: var(--color-text-muted);
+  margin-right: 0.5em;
+  user-select: none;
+}
+
+.codeArea:hover {
+  --copy-btn-opacity: 1;
+}

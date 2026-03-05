@@ -1,15 +1,26 @@
 {
   "name": "unifast-monorepo",
   "private": true,
+  "packageManager": "pnpm@10.30.1",
   "scripts": {
-    "lint": "oxlint",
-    "fmt": "oxlint --fix",
-    "test": "vitest run",
-    "build": "pnpm -r build"
+    "lint": "turbo lint",
+    "fmt": "turbo fmt",
+    "test": "turbo test",
+    "build": "turbo build",
+    "dev:website": "turbo dev --filter=@unifast/website",
+    "build:website": "turbo build --filter=@unifast/website",
+    "preview:website": "turbo preview --filter=@unifast/website",
+    "bench": "turbo bench --filter=@unifast/benchmark"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "devDependencies": {
-    "vitest": "^3.0.0",
-    "typescript": "^5.7.0",
-    "oxlint": "^0.15.0"
+    "oxlint": "^0.15.15",
+    "turbo": "^2.8.13",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

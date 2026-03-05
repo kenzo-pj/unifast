@@ -1,0 +1,37 @@
+---
+title: "@unifast/mdx"
+description: "MDX convenience wrapper for unifast with pre-configured MDX defaults"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Overview
+
+`@unifast/mdx` provides a convenience wrapper around the core unifast compiler with MDX-specific defaults. It sets `inputKind: "mdx"` automatically and exposes an `MdxCompileOptions` type that constrains output to MDX-compatible formats.
+
+> **Note:** This package requires `@unifast/node` to be installed for the actual compilation. It serves as a thin type-safe layer on top of the core compiler.
+
+## Installation
+
+<PackageInstall package="@unifast/mdx @unifast/node" />
+
+## Type Definitions
+
+### `MdxCompileOptions`
+
+Extends `CompileOptions` with MDX-specific constraints.
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `inputKind` | `"mdx"` | `"mdx"` | Always set to `"mdx"` |
+| `outputKind` | `"html" \| "mdxJs"` | `"html"` | Output format (HTML or MDX JS module) |
+| *(all other CompileOptions)* | - | - | Inherited from `CompileOptions` |
+
+## Exports Summary
+
+| Export | Kind | Description |
+|--------|------|-------------|
+| `compileMdx` | function | Compile MDX with pre-configured defaults |
+| `MdxCompileOptions` | type | MDX-specific compile options |
+| `CompileOptions` | type | Re-exported from `@unifast/core` |
+| `CompileResult` | type | Re-exported from `@unifast/core` |

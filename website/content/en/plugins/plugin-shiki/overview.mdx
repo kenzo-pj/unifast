@@ -1,0 +1,45 @@
+---
+title: "@unifast/plugin-shiki"
+description: "Shiki-based syntax highlighting plugin for unifast with HAST transforms"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Overview
+
+`@unifast/plugin-shiki` provides syntax highlighting powered by [Shiki](https://shiki.style/), supporting 200+ languages and a wide variety of themes. Unlike the built-in highlight plugin, Shiki runs as a HAST transform in JavaScript, replacing `<pre><code>` blocks with richly styled output.
+
+The plugin automatically disables the built-in Rust highlighter to avoid double-processing.
+
+## Installation
+
+<PackageInstall package="@unifast/plugin-shiki" />
+
+## Type Definitions
+
+### `ShikiTransformerOptions`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Shiki themes to load |
+| `defaultTheme` | `BundledTheme` | First theme in `themes` | Default theme for rendering |
+| `langs` | `BundledLanguage[]` | `[]` | Languages to load. Only loaded languages will be highlighted. |
+
+> `BundledTheme` and `BundledLanguage` are types from the `shiki` package.
+
+### `ShikiTransformer`
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | Apply Shiki highlighting to all `<pre><code class="language-*">` blocks |
+
+## Exports Summary
+
+| Export | Kind | Description |
+|--------|------|-------------|
+| `createShikiPlugin` | function | Create a Shiki UnifastPlugin (async) |
+| `createShikiTransformer` | function | Create a standalone Shiki transformer (async) |
+| `ShikiTransformerOptions` | type | Shiki configuration options |
+| `ShikiTransformer` | type | Transformer interface |
+| `hastToHtml` | function | HAST-to-HTML serializer (re-exported) |
+| `HastNode`, `HastRoot`, etc. | types | HAST node types (re-exported) |

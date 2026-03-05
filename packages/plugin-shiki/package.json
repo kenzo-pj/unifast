@@ -1,0 +1,23 @@
+{
+  "name": "@unifast/plugin-shiki",
+  "version": "0.1.0",
+  "description": "Shiki syntax highlighting plugin for unifast via HAST transforms",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@unifast/core": "workspace:*",
+    "shiki": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

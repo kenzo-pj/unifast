@@ -40,6 +40,8 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
     let mut children: Vec<MdNode> = Vec::new();
     let mut current_md_lines: Vec<String> = Vec::new();
     let mut current_md_start = parse_offset;
+    let mut in_fenced_code = false;
+    let mut fence_marker: String = String::new();
 
     let lines: Vec<&str> = content.lines().collect();
     let mut line_idx = 0;
@@ -47,6 +49,28 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
     while line_idx < lines.len() {
         let line = lines[line_idx];
         let line_offset = calculate_line_offset(content, line_idx) + parse_offset;
+
+        // Track fenced code blocks — lines inside them are plain markdown,
+        // never ESM/JSX/expression.
+        let trimmed = line.trim_start();
+        if in_fenced_code {
+            if trimmed.starts_with(&fence_marker) && trimmed[fence_marker.len()..].trim().is_empty() {
+                in_fenced_code = false;
+                fence_marker.clear();
+            }
+            current_md_lines.push(line.to_string());
+            line_idx += 1;
+            continue;
+        }
+        if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+            let ch = trimmed.as_bytes()[0];
+            let fence_len = trimmed.bytes().take_while(|&b| b == ch).count();
+            fence_marker = std::iter::repeat(ch as char).take(fence_len).collect();
+            in_fenced_code = true;
+            current_md_lines.push(line.to_string());
+            line_idx += 1;
+            continue;
+        }
 
         // ---- ESM (import / export) ----
         if esm::is_esm_line(line) {
@@ -406,6 +430,40 @@ mod tests {
             "export default function Layout({ children }) { return <div>{children}</div> }\n",
         );
         assert!(matches!(&r.document.children[0], MdNode::MdxjsEsm(_)));
+    }
+
+    #[test]
+    fn mdx_import_inside_code_block_not_treated_as_esm() {
+        let input = "```ts\nimport { compile } from \"@unifast/node\";\n```\n";
+        let r = parse_mdx(input);
+        let esm_count = r
+            .document
+            .children
+            .iter()
+            .filter(|n| matches!(n, MdNode::MdxjsEsm(_)))
+            .count();
+        assert_eq!(esm_count, 0, "import inside code block should not be ESM");
+        // Should have a Code node via the markdown parser
+        assert!(
+            r.document
+                .children
+                .iter()
+                .any(|n| matches!(n, MdNode::Code(_))),
+            "should have a Code node"
+        );
+    }
+
+    #[test]
+    fn mdx_jsx_inside_code_block_not_treated_as_jsx() {
+        let input = "```jsx\n<Button onClick={handler} />\n```\n";
+        let r = parse_mdx(input);
+        let jsx_count = r
+            .document
+            .children
+            .iter()
+            .filter(|n| matches!(n, MdNode::MdxJsxFlowElement(_)))
+            .count();
+        assert_eq!(jsx_count, 0, "JSX inside code block should not be parsed as JSX flow");
     }
 
     #[test]

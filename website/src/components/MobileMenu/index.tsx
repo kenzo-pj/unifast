@@ -1,0 +1,62 @@
+import { useState, useCallback, useEffect, useRef } from "react";
+import { Dialog } from "@base-ui-components/react/dialog";
+import { Menu01Icon, Cancel01Icon } from "hugeicons-react";
+import { useRouterState } from "@tanstack/react-router";
+import { Sidebar } from "~/components/Sidebar";
+import { ThemeToggle } from "~/components/ThemeToggle";
+import { LanguageSwitcher } from "~/components/LanguageSwitcher";
+import { GitHubIcon } from "~/components/GitHubIcon";
+import styles from "./MobileMenu.module.css";
+
+export function MobileMenu() {
+  const [open, setOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathnameRef = useRef(pathname);
+
+  // Close drawer when pathname changes (user tapped a nav link)
+  useEffect(() => {
+    if (pathnameRef.current !== pathname) {
+      pathnameRef.current = pathname;
+      setOpen(false);
+    }
+  }, [pathname]);
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => setOpen(nextOpen),
+    [],
+  );
+
+  return (
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
+      <Dialog.Trigger className={styles.menuButton} aria-label="Menu">
+        <Menu01Icon size={20} />
+      </Dialog.Trigger>
+
+      <Dialog.Portal>
+        <Dialog.Backdrop className={styles.backdrop} />
+        <Dialog.Popup className={styles.sheet}>
+          <div className={styles.sheetHeader}>
+            <LanguageSwitcher />
+            <ThemeToggle />
+            <a
+              href="https://github.com/kenzo-pj/unifast"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.githubLink}
+              aria-label="GitHub"
+            >
+              <GitHubIcon size={18} />
+            </a>
+            <Dialog.Close className={styles.closeButton}>
+              <Cancel01Icon size={18} />
+            </Dialog.Close>
+          </div>
+
+          <div className={styles.nav}>
+            <Sidebar hideLogo />
+          </div>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}

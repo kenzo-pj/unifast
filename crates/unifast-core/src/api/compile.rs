@@ -1,82 +1,89 @@
 use super::options::{CompileOptions, InputKind, OutputKind};
 use super::result::{CompileResult, CompileStats, Output};
 use crate::ast::common::NodeIdGen;
-use crate::ast::hast::nodes::HNode;
 use crate::emit::html::stringify;
 use crate::parse;
+use crate::transform::pass::{AstPayload, PassContext};
+use crate::transform::registry::PassRegistry;
 use crate::transform::passes::{
-    highlight, html_cleanup, mdast_to_hast, normalize, resolve_defs, sanitize as sanitize_pass,
-    slug,
+    normalize_pass::NormalizePass,
+    slug_pass::SlugPass,
+    resolve_defs_pass::ResolveDefsPass,
+    lower_pass::LowerPass,
+    sanitize_pass::SanitizePass,
+    highlight_pass::HighlightPass,
+    line_number_pass::LineNumberPass,
+    cleanup_pass::CleanupPass,
+    toc_pass::TocPass,
 };
 use std::time::Instant;
 
 pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
     let start = Instant::now();
 
-    // 1. Parse — choose parser based on input kind.
+    // 1. Parse
     let parse_start = Instant::now();
     let parse_result = match opts.input_kind {
         InputKind::Markdown => parse::parse_markdown(input),
         InputKind::Mdx => parse::parse_mdx_input(input),
     };
-    let mut document = parse_result.document;
+    let document = parse_result.document;
     let mut diagnostics = parse_result.diagnostics;
     let frontmatter = parse_result.frontmatter;
     let parse_ms = parse_start.elapsed().as_secs_f64() * 1000.0;
 
-    // 2. MdAst transforms
+    // 2. Build registry
     let transform_start = Instant::now();
+    let mut registry = PassRegistry::new();
 
-    // Normalize
-    normalize::normalize(&mut document);
+    // Transform-phase passes (always)
+    registry.register(Box::new(NormalizePass));
+    registry.register(Box::new(SlugPass));
+    registry.register(Box::new(TocPass));
+    registry.register(Box::new(ResolveDefsPass));
 
-    // Slugs
-    let slug_mode = match opts.slug.mode {
-        crate::api::options::SlugMode::GitHub => slug::SlugMode::GitHub,
-        crate::api::options::SlugMode::Unicode => slug::SlugMode::Unicode,
-    };
-    slug::apply_slugs(&mut document, slug_mode);
+    // Lower + Optimize passes (only if we need HAST output)
+    if opts.output_kind != OutputKind::Mdast {
+        registry.register(Box::new(LowerPass));
+        if opts.sanitize.enabled {
+            registry.register(Box::new(SanitizePass));
+        }
+        if opts.highlight.enabled {
+            registry.register(Box::new(HighlightPass));
+        }
+        if opts.line_numbers.enabled {
+            registry.register(Box::new(LineNumberPass));
+        }
+        registry.register(Box::new(CleanupPass));
+    }
 
-    // Resolve definitions (remove Definition nodes)
-    let defs = std::collections::HashMap::new();
-    resolve_defs::resolve_definitions(&mut document, &defs, &mut diagnostics);
+    // 3. User plugins register additional passes
+    for plugin in &opts.plugins {
+        plugin.apply(&mut registry);
+    }
 
-    // 3. Lower MdAst -> HAst
+    // 4. Execute passes in phase order
     let mut id_gen = NodeIdGen::new();
-    let hast_node = mdast_to_hast::lower(&document, &mut id_gen, opts.raw_html, &mut diagnostics);
+    let mut payload = AstPayload::Mdast(document);
 
-    // Extract the HRoot from the HNode wrapper
-    let mut hast_root = match hast_node {
-        HNode::Root(root) => root,
-        _ => {
-            // Shouldn't happen, but wrap in a root if it does
-            crate::ast::hast::nodes::HRoot {
-                id: id_gen.next_id(),
-                span: crate::ast::common::Span::empty(),
-                children: vec![hast_node],
+    let toc;
+    {
+        let mut ctx = PassContext {
+            source: input,
+            diagnostics: &mut diagnostics,
+            options: opts,
+            id_gen: &mut id_gen,
+            toc: Vec::new(),
+        };
+
+        for pass in registry.ordered_passes() {
+            if let Err(_e) = pass.run(&mut ctx, &mut payload) {
+                break;
             }
         }
-    };
-
-    // 4. Sanitize (if enabled)
-    if opts.sanitize.enabled {
-        let schema = if let Some(ref api_schema) = opts.sanitize.schema {
-            sanitize_pass::from_api_schema(api_schema)
-        } else {
-            sanitize_pass::default_safe_schema()
-        };
-        sanitize_pass::sanitize(&mut hast_root, &schema, &mut diagnostics);
+        toc = std::mem::take(&mut ctx.toc);
     }
-
-    // 5. Highlight (if enabled)
-    if opts.highlight.enabled {
-        let engine = highlight::BuiltinHighlighter;
-        let mut highlight_id_gen = NodeIdGen::new();
-        highlight::apply_highlight(&mut hast_root, &engine, &mut highlight_id_gen);
-    }
-
-    // 6. HTML cleanup (always — but with default options which are no-ops)
-    html_cleanup::cleanup(&mut hast_root, &html_cleanup::CleanupOptions::default());
+    // diagnostics is available again after ctx is dropped
 
     let transform_ms = transform_start.elapsed().as_secs_f64() * 1000.0;
 
@@ -84,37 +91,57 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
     let emit_start = Instant::now();
     let output = match opts.output_kind {
         OutputKind::Html => {
-            let html = stringify::stringify(&hast_root);
+            let html = match &payload {
+                AstPayload::Hast(root) => stringify::stringify(root),
+                AstPayload::Both { hast, .. } => stringify::stringify(hast),
+                _ => String::new(),
+            };
             Output::Html(html)
         }
-        OutputKind::Hast => Output::Hast(hast_root),
-        OutputKind::Mdast => Output::Mdast(document),
-        OutputKind::MdxJs => {
-            let mdx_output = crate::emit::mdx_js::printer::print_mdx_js(&document);
-            let map = Some(crate::emit::mdx_js::sourcemap::generate_sourcemap(
-                "output.js",
-                input,
-                &mdx_output.source_mappings,
-            ));
-            Output::MdxJs {
-                code: mdx_output.code,
-                map,
+        OutputKind::Hast => {
+            match payload {
+                AstPayload::Hast(root) => Output::Hast(root),
+                AstPayload::Both { hast, .. } => Output::Hast(hast),
+                _ => Output::Html(String::new()),
             }
+        }
+        OutputKind::Mdast => {
+            match payload {
+                AstPayload::Mdast(doc) => Output::Mdast(doc),
+                _ => Output::Mdast(crate::ast::mdast::nodes::Document {
+                    id: crate::ast::common::NodeId(0),
+                    span: crate::ast::common::Span::empty(),
+                    children: vec![],
+                }),
+            }
+        }
+        OutputKind::MdxJs => {
+            // MdxJs needs the original document pre-lowering; re-parse
+            let mdx_result = parse::parse_mdx_input(input);
+            let mut mdx_doc = mdx_result.document;
+            // Apply slugs so heading elements get id attributes in JSX output
+            let slug_mode = match opts.slug.mode {
+                crate::api::options::SlugMode::GitHub => crate::transform::passes::slug::SlugMode::GitHub,
+                crate::api::options::SlugMode::Unicode => crate::transform::passes::slug::SlugMode::Unicode,
+            };
+            crate::transform::passes::slug::apply_slugs(&mut mdx_doc, slug_mode);
+            let mdx_output = crate::emit::mdx_js::printer::print_mdx_js(&mdx_doc);
+            let map = Some(crate::emit::mdx_js::sourcemap::generate_sourcemap(
+                "output.js", input, &mdx_output.source_mappings,
+            ));
+            Output::MdxJs { code: mdx_output.code, map }
         }
     };
     let emit_ms = emit_start.elapsed().as_secs_f64() * 1000.0;
 
-    let _ = start; // suppress unused variable warning
+    let _ = start;
 
     CompileResult {
         output,
         frontmatter,
         diagnostics: diagnostics.into_diagnostics(),
-        stats: CompileStats {
-            parse_ms,
-            transform_ms,
-            emit_ms,
-        },
+        stats: CompileStats { parse_ms, transform_ms, emit_ms },
+        toc,
     }
 }
 
@@ -327,5 +354,172 @@ mod tests {
             Output::Html(html) => assert!(html.contains("<h1")),
             _ => panic!("expected HTML output"),
         }
+    }
+
+    #[test]
+    fn e2e_custom_plugin_adds_pass() {
+        use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
+        use crate::transform::plugin::Plugin;
+        use crate::transform::registry::PassRegistry;
+
+        struct UppercasePass;
+        impl Pass for UppercasePass {
+            fn name(&self) -> &'static str { "uppercase" }
+            fn phase(&self) -> Phase { Phase::Optimize }
+            fn run(&self, _ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
+                fn uppercase_hast(node: &mut crate::ast::hast::nodes::HNode) {
+                    match node {
+                        crate::ast::hast::nodes::HNode::Text(t) => {
+                            t.value = t.value.to_uppercase();
+                        }
+                        crate::ast::hast::nodes::HNode::Element(e) => {
+                            for child in &mut e.children { uppercase_hast(child); }
+                        }
+                        crate::ast::hast::nodes::HNode::Root(r) => {
+                            for child in &mut r.children { uppercase_hast(child); }
+                        }
+                        _ => {}
+                    }
+                }
+                if let AstPayload::Hast(root) = ast {
+                    for child in &mut root.children { uppercase_hast(child); }
+                }
+                Ok(())
+            }
+        }
+
+        struct UppercasePlugin;
+        impl Plugin for UppercasePlugin {
+            fn name(&self) -> &'static str { "uppercase_plugin" }
+            fn apply(&self, registry: &mut PassRegistry) {
+                registry.register(Box::new(UppercasePass));
+            }
+        }
+
+        let result = compile(
+            "hello world\n",
+            &CompileOptions {
+                plugins: vec![Box::new(UppercasePlugin)],
+                ..Default::default()
+            },
+        );
+
+        match result.output {
+            Output::Html(html) => {
+                assert!(html.contains("HELLO WORLD"), "Expected uppercase, got: {}", html);
+            }
+            _ => panic!("expected HTML"),
+        }
+    }
+
+    #[test]
+    fn e2e_toc_extraction() {
+        let result = compile(
+            "# First\n\n## Second\n\n### Third\n",
+            &CompileOptions {
+                toc: TocOptions { enabled: true, max_depth: 6 },
+                ..Default::default()
+            },
+        );
+        assert_eq!(result.toc.len(), 3);
+        assert_eq!(result.toc[0].depth, 1);
+        assert_eq!(result.toc[0].text, "First");
+        assert_eq!(result.toc[0].slug, "first");
+        assert_eq!(result.toc[1].depth, 2);
+        assert_eq!(result.toc[1].text, "Second");
+        assert_eq!(result.toc[2].depth, 3);
+        assert_eq!(result.toc[2].text, "Third");
+    }
+
+    #[test]
+    fn e2e_line_numbers() {
+        let result = compile(
+            "```rust\nfn main() {\n    println!(\"hi\");\n}\n```\n",
+            &CompileOptions {
+                line_numbers: LineNumberOptions { enabled: true },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(html.contains("data-line=\"1\""), "missing line 1: {}", html);
+                assert!(html.contains("data-line=\"2\""), "missing line 2: {}", html);
+                assert!(html.contains("data-line=\"3\""), "missing line 3: {}", html);
+                assert!(html.contains("class=\"line\""), "missing line class: {}", html);
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_line_numbers_disabled_by_default() {
+        let html = compile_html("```\nhello\n```\n");
+        assert!(!html.contains("data-line"));
+    }
+
+    #[test]
+    fn e2e_highlight_with_line_numbers() {
+        let result = compile(
+            "```rust\nfn main() {\n    println!(\"hi\");\n}\n```\n",
+            &CompileOptions {
+                highlight: HighlightOptions {
+                    enabled: true,
+                    engine: HighlightEngine::Syntect,
+                },
+                line_numbers: LineNumberOptions { enabled: true },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                // Highlighting should produce sy- prefixed spans
+                assert!(html.contains("sy-"), "missing syntax highlight spans: {}", html);
+                // Line numbers should be present
+                assert!(html.contains("data-line=\"1\""), "missing line 1: {}", html);
+                assert!(html.contains("data-line=\"2\""), "missing line 2: {}", html);
+                assert!(html.contains("data-line=\"3\""), "missing line 3: {}", html);
+                assert!(html.contains("class=\"line\""), "missing line class: {}", html);
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_highlight_without_line_numbers() {
+        let result = compile(
+            "```rust\nfn main() {}\n```\n",
+            &CompileOptions {
+                highlight: HighlightOptions {
+                    enabled: true,
+                    engine: HighlightEngine::Syntect,
+                },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(html.contains("sy-"), "missing syntax highlight: {}", html);
+                assert!(!html.contains("data-line"), "should not have line numbers");
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_toc_disabled_by_default() {
+        let result = compile("# Heading\n", &CompileOptions::default());
+        assert!(result.toc.is_empty());
+    }
+
+    #[test]
+    fn e2e_toc_max_depth() {
+        let result = compile(
+            "# H1\n\n## H2\n\n### H3\n",
+            &CompileOptions {
+                toc: TocOptions { enabled: true, max_depth: 2 },
+                ..Default::default()
+            },
+        );
+        assert_eq!(result.toc.len(), 2);
     }
 }

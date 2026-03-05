@@ -1,3 +1,5 @@
+import type { UnifastPlugin } from "./plugin.js";
+
 export type CompileOptions = {
   inputKind?: "md" | "mdx";
   outputKind?: "html" | "hast" | "mdast" | "mdxJs";
@@ -16,7 +18,9 @@ export type CompileOptions = {
 
   sanitize?: { enabled?: boolean; schema?: SanitizeSchema };
 
-  highlight?: { enabled?: boolean; engine?: "none" | "builtin" };
+  highlight?: { enabled?: boolean; engine?: "none" | "syntect" };
+
+  lineNumbers?: { enabled?: boolean };
 
   slug?: { mode?: "github" | "unicode" };
 
@@ -26,7 +30,13 @@ export type CompileOptions = {
 
   cache?: { enabled?: boolean; dir?: string };
 
-  plugins?: Array<{ name: string; options?: unknown }>;
+  plugins?: UnifastPlugin[];
+};
+
+export type TocEntry = {
+  depth: number;
+  text: string;
+  slug: string;
 };
 
 export type SanitizeSchema = {

@@ -197,7 +197,7 @@ export type CompileOptions = {
 
   sanitize?: { enabled?: boolean; schema?: SanitizeSchema };
 
-  highlight?: { enabled?: boolean; engine?: "none" | "builtin" };
+  highlight?: { enabled?: boolean; engine?: "none" | "syntect" };
 
   slug?: { mode?: "github" | "unicode" };
 
@@ -550,7 +550,7 @@ repo/
       src/index.ts
       package.json
 
-    plugin-highlight/
+    plugin-syntect/
       src/index.ts
       package.json
 

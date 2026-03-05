@@ -1,4 +1,4 @@
-import type { CompileOptions } from "@unifast/core";
+import type { UnifastPlugin } from "@unifast/core";
 
 export type FrontmatterPluginOptions = {
   yaml?: boolean;
@@ -8,12 +8,15 @@ export type FrontmatterPluginOptions = {
 
 export function frontmatter(
   options?: FrontmatterPluginOptions,
-): Partial<CompileOptions> {
+): UnifastPlugin {
   return {
-    frontmatter: {
-      yaml: options?.yaml ?? true,
-      toml: options?.toml ?? false,
-      json: options?.json ?? false,
+    name: "frontmatter",
+    options: {
+      frontmatter: {
+        yaml: options?.yaml ?? true,
+        toml: options?.toml ?? false,
+        json: options?.json ?? false,
+      },
     },
   };
 }

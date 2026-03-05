@@ -1,3 +1,5 @@
+import type { TocEntry } from "./options.js";
+
 export type CompileResult = {
   output: string | object;
   frontmatter: Record<string, unknown>;
@@ -10,4 +12,5 @@ export type CompileResult = {
     column?: number;
   }>;
   stats: { parseMs: number; transformMs: number; emitMs: number };
+  toc: TocEntry[];
 };
