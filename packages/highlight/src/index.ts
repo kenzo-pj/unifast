@@ -28,14 +28,16 @@ export function highlight(): UnifastPlugin {
                 const result = lowlight.highlight(lang, text);
                 return {
                   ...node,
-                  children: [{
-                    ...code,
-                    properties: {
-                      ...code.properties,
-                      className: [`language-${lang}`, "hljs"],
+                  children: [
+                    {
+                      ...code,
+                      properties: {
+                        ...code.properties,
+                        className: [`language-${lang}`, "hljs"],
+                      },
+                      children: result.children as HastNode[],
                     },
-                    children: result.children as HastNode[],
-                  }],
+                  ],
                 };
               }
             }

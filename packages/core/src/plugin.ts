@@ -1,5 +1,5 @@
-import type { HastRoot } from "./hast.js";
-import type { CompileOptions } from "./options.js";
+import type { HastRoot } from "./hast";
+import type { CompileOptions } from "./options";
 
 export type UnifastPlugin = {
   name: string;

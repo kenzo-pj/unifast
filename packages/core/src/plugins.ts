@@ -1,5 +1,5 @@
-import type { SanitizeSchema } from "./options.js";
-import type { UnifastPlugin } from "./plugin.js";
+import type { SanitizeSchema } from "./options";
+import type { UnifastPlugin } from "./plugin";
 
 export type GfmPluginOptions = {
   tables?: boolean;

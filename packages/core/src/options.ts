@@ -1,4 +1,4 @@
-import type { UnifastPlugin } from "./plugin.js";
+import type { UnifastPlugin } from "./plugin";
 
 export type CompileOptions = {
   inputKind?: "md" | "mdx";

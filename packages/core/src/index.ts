@@ -1,7 +1,7 @@
-export type { CompileOptions, SanitizeSchema, TocEntry } from "./options.js";
-export type { CompileResult } from "./result.js";
-export { UnifastError, ParseError, CompileError } from "./errors.js";
-export type { UnifastPlugin } from "./plugin.js";
+export type { CompileOptions, SanitizeSchema, TocEntry } from "./options";
+export type { CompileResult } from "./result";
+export { UnifastError, ParseError, CompileError } from "./errors";
+export type { UnifastPlugin } from "./plugin";
 export type {
   HastNode,
   HastRoot,
@@ -10,8 +10,8 @@ export type {
   HastRaw,
   HastComment,
   HastDoctype,
-} from "./hast.js";
-export { hastToHtml } from "./hast.js";
+} from "./hast";
+export { hastToHtml } from "./hast";
 export {
   gfm,
   frontmatter,
@@ -33,7 +33,7 @@ export {
   definitionList,
   rubyAnnotation,
   cjk,
-} from "./plugins.js";
+} from "./plugins";
 export type {
   GfmPluginOptions,
   FrontmatterPluginOptions,
@@ -46,4 +46,4 @@ export type {
   SmartypantsPluginOptions,
   WikiLinkPluginOptions,
   CodeImportPluginOptions,
-} from "./plugins.js";
+} from "./plugins";

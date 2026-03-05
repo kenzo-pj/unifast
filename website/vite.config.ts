@@ -47,7 +47,7 @@ export default defineConfig(({ isSsrBuild }) => ({
   css: {
     transformer: "lightningcss",
     lightningcss: {
-      targets: { chrome: 110, firefox: 115, safari: 16 },
+      targets: { chrome: 110 << 16, firefox: 115 << 16, safari: 16 << 16 },
     },
   },
   plugins: [

@@ -1,6 +1,7 @@
 import type { CompileOptions, CompileResult, HastRoot, TocEntry } from "@unifast/core";
+import { compile } from "@unifast/node";
 
-import { hastToReact, type CreateElement, type ComponentMap } from "./hast-to-react.js";
+import { hastToReact, type CreateElement, type ComponentMap } from "./hast-to-react";
 
 export type CompileToReactOptions = CompileOptions & {
   components?: ComponentMap;
@@ -20,17 +21,6 @@ export function compileToReact(
   input: string,
   options: CompileToReactOptions,
 ): CompileToReactResult {
-  let compile: (input: string, options?: CompileOptions) => CompileResult;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const node = require("@unifast/node");
-    compile = node.compile;
-  } catch {
-    throw new Error(
-      "@unifast/node is required for compileToReact. " + "Install it with: pnpm add @unifast/node",
-    );
-  }
-
   const { components, createElement, Fragment, ...compileOpts } = options;
 
   const result = compile(input, { ...compileOpts, outputKind: "hast" });

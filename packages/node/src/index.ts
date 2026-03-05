@@ -1,7 +1,7 @@
 import type { CompileOptions, CompileResult, HastRoot, HastNode, HastElement } from "@unifast/core";
 import { hastToHtml } from "@unifast/core";
 
-import { loadNativeBinding } from "./native.js";
+import { loadNativeBinding } from "./native";
 
 export type { CompileOptions, CompileResult, UnifastPlugin, TocEntry } from "@unifast/core";
 export type { HastRoot, HastElement, HastText, HastNode } from "@unifast/core";

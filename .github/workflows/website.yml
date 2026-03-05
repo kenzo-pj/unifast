@@ -6,44 +6,83 @@ on:
   pull_request:
     paths:
       - "website/**"
+      - "packages/**"
+      - "crates/**"
       - ".github/workflows/website.yml"
 
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  stylelint:
-    name: Stylelint
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint:css
+      - run: pnpm --filter @unifast/website lint:css
+      - run: pnpm --filter @unifast/website lint:md
+      - run: pnpm --filter @unifast/website lint:text
 
-  markdownlint:
-    name: Markdownlint
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint:md
 
-  textlint:
-    name: Textlint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-website-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-website-
+
+      - name: Build native binding
+        run: |
+          cargo build -p unifast-bindings-node --release
+          mkdir -p packages/node/native
+          cp target/release/libunifast_bindings_node.so packages/node/native/unifast.node
+
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint:text
+      - run: pnpm build:website
+      - run: touch website/dist/client/.nojekyll
+
+      - name: Upload artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/dist/client
+
+  deploy:
+    name: Deploy
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [lint, build]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

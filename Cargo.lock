@@ -1151,7 +1151,7 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "unifast-bindings-node"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "napi",
  "napi-build",
@@ -1163,7 +1163,7 @@ dependencies = [
 
 [[package]]
 name = "unifast-bindings-wasm"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "serde",
  "serde-wasm-bindgen",
@@ -1174,7 +1174,7 @@ dependencies = [
 
 [[package]]
 name = "unifast-cli"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "clap",
  "serde_json",
@@ -1183,7 +1183,7 @@ dependencies = [
 
 [[package]]
 name = "unifast-core"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "bumpalo",
  "insta",

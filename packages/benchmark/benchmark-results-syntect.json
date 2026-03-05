@@ -1,0 +1,32 @@
+[
+  {
+    "name": "unifast (syntect) [simple]",
+    "hz": 876.49,
+    "mean": 1.1409,
+    "min": 0.7417,
+    "max": 2.7918,
+    "p75": 1.2719,
+    "p99": 2.0504,
+    "samples": 500
+  },
+  {
+    "name": "unifast (syntect) [readme]",
+    "hz": 119.3,
+    "mean": 8.3822,
+    "min": 6.2783,
+    "max": 10.9333,
+    "p75": 9.1408,
+    "p99": 10.8221,
+    "samples": 200
+  },
+  {
+    "name": "unifast (syntect) [large]",
+    "hz": 27.67,
+    "mean": 36.1397,
+    "min": 32.2311,
+    "max": 45.6198,
+    "p75": 37.6726,
+    "p99": 45.6198,
+    "samples": 50
+  }
+]

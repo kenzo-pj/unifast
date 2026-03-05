@@ -1,18 +1,25 @@
 {
   "name": "@unifast/shiki",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Shiki syntax highlighting plugin for unifast via HAST transforms",
   "files": [
     "dist"
   ],
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
     "lint:oxc": "oxlint -c ../../.oxlintrc.json .",
     "lint:oxc:fix": "oxlint -c ../../.oxlintrc.json --fix .",
     "typecheck": "tsc --noEmit",

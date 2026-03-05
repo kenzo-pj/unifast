@@ -1,4 +1,4 @@
-import type { TocEntry } from "./options.js";
+import type { TocEntry } from "./options";
 
 export type CompileResult = {
   output: string | object;

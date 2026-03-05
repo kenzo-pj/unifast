@@ -29,8 +29,7 @@
     "dev:website": "turbo dev --filter=@unifast/website",
     "build:website": "turbo build --filter=@unifast/website",
     "preview:website": "turbo preview --filter=@unifast/website",
-    "bench": "turbo bench --filter=@unifast/benchmark",
-    "deploy:website": "turbo build --filter=@unifast/website && turbo deploy --filter=@unifast/website"
+    "bench": "turbo bench --filter=@unifast/benchmark"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -46,6 +45,7 @@
     "knip": "^5.85.0",
     "oxfmt": "^0.36.0",
     "oxlint": "^0.15.15",
+    "tsdown": "^0.21.0",
     "turbo": "^2.8.13",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"

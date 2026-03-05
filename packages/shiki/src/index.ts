@@ -6,14 +6,14 @@ export type {
   HastRaw,
   HastComment,
   HastDoctype,
-} from "./types.js";
+} from "./types";
 
-export { hastToHtml } from "./hast-utils.js";
+export { hastToHtml } from "./hast-utils";
 
 export {
   createShikiTransformer,
   type ShikiTransformerOptions,
   type ShikiTransformer,
-} from "./transformer.js";
+} from "./transformer";
 
-export { createShikiPlugin } from "./plugin.js";
+export { createShikiPlugin } from "./plugin";

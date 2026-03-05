@@ -1,0 +1,32 @@
+[
+  {
+    "name": "unifast (tree-sitter) [simple]",
+    "hz": 2234.36,
+    "mean": 0.4476,
+    "min": 0.3393,
+    "max": 2.0359,
+    "p75": 0.4831,
+    "p99": 0.7775,
+    "samples": 500
+  },
+  {
+    "name": "unifast (tree-sitter) [readme]",
+    "hz": 403.13,
+    "mean": 2.4806,
+    "min": 2.0383,
+    "max": 3.8135,
+    "p75": 2.6539,
+    "p99": 3.7777,
+    "samples": 200
+  },
+  {
+    "name": "unifast (tree-sitter) [large]",
+    "hz": 118.61,
+    "mean": 8.431,
+    "min": 6.8774,
+    "max": 12.0872,
+    "p75": 9.0798,
+    "p99": 12.0872,
+    "samples": 50
+  }
+]

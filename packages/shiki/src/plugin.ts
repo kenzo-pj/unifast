@@ -1,6 +1,6 @@
 import type { UnifastPlugin } from "@unifast/core";
 
-import { createShikiTransformer, type ShikiTransformerOptions } from "./transformer.js";
+import { createShikiTransformer, type ShikiTransformerOptions } from "./transformer";
 
 export async function createShikiPlugin(options?: ShikiTransformerOptions): Promise<UnifastPlugin> {
   const transformer = await createShikiTransformer(options);

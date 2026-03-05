@@ -1,30 +1,25 @@
 {
   "name": "@unifast/vite",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Vite plugin for unifast — transform Markdown and MDX files into JS modules",
   "files": [
     "dist"
   ],
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
     "lint:oxc": "oxlint -c ../../.oxlintrc.json .",
     "lint:oxc:fix": "oxlint -c ../../.oxlintrc.json --fix .",
     "typecheck": "tsc --noEmit",
     "fmt:oxc": "oxfmt --write .",
     "fmt:oxc:check": "oxfmt --check .",
-    "dev": "tsc --watch"
+    "dev": "tsdown --watch"
   },
   "devDependencies": {
     "@unifast/node": "workspace:*",

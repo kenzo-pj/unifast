@@ -7,7 +7,6 @@
 .headerBar {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
   position: sticky;
   top: 0;
   z-index: 10;

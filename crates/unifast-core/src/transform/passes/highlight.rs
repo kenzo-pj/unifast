@@ -67,6 +67,7 @@ impl HighlightEngine for SyntectHighlighter {
     }
 }
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use tree_sitter_highlight::{
     Highlight, HighlightConfiguration, Highlighter as TsHighlighter, HtmlRenderer,
@@ -346,6 +347,10 @@ impl TreeSitterHighlighter {
     }
 }
 
+thread_local! {
+    static TS_HIGHLIGHTER: RefCell<TsHighlighter> = RefCell::new(TsHighlighter::new());
+}
+
 impl HighlightEngine for TreeSitterHighlighter {
     fn name(&self) -> &'static str {
         "tree-sitter"
@@ -353,27 +358,29 @@ impl HighlightEngine for TreeSitterHighlighter {
 
     fn highlight(&self, code: &str, language: &str) -> Option<String> {
         let config = find_ts_config(language)?;
-        let mut highlighter = TsHighlighter::new();
-        let events = highlighter
-            .highlight(config, code.as_bytes(), None, |injection_lang| {
-                find_ts_config(injection_lang)
-            })
-            .ok()?;
-        let mut renderer = HtmlRenderer::new();
-        renderer
-            .render(
-                events,
-                code.as_bytes(),
-                &|highlight: Highlight, output: &mut Vec<u8>| {
-                    let attr = TS_ATTRS
-                        .get(highlight.0)
-                        .copied()
-                        .unwrap_or("class=\"ts-unknown\"");
-                    output.extend_from_slice(attr.as_bytes());
-                },
-            )
-            .ok()?;
-        Some(String::from_utf8_lossy(&renderer.html).into_owned())
+        TS_HIGHLIGHTER.with(|cell| {
+            let mut highlighter = cell.borrow_mut();
+            let events = highlighter
+                .highlight(config, code.as_bytes(), None, |injection_lang| {
+                    find_ts_config(injection_lang)
+                })
+                .ok()?;
+            let mut renderer = HtmlRenderer::new();
+            renderer
+                .render(
+                    events,
+                    code.as_bytes(),
+                    &|highlight: Highlight, output: &mut Vec<u8>| {
+                        let attr = TS_ATTRS
+                            .get(highlight.0)
+                            .copied()
+                            .unwrap_or("class=\"ts-unknown\"");
+                        output.extend_from_slice(attr.as_bytes());
+                    },
+                )
+                .ok()?;
+            Some(String::from_utf8_lossy(&renderer.html).into_owned())
+        })
     }
 }
 

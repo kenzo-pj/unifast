@@ -1,18 +1,25 @@
 {
   "name": "@unifast/react",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Convert HAST to React elements for unifast",
   "files": [
     "dist"
   ],
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
     "lint:oxc": "oxlint -c ../../.oxlintrc.json .",
     "lint:oxc:fix": "oxlint -c ../../.oxlintrc.json --fix .",
     "typecheck": "tsc --noEmit",
@@ -21,20 +28,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@unifast/core": "workspace:*"
+    "@unifast/core": "workspace:*",
+    "@unifast/node": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
     "react": "^19.2.4",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
-  },
-  "peerDependencies": {
-    "@unifast/node": "workspace:*"
-  },
-  "peerDependenciesMeta": {
-    "@unifast/node": {
-      "optional": true
-    }
   }
 }

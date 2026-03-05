@@ -1,16 +1,30 @@
 {
   "name": "@unifast/highlight",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "highlight.js syntax highlighting plugin for unifast via HAST transforms",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "tsc",
-    "lint": "tsc --noEmit"
+    "build": "tsdown",
+    "lint:oxc": "oxlint -c ../../.oxlintrc.json .",
+    "lint:oxc:fix": "oxlint -c ../../.oxlintrc.json --fix .",
+    "typecheck": "tsc --noEmit",
+    "fmt:oxc": "oxfmt --write .",
+    "fmt:oxc:check": "oxfmt --check ."
   },
   "dependencies": {
     "@unifast/core": "workspace:*",

@@ -1,6 +1,6 @@
 import { createHighlighter, type BundledLanguage, type BundledTheme } from "shiki";
 
-import type { HastRoot, HastNode, HastElement } from "./types.js";
+import type { HastRoot, HastNode, HastElement } from "./types";
 
 export type ShikiTransformerOptions = {
   themes?: BundledTheme | BundledTheme[] | { light: BundledTheme; dark: BundledTheme };
