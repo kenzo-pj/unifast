@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import unifastPlugin from "@unifast/vite";
-import { compile, syntect, externalLinks, autolinkHeadings, githubAlert, emoji, smartypants, breaks, cjk } from "@unifast/node";
+import { compile, treeSitter, externalLinks, autolinkHeadings, githubAlert, emoji, smartypants, breaks, cjk, directive, definitionList, rubyAnnotation, wikiLink, sectionize } from "@unifast/node";
 import translationStatusPlugin from "./plugins/vite-plugin-translation-status";
 import notFoundPlugin from "./plugins/vite-plugin-not-found";
 import metaPlugin from "./plugins/vite-plugin-meta";
@@ -32,7 +32,7 @@ const compileOptions = {
   toc: { enabled: true, maxDepth: 3 },
   lineNumbers: { enabled: true },
   plugins: [
-    syntect(),
+    treeSitter(),
     externalLinks({ target: "_blank" }),
     autolinkHeadings({ behavior: "prepend" }),
     githubAlert(),
@@ -40,6 +40,18 @@ const compileOptions = {
     smartypants(),
     breaks(),
     cjk(),
+  ],
+};
+
+const exampleCompileOptions = {
+  ...compileOptions,
+  plugins: [
+    ...compileOptions.plugins,
+    directive(),
+    definitionList(),
+    rubyAnnotation(),
+    wikiLink(),
+    sectionize(),
   ],
 };
 
@@ -54,7 +66,7 @@ export default defineConfig(({ isSsrBuild }) => ({
     },
   },
   plugins: [
-    examplePlugin({ compile, compileOptions }),
+    examplePlugin({ compile, compileOptions: exampleCompileOptions }),
     pagefindDevPlugin(),
     metaPlugin(),
     notFoundPlugin(),
@@ -63,7 +75,7 @@ export default defineConfig(({ isSsrBuild }) => ({
       md: compileOptions,
       mdx: compileOptions,
     }),
-    packageInstallHighlightPlugin(),
+    packageInstallHighlightPlugin({ compile, plugins: [treeSitter()] }),
     translationStatusPlugin(),
     react({
       babel: {

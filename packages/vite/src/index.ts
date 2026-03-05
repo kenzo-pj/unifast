@@ -63,7 +63,7 @@ export default function unifastPlugin(options: UnifastPluginOptions = {}): Plugi
     transform(_code, id) {
       if (!/\.(md|mdx)$/.test(id)) return null;
 
-      const source = fs.readFileSync(id, "utf-8");
+      const source = fs.readFileSync(id, "utf8");
       const isMdx = id.endsWith(".mdx");
       const compile = getCompile();
 
@@ -101,12 +101,12 @@ function transformMd(source: string, compile: CompileFn | null, compileOpts: Com
       frontmatter = result.frontmatter ?? {};
       tocData = result.toc ?? [];
     } catch {
-      html = `<pre>${source.replace(/</g, "&lt;")}</pre>`;
+      html = `<pre>${source.replaceAll(/</g, "&lt;")}</pre>`;
     }
   } else {
     const parsed = extractFrontmatter(source);
     frontmatter = parsed.frontmatter;
-    html = `<div>${parsed.body.replace(/</g, "&lt;").replace(/\n/g, "<br>")}</div>`;
+    html = `<div>${parsed.body.replaceAll(/</g, "&lt;").replaceAll(/\n/g, "<br>")}</div>`;
   }
 
   return {
@@ -125,13 +125,16 @@ function highlightMdxCodeBlocks(
   compile: CompileFn,
   compileOpts: CompileOptions,
 ): string {
-  return jsOutput.replace(
+  return jsOutput.replaceAll(
     /_jsx\("pre", \{\s*children:\s*_jsx\("code", \{\s*children:\s*"((?:[^"\\]|\\.)*)"\s*,\s*className:\s*"language-(\w+)"\s*\}\)\s*\}\)/g,
     (match, rawCode, rawLang) => {
       try {
         const escapedCode = String(rawCode);
         const lang = String(rawLang);
-        const code = escapedCode.replace(/\\n/g, "\n").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+        const code = escapedCode
+          .replaceAll(/\\n/g, "\n")
+          .replaceAll(/\\"/g, '"')
+          .replaceAll(/\\\\/g, "\\");
 
         const result = compile(`\`\`\`${lang}\n${code}\n\`\`\`\n`, {
           ...compileOpts,

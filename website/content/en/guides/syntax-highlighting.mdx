@@ -3,6 +3,8 @@ title: "Syntax Highlighting"
 description: "Choose between syntect (Rust-native, build-time) and Shiki (JavaScript, runtime) syntax highlighting engines in unifast."
 ---
 
+import { PackageInstall } from "~/components/PackageInstall"
+
 unifast supports two syntax highlighting engines: **syntect** (Rust-native, build-time) and **Shiki** (JavaScript, runtime). Choose based on your needs.
 
 ### Comparison
@@ -37,9 +39,7 @@ syntect generates CSS class names prefixed with `sy-`. You need to provide CSS r
 
 Shiki uses VS Code's TextMate grammar engine for accurate highlighting with theme support.
 
-```sh
-npm install @unifast/shiki shiki
-```
+<PackageInstall package="@unifast/shiki shiki" />
 
 ```ts
 import { compile } from "@unifast/node";

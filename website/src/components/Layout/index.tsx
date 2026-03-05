@@ -69,7 +69,21 @@ export function Layout({ children }: LayoutProps) {
             <Sidebar hideLogo />
           </Suspense>
         </aside>
-        <main className={styles.main}>{children}</main>
+        <main className={styles.main}>
+          {children}
+          <p
+            style={{
+              maxWidth: "72rem",
+              margin: "0 auto",
+              padding: "2rem var(--gap-3xl) 1.5rem",
+              fontSize: "0.8125rem",
+              color: "var(--color-text-muted)",
+              width: "100%",
+            }}
+          >
+            Made with ❤️ by Kenzo Wada
+          </p>
+        </main>
       </div>
     </div>
   );

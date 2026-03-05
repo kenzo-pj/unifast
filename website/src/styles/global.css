@@ -152,3 +152,96 @@ html[data-theme="dark"] .sy-variable.sy-function {
 html[data-theme="dark"] .sy-entity.sy-name {
   color: #b392f0;
 }
+
+/* tree-sitter highlight (ts- prefix) */
+.ts-keyword {
+  color: #d73a49;
+}
+.ts-string,
+.ts-string-special {
+  color: #032f62;
+}
+.ts-comment {
+  color: #6a737d;
+  font-style: italic;
+}
+.ts-number,
+.ts-constant,
+.ts-constant-builtin {
+  color: #005cc5;
+}
+.ts-function,
+.ts-function-builtin {
+  color: #6f42c1;
+}
+.ts-type,
+.ts-type-builtin,
+.ts-constructor {
+  color: #6f42c1;
+}
+.ts-tag {
+  color: #22863a;
+}
+.ts-attribute {
+  color: #6f42c1;
+}
+.ts-property {
+  color: #005cc5;
+}
+.ts-variable-builtin {
+  color: #e36209;
+}
+.ts-operator {
+  color: #d73a49;
+}
+.ts-punctuation,
+.ts-punctuation-bracket,
+.ts-punctuation-delimiter,
+.ts-punctuation-special {
+  color: inherit;
+}
+.ts-variable,
+.ts-variable-parameter,
+.ts-embedded {
+  color: inherit;
+}
+
+html[data-theme="dark"] .ts-keyword {
+  color: #f97583;
+}
+html[data-theme="dark"] .ts-string,
+html[data-theme="dark"] .ts-string-special {
+  color: #9ecbff;
+}
+html[data-theme="dark"] .ts-comment {
+  color: #6a737d;
+}
+html[data-theme="dark"] .ts-number,
+html[data-theme="dark"] .ts-constant,
+html[data-theme="dark"] .ts-constant-builtin {
+  color: #79b8ff;
+}
+html[data-theme="dark"] .ts-function,
+html[data-theme="dark"] .ts-function-builtin {
+  color: #b392f0;
+}
+html[data-theme="dark"] .ts-type,
+html[data-theme="dark"] .ts-type-builtin,
+html[data-theme="dark"] .ts-constructor {
+  color: #b392f0;
+}
+html[data-theme="dark"] .ts-tag {
+  color: #85e89d;
+}
+html[data-theme="dark"] .ts-attribute {
+  color: #b392f0;
+}
+html[data-theme="dark"] .ts-property {
+  color: #79b8ff;
+}
+html[data-theme="dark"] .ts-variable-builtin {
+  color: #ffab70;
+}
+html[data-theme="dark"] .ts-operator {
+  color: #f97583;
+}

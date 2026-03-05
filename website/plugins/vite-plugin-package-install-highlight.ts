@@ -7,46 +7,47 @@ const MANAGERS = [
   { id: "bun", prefix: "bun add" },
 ];
 
-export default function packageInstallHighlightPlugin(): Plugin {
-  let compileFn: ((input: string, opts?: object) => { output: string }) | null = null;
+interface Options {
+  compile: (input: string, opts?: object) => { output: string | object };
+  plugins?: unknown[];
+}
 
+export default function packageInstallHighlightPlugin({ compile, plugins }: Options): Plugin {
   return {
     name: "vite-plugin-package-install-highlight",
-
-    configResolved() {
-      try {
-        const { createRequire } = require("node:module");
-        const req = createRequire(import.meta.url);
-        compileFn = req("@unifast/node").compile;
-      } catch {}
-    },
+    enforce: "post" as const,
 
     transform(code, id) {
-      if (!/\.mdx$/.test(id) || !compileFn) return null;
+      if (!/\.(?:mdx|tsx?)$/.test(id)) return null;
 
-      const pattern = /_jsx\(PackageInstall,\s*\{\s*package:\s*"([^"]+)"\s*\}\)/g;
+      // Match the props object { package: "..." } after PackageInstall
+      const pattern = /(\{\s*package:\s*)"([^"]+)"(\s*\})/g;
+      // Only match if preceded by PackageInstall
       const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
       let m: RegExpExecArray | null;
       while ((m = pattern.exec(code)) !== null) {
-        const pkg = m[1];
+        // Check that this props object belongs to a PackageInstall call
+        const before = code.slice(Math.max(0, m.index - 100), m.index);
+        if (!before.includes("PackageInstall")) continue;
+
+        const pkg = m[2];
         const highlighted: Record<string, string> = {};
 
         for (const mgr of MANAGERS) {
           const cmd = `${mgr.prefix} ${pkg}`;
           const md = "```sh\n" + cmd + "\n```";
           try {
-            const result = compileFn(md, {
-              highlight: { enabled: true, engine: "syntect" },
-            });
-            const inner = result.output.match(/<code[^>]*>([\s\S]*?)<\/code>/);
+            const result = compile(md, { plugins });
+            const output = typeof result.output === "string" ? result.output : "";
+            const inner = output.match(/<code[^>]*>([\s\S]*?)<\/code>/);
             highlighted[mgr.id] = inner ? inner[1] : cmd;
           } catch {
             highlighted[mgr.id] = cmd;
           }
         }
 
-        const replacement = `_jsx(PackageInstall, { package: "${pkg}", highlighted: ${JSON.stringify(highlighted)} })`;
+        const replacement = `${m[1]}"${pkg}", highlighted: ${JSON.stringify(highlighted)}${m[3]}`;
         replacements.push({ start: m.index, end: m.index + m[0].length, replacement });
       }
 

@@ -1,0 +1,40 @@
+.footer {
+  border-top: 1px solid var(--color-border);
+  padding: 2rem 1.5rem;
+}
+
+.inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.links {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.links a:hover {
+  color: var(--color-text);
+}
+
+.credit {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.heart {
+  color: oklch(0.637 0.237 25);
+}
+
+@media (max-width: 768px) {
+  .inner {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+}

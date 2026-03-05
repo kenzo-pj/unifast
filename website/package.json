@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "cmk --watch & vite",
-    "build": "cmk && vite build && vite build --ssr && node --import tsx scripts/prerender.ts && npx pagefind --site dist/client",
+    "fetch-sponsors": "node --import tsx scripts/fetch-sponsors.ts",
+    "build": "cmk && node --import tsx scripts/fetch-sponsors.ts && vite build && vite build --ssr && node --import tsx scripts/prerender.ts && npx pagefind --site dist/client",
     "lint:oxc": "oxlint -c ../.oxlintrc.json src",
     "lint:oxc:fix": "oxlint -c ../.oxlintrc.json --fix src",
     "typecheck": "cmk && tsc --noEmit",

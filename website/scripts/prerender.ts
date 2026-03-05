@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import { minify } from "html-minifier-terser";
-import { buildSitemap, buildLlmsTxt, buildLlmsFullTxt, collectAllEntries, buildHeadMeta } from "../plugins/vite-plugin-meta";
+import { buildSitemap, buildSitemapXsl, buildLlmsTxt, buildLlmsFullTxt, collectAllEntries, buildHeadMeta } from "../plugins/vite-plugin-meta";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -150,7 +150,8 @@ async function prerender() {
   console.log(`  404 -> ${path.relative(root, notFoundPath)}`);
 
   fs.writeFileSync(path.resolve(distClient, "sitemap.xml"), buildSitemap(contentDir));
-  console.log("  Generated sitemap.xml");
+  fs.writeFileSync(path.resolve(distClient, "sitemap.xsl"), buildSitemapXsl());
+  console.log("  Generated sitemap.xml + sitemap.xsl");
   fs.writeFileSync(path.resolve(distClient, "llms.txt"), buildLlmsTxt(contentDir));
   console.log("  Generated llms.txt");
   fs.writeFileSync(path.resolve(distClient, "llms-full.txt"), buildLlmsFullTxt(contentDir));

@@ -74,6 +74,68 @@ function collectRoutes(dir: string, prefix = ""): string[] {
   return routes;
 }
 
+export function buildSitemapXsl(): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="2.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:sitemap="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <xsl:output method="html" encoding="UTF-8" indent="yes"/>
+  <xsl:template match="/">
+    <html lang="en">
+      <head>
+        <title>Sitemap — unifast</title>
+        <style>
+          *{margin:0;padding:0;box-sizing:border-box}
+          body{font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#fff;padding:2rem}
+          h1{font-size:1.5rem;font-weight:600;margin-bottom:.25rem}
+          p.desc{color:#666;font-size:.875rem;margin-bottom:1.5rem}
+          table{width:100%;border-collapse:collapse;font-size:.875rem}
+          th{text-align:left;padding:.5rem .75rem;border-bottom:2px solid #e5e5e5;color:#666;font-weight:500}
+          td{padding:.5rem .75rem;border-bottom:1px solid #f0f0f0}
+          tr:hover td{background:#fafafa}
+          a{color:#2563eb;text-decoration:none}
+          a:hover{text-decoration:underline}
+          .lang{display:inline-block;padding:.125rem .375rem;border-radius:.25rem;background:#f0f0f0;color:#666;font-size:.75rem;margin-right:.25rem}
+          @media(prefers-color-scheme:dark){
+            body{background:#171717;color:#e5e5e5}
+            th{border-bottom-color:#333;color:#999}
+            td{border-bottom-color:#262626}
+            tr:hover td{background:#1e1e1e}
+            a{color:#60a5fa}
+            .lang{background:#262626;color:#999}
+            p.desc{color:#999}
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Sitemap</h1>
+        <p class="desc"><xsl:value-of select="count(sitemap:urlset/sitemap:url)"/> URLs</p>
+        <table>
+          <thead>
+            <tr><th>URL</th><th>Languages</th><th>Last Modified</th></tr>
+          </thead>
+          <tbody>
+            <xsl:for-each select="sitemap:urlset/sitemap:url">
+              <tr>
+                <td><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc"/></a></td>
+                <td>
+                  <xsl:for-each select="xhtml:link[@rel='alternate' and @hreflang!='x-default']">
+                    <span class="lang"><xsl:value-of select="@hreflang"/></span>
+                  </xsl:for-each>
+                </td>
+                <td><xsl:value-of select="sitemap:lastmod"/></td>
+              </tr>
+            </xsl:for-each>
+          </tbody>
+        </table>
+      </body>
+    </html>
+  </xsl:template>
+</xsl:stylesheet>
+`;
+}
+
 export function buildSitemap(contentDir: string): string {
   const today = new Date().toISOString().split("T")[0];
   const enRoutes = collectRoutes(path.resolve(contentDir, "en"));
@@ -104,6 +166,7 @@ export function buildSitemap(contentDir: string): string {
 
   return [
     `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<?xml-stylesheet type="text/xsl" href="sitemap.xsl"?>`,
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
     urls.join("\n"),
     `</urlset>`,
@@ -296,6 +359,7 @@ export default function metaPlugin() {
     configureServer(server: { middlewares: { use: (fn: Function) => void } }) {
       const handlers: Record<string, () => { content: string; type: string }> = {
         "/sitemap.xml": () => ({ content: buildSitemap(contentDir), type: "application/xml" }),
+        "/sitemap.xsl": () => ({ content: buildSitemapXsl(), type: "text/xsl" }),
         "/llms.txt": () => ({ content: buildLlmsTxt(contentDir), type: "text/plain" }),
         "/llms-full.txt": () => ({ content: buildLlmsFullTxt(contentDir), type: "text/plain" }),
       };

@@ -59,7 +59,7 @@ function parseStyleString(style: string): Record<string, string> {
     if (colonIndex === -1) continue;
     const prop = trimmed.slice(0, colonIndex).trim();
     const value = trimmed.slice(colonIndex + 1).trim();
-    const camelProp = prop.replace(/-([a-z])/g, (_, c) => String(c).toUpperCase());
+    const camelProp = prop.replaceAll(/-([a-z])/g, (_, c) => String(c).toUpperCase());
     result[camelProp] = value;
   }
   return result;

@@ -7,7 +7,7 @@ import { createRouter } from "./router";
 
 const router = createRouter();
 
-const root = document.getElementById("root")!;
+const root = document.querySelector("#root")!;
 const app = (
   <StrictMode>
     <RouterProvider router={router} />

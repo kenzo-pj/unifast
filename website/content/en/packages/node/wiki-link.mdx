@@ -3,6 +3,9 @@ title: "wikiLink()"
 description: "Support wiki-style `[[links]]` with optional aliases."
 ---
 
+import { Example } from "~/components/Example"
+import example from "./wiki-link-example.md?example"
+
 ```ts
 import { wikiLink } from "@unifast/node";
 ```
@@ -28,6 +31,10 @@ function wikiLink(options?: WikiLinkPluginOptions): UnifastPlugin
 ### Returns
 
 `UnifastPlugin`
+
+## Examples
+
+<Example data={example} />
 
 ## Usage
 

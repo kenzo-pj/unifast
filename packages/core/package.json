@@ -23,8 +23,8 @@
     "lint:oxc": "oxlint -c ../../.oxlintrc.json .",
     "lint:oxc:fix": "oxlint -c ../../.oxlintrc.json --fix .",
     "typecheck": "tsc --noEmit",
-    "fmt:oxc": "oxfmt --write .",
-    "fmt:oxc:check": "oxfmt --check .",
+    "fmt:oxc": "oxfmt --write src",
+    "fmt:oxc:check": "oxfmt --check src",
     "test": "vitest run"
   },
   "devDependencies": {

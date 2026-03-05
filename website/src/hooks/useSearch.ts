@@ -47,12 +47,14 @@ export function useSearch() {
 
       const response = await pf.search(term);
       const items: SearchResult[] = [];
+      const base = import.meta.env.BASE_URL.replace(/\/+$/, "");
 
       for (const result of response.results.slice(0, 8)) {
         const data = await result.data();
+        const url = base && data.url.startsWith(base) ? data.url.slice(base.length) : data.url;
         items.push({
-          url: data.url,
-          title: data.meta?.title || data.url,
+          url,
+          title: data.meta?.title || url,
           excerpt: data.excerpt,
         });
       }

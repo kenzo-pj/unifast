@@ -140,16 +140,33 @@ fn init_ts_configs() -> HashMap<&'static str, HighlightConfiguration> {
         };
     }
 
-    register_lang!(
-        "typescript",
-        tree_sitter_typescript::LANGUAGE_TYPESCRIPT,
-        tree_sitter_typescript::HIGHLIGHTS_QUERY
-    );
-    register_lang!(
-        "tsx",
-        tree_sitter_typescript::LANGUAGE_TSX,
-        tree_sitter_typescript::HIGHLIGHTS_QUERY
-    );
+    {
+        let combined_ts_query = format!(
+            "{}\n{}",
+            include_str!("../../../queries/javascript.scm"),
+            tree_sitter_typescript::HIGHLIGHTS_QUERY
+        );
+        if let Ok(mut config) = HighlightConfiguration::new(
+            tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+            "typescript",
+            &combined_ts_query,
+            "",
+            "",
+        ) {
+            config.configure(TS_HIGHLIGHT_NAMES);
+            map.insert("typescript", config);
+        }
+        if let Ok(mut config) = HighlightConfiguration::new(
+            tree_sitter_typescript::LANGUAGE_TSX.into(),
+            "tsx",
+            &combined_ts_query,
+            "",
+            "",
+        ) {
+            config.configure(TS_HIGHLIGHT_NAMES);
+            map.insert("tsx", config);
+        }
+    }
     register_lang!(
         "html",
         tree_sitter_html::LANGUAGE,

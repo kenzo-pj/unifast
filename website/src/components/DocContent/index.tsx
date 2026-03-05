@@ -73,7 +73,7 @@ export function DocContent({
       const wrapper = document.createElement("div");
       wrapper.className = styles.tableWrapper;
       table.parentNode!.insertBefore(wrapper, table);
-      wrapper.appendChild(table);
+      wrapper.append(table);
     });
 
     const pres = container.querySelectorAll("pre");
@@ -85,9 +85,9 @@ export function DocContent({
       const outer = document.createElement("div");
       outer.className = styles.codeBlock;
       pre.parentNode!.insertBefore(outer, pre);
-      outer.appendChild(pre);
+      outer.append(pre);
       const btnWrapper = document.createElement("span");
-      outer.appendChild(btnWrapper);
+      outer.append(btnWrapper);
       const root = createRoot(btnWrapper);
       root.render(<CopyButton text={text} />);
       roots.push(root);

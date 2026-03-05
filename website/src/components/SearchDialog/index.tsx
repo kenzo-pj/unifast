@@ -89,7 +89,6 @@ export function SearchDialog() {
               value={query}
               onChange={(e) => search(e.target.value)}
               onKeyDown={handleInputKeyDown}
-              autoFocus
             />
           </div>
 
