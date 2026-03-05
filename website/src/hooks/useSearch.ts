@@ -11,8 +11,7 @@ let pagefind: any = null;
 async function loadPagefind() {
   if (pagefind) return pagefind;
   try {
-    // @ts-expect-error pagefind is generated at build time and served from /pagefind/
-    pagefind = await import(/* @vite-ignore */ "/pagefind/pagefind.js");
+    pagefind = await import(/* @vite-ignore */ `${import.meta.env.BASE_URL}pagefind/pagefind.js`);
     await pagefind.init();
     return pagefind;
   } catch {

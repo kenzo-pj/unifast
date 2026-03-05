@@ -43,7 +43,10 @@ const compileOptions = {
   ],
 };
 
+const basePath = process.env.CI ? "/unifast/" : "/";
+
 export default defineConfig(({ isSsrBuild }) => ({
+  base: basePath,
   css: {
     transformer: "lightningcss",
     lightningcss: {

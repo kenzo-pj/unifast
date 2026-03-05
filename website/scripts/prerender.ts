@@ -11,6 +11,7 @@ const contentDir = path.resolve(root, "content");
 
 const LOCALES = ["en", "ja"] as const;
 const DEFAULT_LOCALE = "en";
+const BASE_PATH = process.env.CI ? "/unifast" : "";
 
 async function minifyHtml(html: string): Promise<string> {
   return minify(html, {
@@ -29,7 +30,7 @@ function injectModulePreloads(html: string): string {
 
   const vendorChunks = fs.readdirSync(assetDir)
     .filter((f) => f.startsWith("vendor-") && f.endsWith(".js"))
-    .map((f) => `/assets/${f}`);
+    .map((f) => `${BASE_PATH}/assets/${f}`);
 
   if (vendorChunks.length === 0) return html;
 
@@ -77,6 +78,7 @@ async function prerender() {
   );
 
   template = injectModulePreloads(template);
+  template = template.replace('href="/sitemap.xml"', `href="${BASE_PATH}/sitemap.xml"`);
 
   const allRoutes: string[] = [];
 
@@ -98,7 +100,7 @@ async function prerender() {
   console.log(`Prerendering ${allRoutes.length} routes...`);
 
   for (const route of allRoutes) {
-    const result = await render(route);
+    const result = await render(`${BASE_PATH}${route}`);
     const lang = route.startsWith("/ja") ? "ja" : "en";
     const entry = contentEntries.get(route);
     const headMeta = buildHeadMeta({
@@ -127,7 +129,7 @@ async function prerender() {
     console.log(`  ${route} -> ${path.relative(root, filePath)}`);
   }
 
-  const notFoundResult = await render("/this-page-does-not-exist");
+  const notFoundResult = await render(`${BASE_PATH}/this-page-does-not-exist`);
   const notFoundMeta = buildHeadMeta({
     route: "/404",
     locale: "en",
