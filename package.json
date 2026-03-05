@@ -29,7 +29,8 @@
     "dev:website": "turbo dev --filter=@unifast/website",
     "build:website": "turbo build --filter=@unifast/website",
     "preview:website": "turbo preview --filter=@unifast/website",
-    "bench": "turbo bench --filter=@unifast/benchmark"
+    "bench": "turbo bench --filter=@unifast/benchmark",
+    "deploy:website": "turbo build --filter=@unifast/website && turbo deploy --filter=@unifast/website"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

@@ -84,5 +84,5 @@ Each line is wrapped in a `<span>` with a `data-line` attribute for CSS-based st
 
 ### See Also
 
-- [syntect()](/docs/packages/core/syntect) - syntect API reference
+- [syntect()](/docs/packages/node/syntect) - syntect API reference
 - [createShikiPlugin()](/docs/packages/shiki/create-shiki-plugin) - Shiki API reference

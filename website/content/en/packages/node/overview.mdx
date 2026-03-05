@@ -36,11 +36,26 @@ When plugins are provided, `compile()` executes the following pipeline:
 5. **HAST transforms** - Applies each plugin's `hastTransform` in order
 6. **Convert output** - If the user didn't request HAST output, converts back to HTML via `hastToHtml`
 
+## Built-in Plugins
+
+The following plugin factory functions are included — no separate install needed:
+
+`gfm`, `frontmatter`, `sanitize`, `syntect`, `treeSitter`, `toc`, `externalLinks`, `autolinkHeadings`, `smartypants`, `wikiLink`, `codeImport`, `emoji`, `breaks`, `math`, `githubAlert`, `sectionize`, `directive`, `definitionList`, `rubyAnnotation`, `cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
 ## Exports Summary
 
 | Export | Kind | Description |
 |--------|------|-------------|
 | `compile` | function | Compile Markdown/MDX to HTML or other formats |
+| `gfm`, `frontmatter`, ... | function | Built-in plugin factories (20 total) |
 | `hastToHtml` | function | HAST-to-HTML serializer (re-exported from `@unifast/core`) |
 | `CompileOptions` | type | Compilation configuration |
 | `CompileResult` | type | Compilation result |

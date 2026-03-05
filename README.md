@@ -72,16 +72,18 @@ content.toc;          // Table of contents
 
 | Package | Description |
 |---------|-------------|
-| [`@unifast/node`](packages/node) | Node.js binding via N-API |
-| [`@unifast/core`](packages/core) | TypeScript type definitions |
+| [`@unifast/node`](packages/node) | Node.js binding, compiler, and built-in plugins |
+| [`@unifast/core`](packages/core) | Shared TypeScript types and HAST utilities (dependency of `@unifast/node`) |
 
-### Plugins
+### Built-in Plugins
 
-The following plugins are **included in `@unifast/core`** and re-exported from `@unifast/node` — no separate install needed:
+The following plugins are **included in `@unifast/node`** — no separate install needed:
 
 `gfm`, `frontmatter`, `sanitize`, `syntect`, `treeSitter`, `toc`, `externalLinks`, `autolinkHeadings`, `smartypants`, `wikiLink`, `codeImport`, `emoji`, `breaks`, `math`, `githubAlert`, `sectionize`, `directive`, `definitionList`, `rubyAnnotation`, `cjk`
 
-The following plugins remain **separate packages** (they have external npm dependencies):
+### Additional Packages
+
+The following packages have external npm dependencies and require separate installation:
 
 | Package | Description |
 |---------|-------------|

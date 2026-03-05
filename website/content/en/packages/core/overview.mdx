@@ -1,15 +1,15 @@
 ---
 title: "@unifast/core"
-description: "TypeScript type definitions, HAST utilities, and error classes for the unifast ecosystem"
+description: "TypeScript type definitions, HAST utilities, and error classes shared across unifast runtime packages"
 ---
 
 import { PackageInstall } from "~/components/PackageInstall"
 
 ## Overview
 
-`@unifast/core` is the foundational package of the unifast ecosystem. It provides TypeScript type definitions for compile options, results, HAST (HTML Abstract Syntax Tree) nodes, the plugin interface, and error classes. All other unifast packages depend on this package for shared types.
+`@unifast/core` provides shared TypeScript type definitions for compile options, results, HAST (HTML Abstract Syntax Tree) nodes, the plugin interface, and error classes. It is a dependency of runtime packages like `@unifast/node` — you typically do **not** need to install it directly.
 
-This package does **not** include the compiler itself. For compilation, use [`@unifast/node`](/docs/packages/node/overview).
+For the compiler and built-in plugins, use [`@unifast/node`](/docs/packages/node/overview).
 
 ## Installation
 
