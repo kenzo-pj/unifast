@@ -58,9 +58,9 @@ async function collectRoutes(dir: string, prefix = ""): Promise<string[]> {
       if (slug === "index" && prefix === "") {
         routes.push("/");
       } else if (slug === "index") {
-        routes.push(`/docs${prefix}`);
+        routes.push(`/docs${prefix}/`);
       } else {
-        routes.push(`/docs${prefix}/${slug}`);
+        routes.push(`/docs${prefix}/${slug}/`);
       }
     }
   }

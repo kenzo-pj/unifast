@@ -129,12 +129,24 @@ function highlightMdxCodeBlocks(
           outputKind: "html",
         });
 
-        return `_jsx("div", { dangerouslySetInnerHTML: { __html: ${JSON.stringify(result.output)} } })`;
+        const innerHtml = result.output.replace(/^<pre[^>]*>/, "").replace(/<\/pre>\s*$/, "");
+        return `_jsx("pre", { __rawCode: ${JSON.stringify(code)}, dangerouslySetInnerHTML: { __html: ${JSON.stringify(innerHtml)} } })`;
       } catch {
         return match;
       }
     },
   );
+}
+
+function injectComponentsSupport(jsOutput: string): string {
+  const replaced = jsOutput.replace(
+    /function MDXContent\(props\) \{/,
+    "function MDXContent({ components: _components = {}, ...props }) {\nconst _c = (t) => _components[t] || t;",
+  );
+  if (replaced === jsOutput) return jsOutput;
+  return replaced
+    .replaceAll(/_jsx\("([a-z][a-z0-9]*)"/g, '_jsx(_c("$1")')
+    .replaceAll(/_jsxs\("([a-z][a-z0-9]*)"/g, '_jsxs(_c("$1")');
 }
 
 function transformMdx(source: string, compile: CompileFn, compileOpts: CompileOptions) {
@@ -145,11 +157,12 @@ function transformMdx(source: string, compile: CompileFn, compileOpts: CompileOp
   });
 
   const highlighted = highlightMdxCodeBlocks(result.output, compile, compileOpts);
+  const withComponents = injectComponentsSupport(highlighted);
 
   return {
     code: [
       `import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";`,
-      highlighted,
+      withComponents,
       `export const frontmatter = ${JSON.stringify(result.frontmatter ?? {})};`,
       `export const toc = ${JSON.stringify(result.toc ?? [])};`,
     ].join("\n"),

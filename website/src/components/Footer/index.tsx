@@ -11,7 +11,7 @@ export function Footer() {
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.links}>
-          <Link to={localePath("/docs/introduction/what-is-unifast", locale)}>Docs</Link>
+          <Link to={localePath("/docs/introduction/what-is-unifast/", locale)}>Docs</Link>
           <a href="https://github.com/kenzo-pj/unifast" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>

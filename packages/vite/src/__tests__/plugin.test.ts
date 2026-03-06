@@ -320,4 +320,88 @@ describe("unifastPlugin (with compiler)", () => {
       }),
     );
   });
+
+  it(".mdx transform injects components prop support", async () => {
+    vi.spyOn(fs, "readFileSync").mockReturnValue("# Hello");
+    mockCompile.mockReturnValue({
+      output: [
+        "function MDXContent(props) {",
+        '  return _jsx("h1", { children: "Hello" });',
+        "}",
+        "export default MDXContent;",
+      ].join("\n"),
+      frontmatter: {},
+      toc: [],
+    });
+
+    const plugin = await getPlugin();
+    const transform = plugin.transform as Function;
+    const result = transform.call({}, "", "test.mdx");
+
+    expect(result.code).toContain("{ components: _components = {}");
+    expect(result.code).toContain("const _c = (t) => _components[t] || t;");
+    expect(result.code).toContain('_jsx(_c("h1")');
+    expect(result.code).not.toContain('_jsx("h1"');
+  });
+
+  it(".mdx transform does not replace capitalized component references", async () => {
+    vi.spyOn(fs, "readFileSync").mockReturnValue("# Hi");
+    mockCompile.mockReturnValue({
+      output: [
+        'import { Alert } from "~/components/Alert";',
+        "function MDXContent(props) {",
+        "  return _jsxs(_Fragment, { children: [",
+        '    _jsx(Alert, { children: "warn" }),',
+        '    _jsx("p", { children: "text" })',
+        "  ] });",
+        "}",
+        "export default MDXContent;",
+      ].join("\n"),
+      frontmatter: {},
+      toc: [],
+    });
+
+    const plugin = await getPlugin();
+    const transform = plugin.transform as Function;
+    const result = transform.call({}, "", "test.mdx");
+
+    expect(result.code).toContain("_jsx(Alert,");
+    expect(result.code).toContain('_jsx(_c("p")');
+  });
+
+  it(".mdx transform preserves pre tag for highlighted code blocks with __rawCode", async () => {
+    vi.spyOn(fs, "readFileSync").mockReturnValue("```js\nconst x = 1;\n```");
+    const highlightedHtml = '<pre><code class="language-js"><span>const</span> x = 1;</code></pre>';
+    mockCompile
+      .mockReturnValueOnce({
+        output: [
+          "function MDXContent(props) {",
+          '  return _jsx("pre", { children: _jsx("code", { children: "const x = 1;", className: "language-js" }) });',
+          "}",
+          "export default MDXContent;",
+        ].join("\n"),
+        frontmatter: {},
+        toc: [],
+      })
+      .mockReturnValueOnce({
+        output: highlightedHtml,
+        frontmatter: {},
+        toc: [],
+      });
+
+    const plugin = await getPlugin();
+    const transform = plugin.transform as Function;
+    const result = transform.call({}, "", "code.mdx");
+
+    // Should use "pre" tag (resolved via _c), not "div"
+    expect(result.code).toContain('_jsx(_c("pre")');
+    expect(result.code).not.toContain('_jsx(_c("div")');
+    // Should include __rawCode prop
+    expect(result.code).toContain("__rawCode:");
+    expect(result.code).toContain("const x = 1;");
+    // Should have dangerouslySetInnerHTML with outer <pre> stripped
+    expect(result.code).toContain("dangerouslySetInnerHTML");
+    // Inner HTML should NOT contain the full <pre>-wrapped output
+    expect(result.code).not.toContain(JSON.stringify(highlightedHtml));
+  });
 });

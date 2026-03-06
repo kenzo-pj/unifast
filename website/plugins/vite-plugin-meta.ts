@@ -46,8 +46,8 @@ function collectContentEntries(dir: string, prefix = ""): ContentEntry[] {
       const slug = entry.name.replace(/\.(md|mdx)$/, "");
       const route =
         slug === "index" && prefix === "" ? "/" :
-        slug === "index" ? `/docs${prefix}` :
-        `/docs${prefix}/${slug}`;
+        slug === "index" ? `/docs${prefix}/` :
+        `/docs${prefix}/${slug}/`;
       const raw = fs.readFileSync(path.join(dir, entry.name), "utf-8");
       const { title, description, body } = parseFrontmatter(raw);
       const cleanBody = entry.name.endsWith(".mdx") ? stripMdxSyntax(body) : body;
@@ -67,8 +67,8 @@ function collectRoutes(dir: string, prefix = ""): string[] {
     } else if (entry.name.endsWith(".md") || entry.name.endsWith(".mdx")) {
       const slug = entry.name.replace(/\.(md|mdx)$/, "");
       if (slug === "index" && prefix === "") routes.push("/");
-      else if (slug === "index") routes.push(`/docs${prefix}`);
-      else routes.push(`/docs${prefix}/${slug}`);
+      else if (slug === "index") routes.push(`/docs${prefix}/`);
+      else routes.push(`/docs${prefix}/${slug}/`);
     }
   }
   return routes;
@@ -143,8 +143,8 @@ export function buildSitemap(contentDir: string): string {
 
   const urls: string[] = [];
   for (const route of enRoutes) {
-    const enUrl = `${SITE_URL}${route === "/" ? "" : route}`;
-    const jaUrl = `${SITE_URL}/ja${route === "/" ? "" : route}`;
+    const enUrl = `${SITE_URL}${route}`;
+    const jaUrl = `${SITE_URL}/ja${route}`;
     const hasJa = jaRoutes.has(route);
 
     let entry = `  <url>\n    <loc>${enUrl}</loc>\n    <lastmod>${today}</lastmod>`;
@@ -181,7 +181,7 @@ export function buildLlmsTxt(contentDir: string): string {
 
   let out = `# unifast\n\n> ${firstLine}\n\n## Docs\n\n`;
   for (const entry of entries) {
-    out += `- [${entry.title}](${SITE_URL}${entry.route === "/" ? "" : entry.route})\n`;
+    out += `- [${entry.title}](${SITE_URL}${entry.route})\n`;
   }
   return out;
 }
@@ -217,15 +217,15 @@ function escapeHtml(str: string): string {
 }
 
 function buildBreadcrumb(route: string, title: string): string {
-  const items: { name: string; url: string }[] = [{ name: "Home", url: SITE_URL }];
+  const items: { name: string; url: string }[] = [{ name: "Home", url: `${SITE_URL}/` }];
   if (route === "/") return "";
 
-  const parts = route.replace(/^\/docs\//, "").split("/");
+  const parts = route.replace(/^\/docs\//, "").replace(/\/$/, "").split("/");
   let href = "/docs";
   for (let i = 0; i < parts.length - 1; i++) {
     href += `/${parts[i]}`;
     const name = parts[i].replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    items.push({ name, url: `${SITE_URL}${href}` });
+    items.push({ name, url: `${SITE_URL}${href}/` });
   }
   items.push({ name: title, url: `${SITE_URL}${route}` });
 
@@ -253,11 +253,11 @@ export function buildHeadMeta(meta: PageMeta): string {
   const isHome = /^\/(ja\/?)?$/.test(meta.route);
   const pageTitle = isHome ? `${SITE_NAME} - ${SITE_DESCRIPTION}` : `${meta.title} | ${SITE_NAME}`;
   const desc = escapeHtml(meta.description || SITE_DESCRIPTION);
-  const canonicalUrl = `${SITE_URL}${meta.route === "/" ? "" : meta.route}`;
+  const canonicalUrl = `${SITE_URL}${meta.route}`;
   const locale = meta.locale;
   const altLocale = locale === "en" ? "ja" : "en";
   const altRoute = locale === "en"
-    ? (meta.route === "/" ? "/ja" : `/ja${meta.route}`)
+    ? (meta.route === "/" ? "/ja/" : `/ja${meta.route}`)
     : meta.route.replace(/^\/ja/, "") || "/";
   const ogLocale = locale === "en" ? "en_US" : "ja_JP";
   const ogType = isHome ? "website" : "article";
@@ -270,8 +270,8 @@ export function buildHeadMeta(meta: PageMeta): string {
     `<meta name="description" content="${desc}" />`,
     `<link rel="canonical" href="${canonicalUrl}" />`,
     `<link rel="alternate" hreflang="${locale}" href="${canonicalUrl}" />`,
-    `<link rel="alternate" hreflang="${altLocale}" href="${SITE_URL}${altRoute === "/" ? "" : altRoute}" />`,
-    `<link rel="alternate" hreflang="x-default" href="${SITE_URL}${locale === "en" ? (meta.route === "/" ? "" : meta.route) : altRoute === "/" ? "" : altRoute}" />`,
+    `<link rel="alternate" hreflang="${altLocale}" href="${SITE_URL}${altRoute}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${SITE_URL}${locale === "en" ? meta.route : altRoute}" />`,
     `<meta property="og:title" content="${escapeHtml(pageTitle)}" />`,
     `<meta property="og:description" content="${desc}" />`,
     `<meta property="og:url" content="${canonicalUrl}" />`,

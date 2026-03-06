@@ -9,6 +9,7 @@ import { TableOfContents } from "~/components/TableOfContents";
 import { useTranslation, DEFAULT_LOCALE } from "~/i18n";
 
 import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
+import { mdxComponents } from "./mdxComponents";
 
 import styles from "./DocContent.module.css";
 
@@ -19,7 +20,7 @@ interface PageLink {
 
 interface DocContentProps {
   html?: string;
-  MdxContent?: ComponentType;
+  MdxContent?: ComponentType<{ components?: Record<string, ComponentType> }>;
   frontmatter: Record<string, unknown>;
   toc: Array<{ depth: number; text: string; slug: string }>;
   translationStatus?: TranslationStatus;
@@ -68,7 +69,7 @@ export function DocContent({
 
   useEffect(() => {
     const container = contentRef.current;
-    if (!container) return;
+    if (!container || !html) return;
 
     container.querySelectorAll("table").forEach((table) => {
       if (table.parentElement?.classList.contains(styles.tableWrapper)) return;
@@ -96,7 +97,7 @@ export function DocContent({
     });
 
     return () => roots.forEach((root) => root.unmount());
-  }, [html, MdxContent]);
+  }, [html]);
 
   const showBanner =
     locale !== DEFAULT_LOCALE && translationStatus && translationStatus !== "translated";
@@ -113,7 +114,7 @@ export function DocContent({
             </span>
             {slug && (
               <Link
-                to={(slug === "index" ? "/" : `/docs/${slug}`) as "/"}
+                to={(slug === "index" ? "/" : `/docs/${slug}/`) as "/"}
                 className={styles.bannerLink}
               >
                 {t("i18n.viewOriginal")}
@@ -128,12 +129,13 @@ export function DocContent({
         )}
         {description && <p className={styles.description}>{description}</p>}
         {MdxContent ? (
-          <div ref={contentRef} className={styles.content} onClick={handleContentClick}>
-            <MdxContent />
+          <div key={slug} className={styles.content} onClick={handleContentClick}>
+            <MdxContent components={mdxComponents} />
           </div>
         ) : html ? (
           /* eslint-disable-next-line react/no-danger -- HTML is pre-sanitized by Rust sanitize pass */
           <div
+            key={slug}
             ref={contentRef}
             className={styles.content}
             onClick={handleContentClick}

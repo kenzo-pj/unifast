@@ -373,7 +373,7 @@ export function LandingPage() {
         </p>
         <div className={styles.actions}>
           <Link
-            to={localePath("/docs/introduction/what-is-unifast", locale)}
+            to={localePath("/docs/introduction/what-is-unifast/", locale)}
             className={styles.primaryBtn}
           >
             Get Started
@@ -447,7 +447,7 @@ export function LandingPage() {
           </p>
           <div className={styles.ctaCards}>
             <Link
-              to={localePath("/docs/introduction/what-is-unifast", locale)}
+              to={localePath("/docs/introduction/what-is-unifast/", locale)}
               className={styles.ctaCard}
             >
               <span className={styles.ctaCardText}>
@@ -459,7 +459,7 @@ export function LandingPage() {
               <span className={styles.ctaCardArrow}>&rarr;</span>
             </Link>
             <Link
-              to={localePath("/docs/packages/node/overview", locale)}
+              to={localePath("/docs/packages/node/overview/", locale)}
               className={styles.ctaCard}
             >
               <span className={styles.ctaCardText}>
