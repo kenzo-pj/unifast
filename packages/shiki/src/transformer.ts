@@ -1,4 +1,5 @@
-import { createHighlighter, type BundledLanguage, type BundledTheme } from "shiki";
+import { createHighlighter } from "shiki";
+import type { BundledLanguage, BundledTheme } from "shiki";
 
 import type { HastRoot, HastNode, HastElement } from "./types";
 
@@ -25,7 +26,7 @@ type ResolvedThemeConfig =
     };
 
 function resolveThemeConfig(opts: ShikiTransformerOptions): ResolvedThemeConfig {
-  const themes = opts.themes;
+  const { themes } = opts;
 
   if (themes && typeof themes === "object" && !Array.isArray(themes) && "light" in themes) {
     return {

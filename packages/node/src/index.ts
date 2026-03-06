@@ -104,15 +104,13 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
 
   const plugins = options?.plugins ?? [];
   const hastTransforms = plugins
-    .filter(
-      (p): p is typeof p & { hastTransform: NonNullable<typeof p.hastTransform> } =>
-        !!p.hastTransform,
+    .filter((p): p is typeof p & { hastTransform: NonNullable<typeof p.hastTransform> } =>
+      Boolean(p.hastTransform),
     )
     .map((p) => p.hastTransform);
   const mdxJsTransforms = plugins
-    .filter(
-      (p): p is typeof p & { mdxJsTransform: NonNullable<typeof p.mdxJsTransform> } =>
-        !!p.mdxJsTransform,
+    .filter((p): p is typeof p & { mdxJsTransform: NonNullable<typeof p.mdxJsTransform> } =>
+      Boolean(p.mdxJsTransform),
     )
     .map((p) => p.mdxJsTransform);
 
@@ -136,7 +134,7 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
 
   const rawResult = native.compile(input, mergedOpts);
 
-  let output = rawResult.output;
+  let { output } = rawResult;
   if (hasHastTransforms && userRequestedOutputKind !== "mdxJs") {
     let hast = JSON.parse(output) as HastRoot;
     for (const transform of hastTransforms) {

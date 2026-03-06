@@ -1,7 +1,8 @@
 import type { CompileOptions, CompileResult, HastRoot, TocEntry } from "@unifast/core";
 import { compile } from "@unifast/node";
 
-import { hastToReact, type CreateElement, type ComponentMap } from "./hast-to-react";
+import { hastToReact } from "./hast-to-react";
+import type { CreateElement, ComponentMap } from "./hast-to-react";
 
 export type CompileToReactOptions = CompileOptions & {
   components?: ComponentMap;

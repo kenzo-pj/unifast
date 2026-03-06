@@ -33,7 +33,9 @@ export const TableOfContents = memo(function TableOfContents({ toc }: TableOfCon
     if (toc.length === 0) return;
 
     const slugs = toc.map((e) => e.slug);
-    const headings = slugs.map((s) => document.getElementById(s)).filter(Boolean) as HTMLElement[];
+    const headings = slugs
+      .map((s) => document.querySelector(`#${s}`))
+      .filter(Boolean) as HTMLElement[];
 
     if (headings.length === 0) return;
 

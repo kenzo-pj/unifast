@@ -7,7 +7,7 @@ export const SITE_URL = "https://unifast.dev";
 
 const SITE_NAME = "unifast";
 const SITE_DESCRIPTION = "High-performance Markdown / MDX compiler built with Rust.";
-const GITHUB_URL = "https://github.com/kenzwada/unifast";
+const GITHUB_URL = "https://github.com/kenzo-pj/unifast";
 
 function parseFrontmatter(raw: string): { title: string; description: string; body: string } {
   const match = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);

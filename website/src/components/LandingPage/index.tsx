@@ -79,9 +79,9 @@ function wrapLines(lines: string[]): string {
 function stripHtml(html: string): string {
   return html
     .replaceAll(/<[^>]+>/g, "")
-    .replaceAll(/&lt;/g, "<")
-    .replaceAll(/&gt;/g, ">")
-    .replaceAll(/&amp;/g, "&");
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&amp;", "&");
 }
 
 const SHOWCASES = [

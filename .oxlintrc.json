@@ -58,6 +58,7 @@
     "promise/prefer-await-to-then": "off",
 
     "jest/require-hook": "off",
+    "vitest/no-importing-vitest-globals": "off",
 
     "jsx-a11y/click-events-have-key-events": "warn",
     "jsx-a11y/no-autofocus": "warn",
@@ -71,10 +72,11 @@
   ],
   "overrides": [
     {
-      "files": ["*.test.ts", "*.test.tsx", "*.spec.ts", "*.bench.ts"],
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.bench.ts"],
       "rules": {
         "no-console": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "unicorn/consistent-function-scoping": "off"
       }
     }
   ]

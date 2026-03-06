@@ -46,6 +46,24 @@ test-rust:
 test-ts:
     pnpm test
 
+# --- Coverage ---
+
+# Run Rust tests with coverage (requires cargo-llvm-cov)
+coverage-rust:
+    cargo llvm-cov --all-features --workspace --lcov --output-path coverage/rust-lcov.info
+
+# Run TypeScript tests with coverage
+coverage-ts:
+    pnpm test:coverage
+
+# Run all tests with coverage
+coverage: coverage-rust coverage-ts
+
+# Open Rust coverage HTML report
+coverage-rust-html:
+    cargo llvm-cov --all-features --workspace --html
+    @echo "Report: target/llvm-cov/html/index.html"
+
 # --- Lint ---
 
 # Run all linters

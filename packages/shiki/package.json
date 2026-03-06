@@ -25,7 +25,8 @@
     "typecheck": "tsc --noEmit",
     "fmt:oxc": "oxfmt --write .",
     "fmt:oxc:check": "oxfmt --check .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage --coverage.reporter=text --coverage.reporter=lcov"
   },
   "dependencies": {
     "@unifast/core": "workspace:*",
@@ -33,6 +34,6 @@
   },
   "devDependencies": {
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.18"
   }
 }

@@ -4,7 +4,8 @@ import { memo } from "react";
 import translationStatus from "virtual:translation-status";
 
 import { useTranslation, localePath, DEFAULT_LOCALE } from "~/i18n";
-import { NAV, type NavItem, type NavSection } from "~/navigation";
+import { NAV } from "~/navigation";
+import type { NavItem, NavSection } from "~/navigation";
 
 import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
 

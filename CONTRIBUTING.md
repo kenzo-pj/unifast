@@ -9,7 +9,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/kenzwada/unifast.git
+git clone https://github.com/kenzo-pj/unifast.git
 cd unifast
 pnpm install
 pnpm build

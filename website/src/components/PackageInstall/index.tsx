@@ -20,7 +20,7 @@ function getDefaultManager(): string {
   return localStorage.getItem(STORAGE_KEY) ?? "npm";
 }
 
-// highlighted HTML is pre-sanitized by the Rust sanitize pass at build time
+// Highlighted HTML is pre-sanitized by the Rust sanitize pass at build time
 const ManagerPanel = memo(function ManagerPanel({
   id,
   command,
@@ -47,7 +47,7 @@ interface PackageInstallProps {
 
 export const PackageInstall = memo(function PackageInstall(props: PackageInstallProps) {
   const pkg = props.package;
-  const highlighted = props.highlighted;
+  const { highlighted } = props;
   const [manager, setManager] = useState(getDefaultManager);
 
   const currentCommand =

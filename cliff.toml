@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 """
 body = """
 {%- macro remote_url() -%}
-  https://github.com/kenzwada/unifast
+  https://github.com/kenzo-pj/unifast
 {%- endmacro -%}
 
 {% if version -%}

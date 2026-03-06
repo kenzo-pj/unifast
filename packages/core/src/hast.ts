@@ -50,10 +50,10 @@ const VOID_ELEMENTS = new Set([
 
 function escapeHtml(str: string): string {
   return str
-    .replaceAll(/&/g, "&amp;")
-    .replaceAll(/</g, "&lt;")
-    .replaceAll(/>/g, "&gt;")
-    .replaceAll(/"/g, "&quot;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 function serializeProperties(properties: Record<string, unknown>): string {
@@ -78,8 +78,9 @@ function serializeProperties(properties: Record<string, unknown>): string {
 
 function serializeNode(node: HastNode): string {
   switch (node.type) {
-    case "root":
+    case "root": {
       return node.children.map(serializeNode).join("");
+    }
     case "element": {
       const props = serializeProperties(node.properties);
       if (VOID_ELEMENTS.has(node.tagName)) {
@@ -88,16 +89,21 @@ function serializeNode(node: HastNode): string {
       const children = node.children.map(serializeNode).join("");
       return `<${node.tagName}${props}>${children}</${node.tagName}>`;
     }
-    case "text":
+    case "text": {
       return escapeHtml(node.value);
-    case "raw":
+    }
+    case "raw": {
       return node.value;
-    case "comment":
+    }
+    case "comment": {
       return `<!--${node.value}-->`;
-    case "doctype":
+    }
+    case "doctype": {
       return "<!DOCTYPE html>";
-    default:
+    }
+    default: {
       return "";
+    }
   }
 }
 

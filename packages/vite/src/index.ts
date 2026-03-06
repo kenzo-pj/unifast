@@ -101,12 +101,12 @@ function transformMd(source: string, compile: CompileFn | null, compileOpts: Com
       frontmatter = result.frontmatter ?? {};
       tocData = result.toc ?? [];
     } catch {
-      html = `<pre>${source.replaceAll(/</g, "&lt;")}</pre>`;
+      html = `<pre>${source.replaceAll("<", "&lt;")}</pre>`;
     }
   } else {
     const parsed = extractFrontmatter(source);
-    frontmatter = parsed.frontmatter;
-    html = `<div>${parsed.body.replaceAll(/</g, "&lt;").replaceAll(/\n/g, "<br>")}</div>`;
+    ({ frontmatter } = parsed);
+    html = `<div>${parsed.body.replaceAll("<", "&lt;").replaceAll("\n", "<br>")}</div>`;
   }
 
   return {
@@ -132,9 +132,9 @@ function highlightMdxCodeBlocks(
         const escapedCode = String(rawCode);
         const lang = String(rawLang);
         const code = escapedCode
-          .replaceAll(/\\n/g, "\n")
-          .replaceAll(/\\"/g, '"')
-          .replaceAll(/\\\\/g, "\\");
+          .replaceAll("\\n", "\n")
+          .replaceAll('\\"', '"')
+          .replaceAll("\\\\", "\\");
 
         const result = compile(`\`\`\`${lang}\n${code}\n\`\`\`\n`, {
           ...compileOpts,

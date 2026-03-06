@@ -7,7 +7,7 @@ import { hastToReact } from "../hast-to-react.js";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const opts = { createElement, Fragment } as any;
 
-describe("hastToReact", () => {
+describe(hastToReact, () => {
   it("converts a root with text", () => {
     const hast: HastRoot = {
       type: "root",

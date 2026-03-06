@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { memo, type ReactNode, lazy, Suspense } from "react";
+import { memo, lazy, Suspense } from "react";
+import type { ReactNode } from "react";
 
 import { GitHubIcon } from "~/components/GitHubIcon";
 import { LanguageSwitcher } from "~/components/LanguageSwitcher";
@@ -69,21 +70,7 @@ export function Layout({ children }: LayoutProps) {
             <Sidebar hideLogo />
           </Suspense>
         </aside>
-        <main className={styles.main}>
-          {children}
-          <p
-            style={{
-              maxWidth: "72rem",
-              margin: "0 auto",
-              padding: "2rem var(--gap-3xl) 1.5rem",
-              fontSize: "0.8125rem",
-              color: "var(--color-text-muted)",
-              width: "100%",
-            }}
-          >
-            Made with ❤️ by Kenzo Wada
-          </p>
-        </main>
+        <main className={styles.main}>{children}</main>
       </div>
     </div>
   );

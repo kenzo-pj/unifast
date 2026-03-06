@@ -1,6 +1,8 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { type ComponentType, useCallback, useEffect, useRef } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { useCallback, useEffect, useRef } from "react";
+import type { ComponentType } from "react";
+import { createRoot } from "react-dom/client";
+import type { Root } from "react-dom/client";
 
 import { CopyButton } from "~/components/CopyButton";
 import { TableOfContents } from "~/components/TableOfContents";
@@ -141,7 +143,7 @@ export function DocContent({
         {slug && (
           <a
             className={styles.editLink}
-            href={`https://github.com/kenzwada/unifast/edit/main/website/content/en/${slug}${MdxContent ? ".mdx" : ".md"}`}
+            href={`https://github.com/kenzo-pj/unifast/edit/main/website/content/en/${slug}${MdxContent ? ".mdx" : ".md"}`}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -190,6 +192,12 @@ export function DocContent({
             )}
           </nav>
         )}
+        <p className={styles.attribution}>
+          Made with ❤️ by{" "}
+          <a href="https://github.com/Kenzo-Wada" target="_blank" rel="noopener noreferrer">
+            Kenzo Wada
+          </a>
+        </p>
       </article>
       <TableOfContents toc={toc} />
     </div>

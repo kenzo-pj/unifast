@@ -1,7 +1,7 @@
 {
   "files": [
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/compile.bench.ts",
+      "filepath": "packages/benchmark/compile.bench.ts",
       "groups": [
         {
           "fullName": "compile.bench.ts > Markdown to HTML (simple)",
@@ -171,7 +171,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/extras.bench.ts",
+      "filepath": "packages/benchmark/extras.bench.ts",
       "groups": [
         {
           "fullName": "extras.bench.ts > External Links (readme)",
@@ -671,7 +671,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/frontmatter.bench.ts",
+      "filepath": "packages/benchmark/frontmatter.bench.ts",
       "groups": [
         {
           "fullName": "frontmatter.bench.ts > Frontmatter (simple)",
@@ -841,7 +841,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/gfm.bench.ts",
+      "filepath": "packages/benchmark/gfm.bench.ts",
       "groups": [
         {
           "fullName": "gfm.bench.ts > GFM (simple)",
@@ -1011,7 +1011,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/highlight-hljs.bench.ts",
+      "filepath": "packages/benchmark/highlight-hljs.bench.ts",
       "groups": [
         {
           "fullName": "highlight-hljs.bench.ts > highlight.js: unifast vs unified (simple)",
@@ -1181,7 +1181,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/highlight-shiki.bench.ts",
+      "filepath": "packages/benchmark/highlight-shiki.bench.ts",
       "groups": [
         {
           "fullName": "highlight-shiki.bench.ts > shiki: unifast vs unified (simple)",
@@ -1351,7 +1351,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/highlight-syntect.bench.ts",
+      "filepath": "packages/benchmark/highlight-syntect.bench.ts",
       "groups": [
         {
           "fullName": "highlight-syntect.bench.ts > syntect vs rehype-highlight (simple)",
@@ -1521,7 +1521,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/highlight-treesitter.bench.ts",
+      "filepath": "packages/benchmark/highlight-treesitter.bench.ts",
       "groups": [
         {
           "fullName": "highlight-treesitter.bench.ts > tree-sitter vs rehype-highlight (simple)",
@@ -1691,7 +1691,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/sanitize.bench.ts",
+      "filepath": "packages/benchmark/sanitize.bench.ts",
       "groups": [
         {
           "fullName": "sanitize.bench.ts > Sanitize (simple)",
@@ -1861,7 +1861,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/toc.bench.ts",
+      "filepath": "packages/benchmark/toc.bench.ts",
       "groups": [
         {
           "fullName": "toc.bench.ts > TOC + Slug (simple)",
@@ -2031,7 +2031,7 @@
       ]
     },
     {
-      "filepath": "/home/vvacla/repo/kenzwada/unifast/packages/benchmark/unifast-only.bench.ts",
+      "filepath": "packages/benchmark/unifast-only.bench.ts",
       "groups": [
         {
           "fullName": "unifast-only.bench.ts > Sectionize (readme)",

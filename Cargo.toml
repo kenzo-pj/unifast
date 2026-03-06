@@ -11,7 +11,7 @@ members = [
 version = "0.0.0"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/kenzwada/unifast"
+repository = "https://github.com/kenzo-pj/unifast"
 description = "High-performance Markdown/MDX compiler"
 
 [workspace.lints.clippy]

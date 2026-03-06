@@ -374,6 +374,18 @@
   flex-shrink: 0;
 }
 
+.attribution {
+  margin-top: var(--gap-3xl);
+  padding-top: var(--gap-xl);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.attribution a {
+  text-decoration: underline;
+}
+
 @media (max-width: 640px) {
   .pageNav {
     flex-direction: column;

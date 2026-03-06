@@ -26,6 +26,13 @@ docs/plans/
 # Screenshots (temporary)
 *.png
 
+# Coverage reports
+coverage/
+*.lcov
+
+# Environment variables
+.env*
+
 # OS
 .DS_Store
 Thumbs.db

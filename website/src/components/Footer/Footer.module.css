@@ -18,17 +18,22 @@
   color: var(--color-text-muted);
 }
 
-.links a:hover {
-  color: var(--color-text);
-}
-
 .credit {
   font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
 
-.heart {
-  color: oklch(0.637 0.237 25);
+.credit a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.links a:hover {
+  color: var(--color-text);
+}
+
+.credit a:hover {
+  color: var(--color-text);
 }
 
 @media (max-width: 768px) {

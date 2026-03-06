@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "cmk --watch & node scripts/fetch-sponsors.ts && vite",
-    "fetch-sponsors": "node scripts/fetch-sponsors.ts",
-    "build": "cmk && node scripts/fetch-sponsors.ts && vite build && vite build --ssr && node scripts/prerender.ts && npx pagefind --site dist/client",
+    "dev": "cmk --watch & node --env-file-if-exists=.env.local scripts/fetch-sponsors.ts && vite",
+    "fetch-sponsors": "node --env-file-if-exists=.env.local scripts/fetch-sponsors.ts",
+    "build": "cmk && node --env-file-if-exists=.env.local scripts/fetch-sponsors.ts && vite build && vite build --ssr && node scripts/prerender.ts && npx pagefind --site dist/client",
     "lint:oxc": "oxlint -c ../.oxlintrc.json src",
     "lint:oxc:fix": "oxlint -c ../.oxlintrc.json --fix src",
     "typecheck": "cmk && tsc --noEmit",

@@ -17,9 +17,9 @@ function getStoredMode(): ThemeMode {
 
 function applyTheme(resolved: ResolvedTheme) {
   if (resolved === "dark") {
-    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.dataset.theme = "dark";
   } else {
-    document.documentElement.removeAttribute("data-theme");
+    delete document.documentElement.dataset.theme;
   }
 }
 

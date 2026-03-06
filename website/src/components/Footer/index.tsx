@@ -17,7 +17,10 @@ export function Footer() {
           </a>
         </div>
         <span className={styles.credit}>
-          Made with <span className={styles.heart}>&hearts;</span> by Kenzo Wada
+          Made with ❤️ by{" "}
+          <a href="https://github.com/Kenzo-Wada" target="_blank" rel="noopener noreferrer">
+            Kenzo Wada
+          </a>
         </span>
       </div>
     </footer>

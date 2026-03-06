@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createShikiTransformer } from "../transformer.js";
 import type { HastRoot } from "../types.js";
 
-describe("createShikiTransformer", () => {
+describe(createShikiTransformer, () => {
   it("transforms a code block with known language", async () => {
     const transformer = await createShikiTransformer({
       themes: ["github-dark"],

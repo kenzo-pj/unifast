@@ -11,8 +11,10 @@
   "sortImports": {},
   "sortPackageJson": true,
   "ignorePatterns": [
-    "dist/**",
-    "node_modules/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/target/**",
+    "**/coverage/**",
     "*.gen.ts"
   ]
 }

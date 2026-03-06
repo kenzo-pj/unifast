@@ -39,6 +39,12 @@ cargo check -p unifast-bindings-node
 
 # Check WASM binding (needs target)
 cargo check -p unifast-bindings-wasm --target wasm32-unknown-unknown
+
+# Run tests with coverage
+just coverage            # All (Rust + TS)
+just coverage-rust       # Rust only (lcov → coverage/rust-lcov.info)
+just coverage-ts         # TypeScript only (lcov → packages/*/coverage/)
+just coverage-rust-html  # Rust HTML report
 ```
 
 ## Conventions

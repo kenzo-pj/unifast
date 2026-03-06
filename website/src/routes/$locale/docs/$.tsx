@@ -4,7 +4,8 @@ import translationStatus from "virtual:translation-status";
 
 import { DocContent } from "~/components/DocContent";
 import { NotFound } from "~/components/NotFound";
-import { useTranslation, localePath, SUPPORTED_LOCALES, type LocaleCode } from "~/i18n";
+import { useTranslation, localePath, SUPPORTED_LOCALES } from "~/i18n";
+import type { LocaleCode } from "~/i18n";
 import type { Locale } from "~/i18n/locales/en";
 import { flattenNav } from "~/navigation";
 
@@ -47,7 +48,7 @@ export const Route = createFileRoute("/$locale/docs/$")({
     return {
       mdMod: localeMd ?? enMd ?? null,
       mdxMod: localeMdx ?? enMdx ?? null,
-      hasLocale: !!(localeMd || localeMdx),
+      hasLocale: Boolean(localeMd || localeMdx),
       slug: slug!,
     };
   },

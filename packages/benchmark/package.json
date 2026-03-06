@@ -36,6 +36,6 @@
     "remark-wiki-link": "^2.0.1",
     "unified": "^11.0.5",
     "vfile-matter": "^5.0.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.18"
   }
 }

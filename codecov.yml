@@ -1,0 +1,37 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "60...90"
+
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: true
+
+flags:
+  rust:
+    paths:
+      - crates/
+    carryforward: true
+  typescript:
+    paths:
+      - packages/
+    carryforward: true
+
+ignore:
+  - "website/**"
+  - "packages/benchmark/**"
+  - "**/node_modules/**"
+  - "target/**"

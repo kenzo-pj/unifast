@@ -71,11 +71,12 @@ export function useSearch() {
     if (timerRef.current) clearTimeout(timerRef.current);
   }, []);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
+    },
+    [],
+  );
 
   return { query, results, loading, search, reset };
 }

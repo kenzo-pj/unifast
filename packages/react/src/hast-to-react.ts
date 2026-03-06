@@ -108,18 +108,22 @@ function convertNode(node: HastNode, options: HastToReactOptions, key: number): 
       }
       return createElement(component, props);
     }
-    case "text":
+    case "text": {
       return node.value;
-    case "raw":
+    }
+    case "raw": {
       return createElement("div", {
         key,
         dangerouslySetInnerHTML: { __html: node.value },
       });
+    }
     case "comment":
-    case "doctype":
+    case "doctype": {
       return null;
-    default:
+    }
+    default: {
       return null;
+    }
   }
 }
 

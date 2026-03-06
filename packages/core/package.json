@@ -23,9 +23,10 @@
     "lint:oxc": "oxlint -c ../../.oxlintrc.json .",
     "lint:oxc:fix": "oxlint -c ../../.oxlintrc.json --fix .",
     "typecheck": "tsc --noEmit",
-    "fmt:oxc": "oxfmt --write src",
-    "fmt:oxc:check": "oxfmt --check src",
-    "test": "vitest run"
+    "fmt:oxc": "oxfmt --write .",
+    "fmt:oxc:check": "oxfmt --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage --coverage.reporter=text --coverage.reporter=lcov"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
