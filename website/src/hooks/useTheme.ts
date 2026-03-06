@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-export type ThemeMode = "light" | "dark" | "system";
+type ThemeMode = "light" | "dark" | "system";
 type ResolvedTheme = "light" | "dark";
 
 function getSystemTheme(): ResolvedTheme {

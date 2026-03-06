@@ -4,6 +4,7 @@
     ".": {
       "ignoreDependencies": [
         "@evilmartians/lefthook",
+        "@vitest/coverage-v8",
         "better-typescript-lib",
         "textlint-rule-no-dead-link",
         "textlint-rule-preset-ja-technical-writing"
@@ -13,12 +14,12 @@
       "entry": ["*.bench.ts", "setup/*.ts"],
       "project": ["**/*.ts"]
     },
+    "packages/vite": {
+      "ignoreDependencies": ["@unifast/node"]
+    },
     "website": {
       "entry": ["src/entry-server.tsx", "plugins/*.ts"],
       "ignoreDependencies": ["babel-plugin-react-compiler", "lightningcss"]
     }
-  },
-  "ignore": ["website/src/components/PackageInstall/**"],
-  "ignoreBinaries": ["stylelint", "markdownlint-cli2", "textlint"],
-  "ignoreUnresolved": ["/pagefind/pagefind.js"]
+  }
 }

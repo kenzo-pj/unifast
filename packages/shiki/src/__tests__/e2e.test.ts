@@ -1,8 +1,8 @@
+import type { HastRoot } from "@unifast/core";
 import { describe, expect, it } from "vitest";
 
 import { hastToHtml } from "../hast-utils.js";
 import { createShikiTransformer } from "../transformer.js";
-import type { HastRoot } from "../types.js";
 
 describe("e2e: HAST JSON -> shiki -> HTML", () => {
   it("full pipeline with manually constructed HAST", async () => {

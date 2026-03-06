@@ -1,1 +1,1 @@
-export { hastToHtml, extractLang, extractText, findCodeChild, visitHast } from "@unifast/core";
+export { hastToHtml } from "@unifast/core";
