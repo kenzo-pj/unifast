@@ -48,7 +48,7 @@ const VOID_ELEMENTS = new Set([
   "wbr",
 ]);
 
-function escapeHtml(str: string): string {
+export function escapeHtml(str: string): string {
   return str
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

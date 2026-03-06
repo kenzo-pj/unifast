@@ -1,21 +1,19 @@
 use super::options::{CompileOptions, InputKind, OutputKind};
 use super::result::{CompileResult, CompileStats, Output};
 use crate::ast::common::NodeIdGen;
+use crate::ast::common::Span;
+use crate::ast::hast::nodes::{HNode, HRoot};
 use crate::emit::html::stringify;
 use crate::parse;
-use crate::transform::pass::{AstPayload, PassContext};
+use crate::transform::pass::{AstPayload, PassContext, Phase};
 #[cfg(feature = "highlight")]
-use crate::transform::passes::highlight_pass::HighlightPass;
+use crate::transform::passes::highlight;
 use crate::transform::passes::{
-    autolink_headings_pass::AutolinkHeadingsPass, breaks_pass::BreaksPass, cjk_pass::CjkPass,
-    cleanup_pass::CleanupPass, code_import_pass::CodeImportPass,
-    definition_list_pass::DefinitionListPass, directive_pass::DirectivePass, emoji_pass::EmojiPass,
-    external_links_pass::ExternalLinksPass, github_alert_pass::GithubAlertPass,
-    line_number_pass::LineNumberPass, lower_pass::LowerPass, math_pass::MathPass,
-    normalize_pass::NormalizePass, resolve_defs_pass::ResolveDefsPass,
-    ruby_annotation_pass::RubyAnnotationPass, sanitize_pass::SanitizePass,
-    sectionize_pass::SectionizePass, slug_pass::SlugPass, smartypants_pass::SmartypantsPass,
-    toc_pass::TocPass, wiki_link_pass::WikiLinkPass,
+    autolink_headings, breaks, cjk, code_import, definition_list, directive, emoji, external_links,
+    github_alert,
+    html_cleanup::{self, CleanupOptions},
+    line_number, math, mdast_to_hast, normalize, resolve_defs, ruby_annotation, sanitize,
+    sectionize, slug, smartypants, toc, wiki_link,
 };
 use crate::transform::registry::PassRegistry;
 use std::time::Instant;
@@ -37,38 +35,267 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
     let transform_start = Instant::now();
     let mut registry = PassRegistry::new();
 
-    registry.register(Box::new(NormalizePass));
-    registry.register(Box::new(BreaksPass));
-    registry.register(Box::new(CjkPass));
-    registry.register(Box::new(SmartypantsPass));
-    registry.register(Box::new(EmojiPass));
-    registry.register(Box::new(MathPass));
-    registry.register(Box::new(DirectivePass));
-    registry.register(Box::new(WikiLinkPass));
-    registry.register(Box::new(DefinitionListPass));
-    registry.register(Box::new(RubyAnnotationPass));
-    registry.register(Box::new(GithubAlertPass));
-    registry.register(Box::new(CodeImportPass));
-    registry.register(Box::new(SlugPass));
-    registry.register(Box::new(TocPass));
-    registry.register(Box::new(ResolveDefsPass));
+    registry.register_fn("normalize", Phase::Transform, |_ctx, ast| {
+        if let Some(doc) = ast.mdast_mut() {
+            normalize::normalize(doc);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("breaks", Phase::Transform, |ctx, ast| {
+        if !ctx.options.breaks.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            breaks::apply_breaks(&mut doc.children, ctx.id_gen);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("cjk", Phase::Transform, |ctx, ast| {
+        if !ctx.options.cjk.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            cjk::apply_cjk(&mut doc.children);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("smartypants", Phase::Transform, |ctx, ast| {
+        if !ctx.options.smartypants.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            smartypants::apply_smartypants(
+                doc,
+                ctx.options.smartypants.quotes,
+                ctx.options.smartypants.dashes,
+                ctx.options.smartypants.ellipses,
+            );
+        }
+        Ok(())
+    });
+
+    registry.register_fn("emoji", Phase::Transform, |ctx, ast| {
+        if !ctx.options.emoji.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            emoji::apply_emoji(doc);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("math", Phase::Transform, |ctx, ast| {
+        if !ctx.options.math.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            math::apply_math(&mut doc.children, ctx.id_gen);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("directive", Phase::Transform, |ctx, ast| {
+        if !ctx.options.directive.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            directive::apply_directives(&mut doc.children, ctx.id_gen);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("wiki_link", Phase::Transform, |ctx, ast| {
+        if !ctx.options.wiki_link.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            wiki_link::apply_wiki_links(&mut doc.children, ctx.id_gen);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("definition_list", Phase::Transform, |ctx, ast| {
+        if !ctx.options.definition_list.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            definition_list::apply_definition_lists(&mut doc.children, ctx.id_gen);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("ruby_annotation", Phase::Transform, |ctx, ast| {
+        if !ctx.options.ruby_annotation.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            ruby_annotation::apply_ruby(&mut doc.children, ctx.id_gen);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("github_alert", Phase::Transform, |ctx, ast| {
+        if !ctx.options.github_alert.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            github_alert::apply_github_alerts(doc, ctx.id_gen);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("code_import", Phase::Transform, |ctx, ast| {
+        if !ctx.options.code_import.enabled {
+            return Ok(());
+        }
+        let root_dir = ctx.options.code_import.root_dir.as_deref();
+        if let Some(doc) = ast.mdast_mut() {
+            code_import::apply_code_import(&mut doc.children, root_dir);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("slug", Phase::Transform, |ctx, ast| {
+        if let Some(doc) = ast.mdast_mut() {
+            let mode = match ctx.options.slug.mode {
+                crate::api::options::SlugMode::GitHub => slug::SlugMode::GitHub,
+                crate::api::options::SlugMode::Unicode => slug::SlugMode::Unicode,
+            };
+            slug::apply_slugs(doc, mode);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("toc", Phase::Transform, |ctx, ast| {
+        if !ctx.options.toc.enabled {
+            return Ok(());
+        }
+        let max_depth = ctx.options.toc.max_depth;
+        if let Some(doc) = ast.mdast_mut() {
+            ctx.toc = toc::generate_toc(doc, max_depth);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("resolve_defs", Phase::Transform, |ctx, ast| {
+        if let Some(doc) = ast.mdast_mut() {
+            let defs = std::collections::HashMap::new();
+            resolve_defs::resolve_definitions(doc, &defs, ctx.diagnostics);
+        }
+        Ok(())
+    });
 
     if opts.output_kind != OutputKind::Mdast {
-        registry.register(Box::new(LowerPass));
+        registry.register_fn("mdast_to_hast", Phase::Lower, |ctx, ast| {
+            let doc = match ast {
+                AstPayload::Mdast(doc) => doc,
+                AstPayload::Both { mdast, .. } => mdast,
+                AstPayload::Hast(_) => return Ok(()),
+            };
+            let hast_node =
+                mdast_to_hast::lower(doc, ctx.id_gen, ctx.options.raw_html, ctx.diagnostics);
+            let hast_root = match hast_node {
+                HNode::Root(root) => root,
+                other => HRoot {
+                    id: ctx.id_gen.next_id(),
+                    span: Span::empty(),
+                    children: vec![other],
+                },
+            };
+            *ast = AstPayload::Hast(hast_root);
+            Ok(())
+        });
+
         if opts.sanitize.enabled {
-            registry.register(Box::new(SanitizePass));
+            registry.register_fn("sanitize", Phase::Optimize, |ctx, ast| {
+                let schema = if let Some(ref api_schema) = ctx.options.sanitize.schema {
+                    sanitize::from_api_schema(api_schema)
+                } else {
+                    sanitize::default_safe_schema()
+                };
+                if let Some(root) = ast.hast_mut() {
+                    sanitize::sanitize(root, &schema, ctx.diagnostics);
+                }
+                Ok(())
+            });
         }
+
         #[cfg(feature = "highlight")]
         if opts.highlight.enabled {
-            registry.register(Box::new(HighlightPass));
+            registry.register_fn("highlight", Phase::Optimize, |ctx, ast| {
+                let engine: Box<dyn highlight::HighlightEngine> = match ctx.options.highlight.engine
+                {
+                    crate::api::options::HighlightEngine::Syntect => {
+                        Box::new(highlight::SyntectHighlighter::new())
+                    }
+                    crate::api::options::HighlightEngine::TreeSitter => {
+                        Box::new(highlight::TreeSitterHighlighter)
+                    }
+                    crate::api::options::HighlightEngine::None => return Ok(()),
+                };
+                if let Some(root) = ast.hast_mut() {
+                    highlight::apply_highlight(root, engine.as_ref(), ctx.id_gen);
+                }
+                Ok(())
+            });
         }
+
         if opts.line_numbers.enabled {
-            registry.register(Box::new(LineNumberPass));
+            registry.register_fn("line_number", Phase::Optimize, |ctx, ast| {
+                if let Some(root) = ast.hast_mut() {
+                    line_number::apply_line_numbers(root, ctx.id_gen);
+                }
+                Ok(())
+            });
         }
-        registry.register(Box::new(ExternalLinksPass));
-        registry.register(Box::new(AutolinkHeadingsPass));
-        registry.register(Box::new(SectionizePass));
-        registry.register(Box::new(CleanupPass));
+
+        registry.register_fn("external_links", Phase::Optimize, |ctx, ast| {
+            if !ctx.options.external_links.enabled {
+                return Ok(());
+            }
+            if let Some(root) = ast.hast_mut() {
+                external_links::apply_external_links(
+                    root,
+                    &ctx.options.external_links.rel,
+                    ctx.options.external_links.target.as_deref(),
+                );
+            }
+            Ok(())
+        });
+
+        registry.register_fn("autolink_headings", Phase::Optimize, |ctx, ast| {
+            if !ctx.options.autolink_headings.enabled {
+                return Ok(());
+            }
+            if let Some(root) = ast.hast_mut() {
+                autolink_headings::apply_autolink_headings(
+                    root,
+                    ctx.options.autolink_headings.behavior,
+                    ctx.id_gen,
+                );
+            }
+            Ok(())
+        });
+
+        registry.register_fn("sectionize", Phase::Optimize, |ctx, ast| {
+            if !ctx.options.sectionize.enabled {
+                return Ok(());
+            }
+            if let Some(root) = ast.hast_mut() {
+                sectionize::apply_sectionize(root, ctx.id_gen);
+            }
+            Ok(())
+        });
+
+        registry.register_fn("html_cleanup", Phase::Optimize, |_ctx, ast| {
+            if let Some(root) = ast.hast_mut() {
+                html_cleanup::cleanup(root, &CleanupOptions::default());
+            }
+            Ok(())
+        });
     }
 
     for plugin in &opts.plugins {

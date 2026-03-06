@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import { createRequire } from "node:module";
 
+import { escapeHtml } from "@unifast/core";
 import matter from "gray-matter";
 import type { Plugin } from "vite";
 
@@ -87,12 +88,12 @@ function transformMd(source: string, compile: CompileFn | null, compileOpts: Com
       frontmatter = result.frontmatter ?? {};
       tocData = result.toc ?? [];
     } catch {
-      html = `<pre>${source.replaceAll("<", "&lt;")}</pre>`;
+      html = `<pre>${escapeHtml(source)}</pre>`;
     }
   } else {
     const parsed = extractFrontmatter(source);
     ({ frontmatter } = parsed);
-    html = `<div>${parsed.body.replaceAll("<", "&lt;").replaceAll("\n", "<br>")}</div>`;
+    html = `<div>${escapeHtml(parsed.body).replaceAll("\n", "<br>")}</div>`;
   }
 
   return {

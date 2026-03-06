@@ -113,7 +113,12 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
 
   let { output } = rawResult;
   if (hasHastTransforms && userRequestedOutputKind !== "mdxJs") {
-    let hast = JSON.parse(output) as HastRoot;
+    let hast: HastRoot;
+    try {
+      hast = JSON.parse(output) as HastRoot;
+    } catch {
+      throw new Error("Failed to parse HAST output from native binding");
+    }
     for (const transform of hastTransforms) {
       hast = transform(hast);
     }
@@ -137,9 +142,16 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
     }
   }
 
+  let frontmatter: Record<string, unknown>;
+  try {
+    frontmatter = JSON.parse(rawResult.frontmatter) as Record<string, unknown>;
+  } catch {
+    frontmatter = {};
+  }
+
   return {
     output,
-    frontmatter: JSON.parse(rawResult.frontmatter) as Record<string, unknown>,
+    frontmatter,
     diagnostics: rawResult.diagnostics.map((d) => ({
       level: d.level as "error" | "warn",
       message: d.message,

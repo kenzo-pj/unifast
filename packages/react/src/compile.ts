@@ -26,10 +26,16 @@ export function compileToReact(
 
   const result = compile(input, { ...compileOpts, outputKind: "hast" });
 
-  const hast: HastRoot =
-    typeof result.output === "string"
-      ? (JSON.parse(result.output) as HastRoot)
-      : (result.output as HastRoot);
+  let hast: HastRoot;
+  if (typeof result.output === "string") {
+    try {
+      hast = JSON.parse(result.output) as HastRoot;
+    } catch {
+      throw new Error("Failed to parse HAST output from compiler");
+    }
+  } else {
+    hast = result.output as HastRoot;
+  }
 
   const element = hastToReact(hast, { createElement, Fragment, components });
 

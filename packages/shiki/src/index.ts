@@ -6,7 +6,7 @@ export type {
   HastRaw,
   HastComment,
   HastDoctype,
-} from "./types";
+} from "@unifast/core";
 
 export { hastToHtml } from "./hast-utils";
 

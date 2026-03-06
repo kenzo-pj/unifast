@@ -11,7 +11,8 @@ export type {
   HastComment,
   HastDoctype,
 } from "./hast";
-export { hastToHtml } from "./hast";
+export { hastToHtml, escapeHtml } from "./hast";
+export { extractLang, extractText, findCodeChild, visitHast } from "./hast-utils";
 export {
   gfm,
   frontmatter,

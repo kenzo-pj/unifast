@@ -1,31 +1,7 @@
 use crate::ast::common::{NodeIdGen, Span};
-use crate::ast::mdast::nodes::{InlineMath, Math, MdNode, Text};
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
+use crate::ast::mdast::nodes::{InlineMath, Math as MathNode, MdNode, Text};
 
-pub struct MathPass;
-
-impl Pass for MathPass {
-    fn name(&self) -> &'static str {
-        "math"
-    }
-    fn phase(&self) -> Phase {
-        Phase::Transform
-    }
-    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        if !ctx.options.math.enabled {
-            return Ok(());
-        }
-        match ast {
-            AstPayload::Mdast(doc) | AstPayload::Both { mdast: doc, .. } => {
-                apply_math(&mut doc.children, ctx.id_gen);
-                Ok(())
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-fn apply_math(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
+pub fn apply_math(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     let mut i = 0;
     while i < children.len() {
         let should_convert = if let MdNode::Code(code) = &children[i] {
@@ -34,7 +10,7 @@ fn apply_math(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
             false
         };
         if should_convert && let MdNode::Code(code) = &children[i] {
-            let math_node = MdNode::Math(Math {
+            let math_node = MdNode::Math(MathNode {
                 id: id_gen.next_id(),
                 span: code.span,
                 value: code.value.clone(),
@@ -70,7 +46,7 @@ fn apply_math(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     }
 }
 
-fn split_inline_math(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNode> {
+pub fn split_inline_math(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNode> {
     let mut nodes = Vec::new();
     let mut current = String::new();
     let chars: Vec<char> = text.chars().collect();
@@ -95,7 +71,7 @@ fn split_inline_math(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNo
                 math_content.push(chars[i]);
                 i += 1;
             }
-            nodes.push(MdNode::Math(Math {
+            nodes.push(MdNode::Math(MathNode {
                 id: id_gen.next_id(),
                 span,
                 value: math_content,
@@ -163,13 +139,6 @@ fn split_inline_math(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNo
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn metadata() {
-        let pass = MathPass;
-        assert_eq!(pass.name(), "math");
-        assert_eq!(pass.phase(), Phase::Transform);
-    }
 
     #[test]
     fn splits_inline_math() {

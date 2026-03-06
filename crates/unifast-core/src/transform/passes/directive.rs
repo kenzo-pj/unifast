@@ -1,31 +1,7 @@
 use crate::ast::common::NodeIdGen;
 use crate::ast::mdast::nodes::{ContainerDirective, MdNode};
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 
-pub struct DirectivePass;
-
-impl Pass for DirectivePass {
-    fn name(&self) -> &'static str {
-        "directive"
-    }
-    fn phase(&self) -> Phase {
-        Phase::Transform
-    }
-    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        if !ctx.options.directive.enabled {
-            return Ok(());
-        }
-        match ast {
-            AstPayload::Mdast(doc) | AstPayload::Both { mdast: doc, .. } => {
-                apply_directives(&mut doc.children, ctx.id_gen);
-                Ok(())
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-fn apply_directives(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
+pub fn apply_directives(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     let mut i = 0;
     while i < children.len() {
         let directive_info = if let MdNode::Paragraph(p) = &children[i] {
@@ -71,7 +47,7 @@ fn apply_directives(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     }
 }
 
-fn parse_directive_opener(text: &str) -> Option<(String, Vec<(String, String)>)> {
+pub fn parse_directive_opener(text: &str) -> Option<(String, Vec<(String, String)>)> {
     let trimmed = text.trim();
     if !trimmed.starts_with(":::") {
         return None;
@@ -120,13 +96,6 @@ fn parse_directive_opener(text: &str) -> Option<(String, Vec<(String, String)>)>
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn metadata() {
-        let pass = DirectivePass;
-        assert_eq!(pass.name(), "directive");
-        assert_eq!(pass.phase(), Phase::Transform);
-    }
 
     #[test]
     fn parses_directive_opener() {

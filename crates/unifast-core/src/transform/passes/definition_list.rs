@@ -1,31 +1,7 @@
 use crate::ast::common::{NodeIdGen, Span};
 use crate::ast::mdast::nodes::*;
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 
-pub struct DefinitionListPass;
-
-impl Pass for DefinitionListPass {
-    fn name(&self) -> &'static str {
-        "definition_list"
-    }
-    fn phase(&self) -> Phase {
-        Phase::Transform
-    }
-    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        if !ctx.options.definition_list.enabled {
-            return Ok(());
-        }
-        match ast {
-            AstPayload::Mdast(doc) | AstPayload::Both { mdast: doc, .. } => {
-                apply_definition_lists(&mut doc.children, ctx.id_gen);
-                Ok(())
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-fn apply_definition_lists(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
+pub fn apply_definition_lists(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     let mut i = 0;
     while i + 1 < children.len() {
         let is_term = matches!(&children[i], MdNode::Paragraph(_));
@@ -109,13 +85,6 @@ fn apply_definition_lists(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn metadata() {
-        let pass = DefinitionListPass;
-        assert_eq!(pass.name(), "definition_list");
-        assert_eq!(pass.phase(), Phase::Transform);
-    }
 
     #[test]
     fn creates_definition_list() {

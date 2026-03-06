@@ -1,31 +1,7 @@
 use crate::ast::common::NodeIdGen;
 use crate::ast::mdast::nodes::{Break, MdNode, Text};
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 
-pub struct BreaksPass;
-
-impl Pass for BreaksPass {
-    fn name(&self) -> &'static str {
-        "breaks"
-    }
-    fn phase(&self) -> Phase {
-        Phase::Transform
-    }
-    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        if !ctx.options.breaks.enabled {
-            return Ok(());
-        }
-        match ast {
-            AstPayload::Mdast(doc) | AstPayload::Both { mdast: doc, .. } => {
-                apply_breaks(&mut doc.children, ctx.id_gen);
-                Ok(())
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-fn apply_breaks(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
+pub fn apply_breaks(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     let mut i = 0;
     while i < children.len() {
         if let MdNode::Text(text) = &children[i]
@@ -64,13 +40,6 @@ fn apply_breaks(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
 mod tests {
     use super::*;
     use crate::ast::common::Span;
-
-    #[test]
-    fn metadata() {
-        let pass = BreaksPass;
-        assert_eq!(pass.name(), "breaks");
-        assert_eq!(pass.phase(), Phase::Transform);
-    }
 
     #[test]
     fn converts_newline_to_break() {

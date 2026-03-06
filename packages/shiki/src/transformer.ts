@@ -1,7 +1,12 @@
-import { createHighlighter } from "shiki";
-import type { BundledLanguage, BundledTheme } from "shiki";
-
-import type { HastRoot, HastNode, HastElement } from "./types";
+import {
+  type HastRoot,
+  type HastNode,
+  type HastElement,
+  extractLang as extractLangFromCode,
+  extractText,
+  findCodeChild,
+} from "@unifast/core";
+import { createHighlighter, type BundledLanguage, type BundledTheme } from "shiki";
 
 export type ShikiTransformerOptions = {
   themes?: BundledTheme | BundledTheme[] | { light: BundledTheme; dark: BundledTheme };
@@ -86,26 +91,9 @@ export async function createShikiTransformer(
   }
 
   function extractLang(element: HastElement): string | null {
-    const code = element.children.find(
-      (c): c is HastElement => c.type === "element" && c.tagName === "code",
-    );
+    const code = findCodeChild(element);
     if (!code) return null;
-    const classNames = code.properties.className;
-    if (!Array.isArray(classNames)) return null;
-    for (const cls of classNames) {
-      if (typeof cls === "string" && cls.startsWith("language-")) {
-        return cls.slice(9);
-      }
-    }
-    return null;
-  }
-
-  function extractText(node: HastNode): string {
-    if (node.type === "text") return node.value;
-    if (node.type === "element" || node.type === "root") {
-      return node.children.map(extractText).join("");
-    }
-    return "";
+    return extractLangFromCode(code);
   }
 
   function transformNode(node: HastNode): HastNode {

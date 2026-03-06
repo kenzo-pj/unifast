@@ -1,4 +1,5 @@
-import type { UnifastPlugin, HastRoot, HastNode, HastElement } from "@unifast/core";
+import type { UnifastPlugin, HastRoot, HastNode } from "@unifast/core";
+import { extractLang, extractText, findCodeChild } from "@unifast/core";
 import { all, createLowlight } from "lowlight";
 
 export function highlight(): UnifastPlugin {
@@ -18,9 +19,7 @@ export function highlight(): UnifastPlugin {
       function transformNode(node: HastNode): HastNode {
         if (node.type === "element") {
           if (node.tagName === "pre") {
-            const code = node.children.find(
-              (c): c is HastElement => c.type === "element" && c.tagName === "code",
-            );
+            const code = findCodeChild(node);
             if (code) {
               const lang = extractLang(code);
               if (lang && lowlight.registered(lang)) {
@@ -57,23 +56,4 @@ export function highlight(): UnifastPlugin {
       }
     },
   };
-}
-
-function extractLang(code: HastElement): string | null {
-  const classNames = code.properties.className;
-  if (!Array.isArray(classNames)) return null;
-  for (const cls of classNames) {
-    if (typeof cls === "string" && cls.startsWith("language-")) {
-      return cls.slice(9);
-    }
-  }
-  return null;
-}
-
-function extractText(node: HastNode): string {
-  if (node.type === "text") return node.value;
-  if (node.type === "element" || node.type === "root") {
-    return node.children.map(extractText).join("");
-  }
-  return "";
 }

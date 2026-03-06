@@ -1,31 +1,7 @@
 use crate::ast::common::{NodeIdGen, Span};
-use crate::ast::mdast::nodes::{MdNode, RubyAnnotation, Text};
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
+use crate::ast::mdast::nodes::{MdNode, RubyAnnotation as RubyAnnotationNode, Text};
 
-pub struct RubyAnnotationPass;
-
-impl Pass for RubyAnnotationPass {
-    fn name(&self) -> &'static str {
-        "ruby_annotation"
-    }
-    fn phase(&self) -> Phase {
-        Phase::Transform
-    }
-    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        if !ctx.options.ruby_annotation.enabled {
-            return Ok(());
-        }
-        match ast {
-            AstPayload::Mdast(doc) | AstPayload::Both { mdast: doc, .. } => {
-                apply_ruby(&mut doc.children, ctx.id_gen);
-                Ok(())
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-fn apply_ruby(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
+pub fn apply_ruby(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     let mut i = 0;
     while i < children.len() {
         let should_split = if let MdNode::Text(text) = &children[i] {
@@ -51,7 +27,7 @@ fn apply_ruby(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     }
 }
 
-fn split_ruby(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNode> {
+pub fn split_ruby(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNode> {
     let mut nodes = Vec::new();
     let mut current = String::new();
     let chars: Vec<char> = text.chars().collect();
@@ -92,7 +68,7 @@ fn split_ruby(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNode> {
                         value: std::mem::take(&mut current),
                     }));
                 }
-                nodes.push(MdNode::RubyAnnotation(RubyAnnotation {
+                nodes.push(MdNode::RubyAnnotation(RubyAnnotationNode {
                     id: id_gen.next_id(),
                     span,
                     base,
@@ -128,13 +104,6 @@ fn split_ruby(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNode> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn metadata() {
-        let pass = RubyAnnotationPass;
-        assert_eq!(pass.name(), "ruby_annotation");
-        assert_eq!(pass.phase(), Phase::Transform);
-    }
 
     #[test]
     fn splits_ruby_annotation() {

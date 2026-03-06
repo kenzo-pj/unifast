@@ -1,31 +1,7 @@
 use crate::ast::common::{NodeIdGen, Span};
-use crate::ast::mdast::nodes::{MdNode, Text, WikiLink};
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
+use crate::ast::mdast::nodes::{MdNode, Text, WikiLink as WikiLinkNode};
 
-pub struct WikiLinkPass;
-
-impl Pass for WikiLinkPass {
-    fn name(&self) -> &'static str {
-        "wiki_link"
-    }
-    fn phase(&self) -> Phase {
-        Phase::Transform
-    }
-    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        if !ctx.options.wiki_link.enabled {
-            return Ok(());
-        }
-        match ast {
-            AstPayload::Mdast(doc) | AstPayload::Both { mdast: doc, .. } => {
-                apply_wiki_links(&mut doc.children, ctx.id_gen);
-                Ok(())
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-fn apply_wiki_links(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
+pub fn apply_wiki_links(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     let mut i = 0;
     while i < children.len() {
         let should_split = if let MdNode::Text(text) = &children[i] {
@@ -51,7 +27,7 @@ fn apply_wiki_links(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
     }
 }
 
-fn split_wiki_links(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNode> {
+pub fn split_wiki_links(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNode> {
     let mut nodes = Vec::new();
     let mut current = String::new();
     let mut chars = text.chars().peekable();
@@ -84,7 +60,7 @@ fn split_wiki_links(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNod
                         (link_content.trim().to_string(), None)
                     };
                     let display = alias.as_ref().unwrap_or(&target).clone();
-                    nodes.push(MdNode::WikiLink(WikiLink {
+                    nodes.push(MdNode::WikiLink(WikiLinkNode {
                         id: id_gen.next_id(),
                         span,
                         target,
@@ -129,13 +105,6 @@ fn split_wiki_links(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<MdNod
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn metadata() {
-        let pass = WikiLinkPass;
-        assert_eq!(pass.name(), "wiki_link");
-        assert_eq!(pass.phase(), Phase::Transform);
-    }
 
     #[test]
     fn splits_wiki_link() {

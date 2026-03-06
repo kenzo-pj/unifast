@@ -1,10 +1,7 @@
 import fs from "node:fs";
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, expectTypeOf, vi, beforeEach } from "vitest";
 
-// ---------------------------------------------------------------------------
-// Fallback tests: @unifast/node is NOT available
-// ---------------------------------------------------------------------------
 vi.mock(import("node:module"), () => ({
   createRequire: () => (id: string) => {
     throw new Error(`Cannot find module '${id}'`);
@@ -22,7 +19,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     return mod.default(options);
   }
 
-  // ---- 1. Plugin metadata ------------------------------------------------
   it("has name 'vite-plugin-unifast'", async () => {
     const plugin = await getPlugin();
     expect(plugin.name).toBe("vite-plugin-unifast");
@@ -33,18 +29,16 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(plugin.enforce).toBe("pre");
   });
 
-  // ---- 2. Hook existence --------------------------------------------------
   it("has a transform hook", async () => {
     const plugin = await getPlugin();
-    expect(typeof plugin.transform).toBe("function");
+    expectTypeOf(plugin.transform).toBeFunction();
   });
 
   it("has a handleHotUpdate hook", async () => {
     const plugin = await getPlugin();
-    expect(typeof plugin.handleHotUpdate).toBe("function");
+    expectTypeOf(plugin.handleHotUpdate).toBeFunction();
   });
 
-  // ---- 3. transform returns null for non-md files -------------------------
   it.each([".ts", ".js", ".css", ".html", ".json"])(
     "transform returns null for %s files",
     async (ext) => {
@@ -55,7 +49,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     },
   );
 
-  // ---- 4. Case-sensitive: .MD should not match ----------------------------
   it("transform returns null for .MD (case-sensitive regex)", async () => {
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
@@ -63,7 +56,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(result).toBeNull();
   });
 
-  // ---- 5 & 6. .md fallback transform structure ----------------------------
   it(".md transform returns code with all expected exports", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("Hello world");
     const plugin = await getPlugin();
@@ -86,7 +78,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(result.map).toBeNull();
   });
 
-  // ---- 7. Frontmatter parsing (simple) ------------------------------------
   it("parses simple frontmatter key-value pairs", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("---\ntitle: Hello\n---\nBody text");
     const plugin = await getPlugin();
@@ -97,7 +88,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(code).toContain('"title":"Hello"');
   });
 
-  // ---- 8. No frontmatter → empty object -----------------------------------
   it("returns empty frontmatter when none present", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("Just a body");
     const plugin = await getPlugin();
@@ -108,7 +98,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(code).toContain("export const frontmatter = {};");
   });
 
-  // ---- 9. Windows line endings (\r\n) -------------------------------------
   it("handles Windows line endings in frontmatter", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("---\r\ntitle: Win\r\n---\r\nBody");
     const plugin = await getPlugin();
@@ -119,7 +108,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(code).toContain('"title":"Win"');
   });
 
-  // ---- 10. Value with colons (split on first colon only) ------------------
   it("splits frontmatter only on the first colon", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("---\ntime: 12:30:45\n---\nBody");
     const plugin = await getPlugin();
@@ -130,7 +118,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(code).toContain('"time":45045');
   });
 
-  // ---- 11. Key with empty value -------------------------------------------
   it("handles frontmatter key with empty value", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("---\ndraft:\n---\nBody");
     const plugin = await getPlugin();
@@ -141,7 +128,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(code).toContain('"draft":null');
   });
 
-  // ---- 12. HTML escaping (< → &lt;) ---------------------------------------
   it("escapes < to &lt; in fallback HTML", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("<script>alert(1)</script>");
     const plugin = await getPlugin();
@@ -153,7 +139,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(code).not.toContain("<script>");
   });
 
-  // ---- 13. Newlines become <br> -------------------------------------------
   it("converts newlines to <br> in fallback HTML", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("line1\nline2\nline3");
     const plugin = await getPlugin();
@@ -164,7 +149,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(code).toContain("<br>");
   });
 
-  // ---- 14. Empty body ----------------------------------------------------
   it("handles empty body (frontmatter only)", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("---\ntitle: OnlyMeta\n---\n");
     const plugin = await getPlugin();
@@ -175,7 +159,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(result.code).toContain("export const html =");
   });
 
-  // ---- 15. .mdx returns null when compiler unavailable --------------------
   it(".mdx transform returns null when compiler is not available", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("# Hello MDX");
     const plugin = await getPlugin();
@@ -185,7 +168,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(result).toBeNull();
   });
 
-  // ---- 16. handleHotUpdate returns module for .md -------------------------
   it("handleHotUpdate returns module array for .md file", async () => {
     const plugin = await getPlugin();
     const handleHotUpdate = plugin.handleHotUpdate as Function;
@@ -202,7 +184,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(result).toEqual([mockMod]);
   });
 
-  // ---- 17. handleHotUpdate returns module for .mdx ------------------------
   it("handleHotUpdate returns module array for .mdx file", async () => {
     const plugin = await getPlugin();
     const handleHotUpdate = plugin.handleHotUpdate as Function;
@@ -219,7 +200,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(result).toEqual([mockMod]);
   });
 
-  // ---- 18. handleHotUpdate returns undefined for non-md -------------------
   it("handleHotUpdate returns undefined for non-md file", async () => {
     const plugin = await getPlugin();
     const handleHotUpdate = plugin.handleHotUpdate as Function;
@@ -235,7 +215,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     expect(result).toBeUndefined();
   });
 
-  // ---- 19. handleHotUpdate returns undefined when module not in graph ------
   it("handleHotUpdate returns undefined when module not in graph", async () => {
     const plugin = await getPlugin();
     const handleHotUpdate = plugin.handleHotUpdate as Function;
@@ -252,9 +231,6 @@ describe("unifastPlugin (fallback – no compiler)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Compiler-available tests: @unifast/node IS found
-// ---------------------------------------------------------------------------
 describe("unifastPlugin (with compiler)", () => {
   const mockCompile = vi.fn();
 
@@ -278,7 +254,6 @@ describe("unifastPlugin (with compiler)", () => {
     return mod.default(options);
   }
 
-  // ---- 20. .md transform uses compiler output -----------------------------
   it(".md transform uses compiler output when available", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("# Hello");
     mockCompile.mockReturnValue({
@@ -304,7 +279,6 @@ describe("unifastPlugin (with compiler)", () => {
     );
   });
 
-  // ---- 21. .md transform handles compiler throwing -------------------------
   it(".md transform wraps in <pre> when compiler throws", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("Bad <content>");
     mockCompile.mockImplementation(() => {
@@ -320,7 +294,6 @@ describe("unifastPlugin (with compiler)", () => {
     expect(result.code).toContain("&lt;");
   });
 
-  // ---- 22. .mdx transform produces JSX imports ----------------------------
   it(".mdx transform produces JSX imports when compiler is available", async () => {
     vi.spyOn(fs, "readFileSync").mockReturnValue("# MDX Content");
     mockCompile.mockReturnValue({

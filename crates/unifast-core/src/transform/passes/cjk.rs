@@ -1,30 +1,6 @@
 use crate::ast::mdast::nodes::MdNode;
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 
-pub struct CjkPass;
-
-impl Pass for CjkPass {
-    fn name(&self) -> &'static str {
-        "cjk"
-    }
-    fn phase(&self) -> Phase {
-        Phase::Transform
-    }
-    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        if !ctx.options.cjk.enabled {
-            return Ok(());
-        }
-        match ast {
-            AstPayload::Mdast(doc) | AstPayload::Both { mdast: doc, .. } => {
-                apply_cjk(&mut doc.children);
-                Ok(())
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-const fn is_cjk(c: char) -> bool {
+pub const fn is_cjk(c: char) -> bool {
     matches!(c,
         '\u{4E00}'..='\u{9FFF}' |
         '\u{3400}'..='\u{4DBF}' |
@@ -37,7 +13,7 @@ const fn is_cjk(c: char) -> bool {
     )
 }
 
-fn apply_cjk(children: &mut [MdNode]) {
+pub fn apply_cjk(children: &mut [MdNode]) {
     for child in children.iter_mut() {
         if let MdNode::Text(text) = child {
             text.value = remove_cjk_line_join_spaces(&text.value);
@@ -48,7 +24,7 @@ fn apply_cjk(children: &mut [MdNode]) {
     }
 }
 
-fn remove_cjk_line_join_spaces(input: &str) -> String {
+pub fn remove_cjk_line_join_spaces(input: &str) -> String {
     let mut result = String::with_capacity(input.len());
     let chars: Vec<char> = input.chars().collect();
     let mut i = 0;
@@ -71,13 +47,6 @@ fn remove_cjk_line_join_spaces(input: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn metadata() {
-        let pass = CjkPass;
-        assert_eq!(pass.name(), "cjk");
-        assert_eq!(pass.phase(), Phase::Transform);
-    }
 
     #[test]
     fn removes_newline_between_cjk() {

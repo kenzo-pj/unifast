@@ -20,6 +20,22 @@ pub enum AstPayload {
     Both { mdast: Document, hast: HRoot },
 }
 
+impl AstPayload {
+    pub const fn mdast_mut(&mut self) -> Option<&mut Document> {
+        match self {
+            Self::Mdast(doc) | Self::Both { mdast: doc, .. } => Some(doc),
+            Self::Hast(_) => None,
+        }
+    }
+
+    pub const fn hast_mut(&mut self) -> Option<&mut HRoot> {
+        match self {
+            Self::Hast(root) | Self::Both { hast: root, .. } => Some(root),
+            Self::Mdast(_) => None,
+        }
+    }
+}
+
 pub struct PassContext<'a> {
     pub source: &'a str,
     pub diagnostics: &'a mut DiagnosticSink,
@@ -30,31 +46,40 @@ pub struct PassContext<'a> {
 
 pub type PassResult = Result<(), PassError>;
 
-#[derive(Debug)]
-pub struct PassError {
-    pub message: String,
-}
+#[derive(Debug, thiserror::Error)]
+#[error("{0}")]
+pub struct PassError(pub String);
 
 impl PassError {
     pub fn new(msg: impl Into<String>) -> Self {
-        Self {
-            message: msg.into(),
-        }
+        Self(msg.into())
     }
 }
-
-impl std::fmt::Display for PassError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl std::error::Error for PassError {}
 
 pub trait Pass: Send + Sync {
     fn name(&self) -> &'static str;
     fn phase(&self) -> Phase;
     fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult;
+}
+
+type PassFn = Box<dyn Fn(&mut PassContext, &mut AstPayload) -> PassResult + Send + Sync>;
+
+pub(crate) struct FnPass {
+    pub name: &'static str,
+    pub phase: Phase,
+    pub run_fn: PassFn,
+}
+
+impl Pass for FnPass {
+    fn name(&self) -> &'static str {
+        self.name
+    }
+    fn phase(&self) -> Phase {
+        self.phase
+    }
+    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
+        (self.run_fn)(ctx, ast)
+    }
 }
 
 #[cfg(test)]
@@ -72,7 +97,7 @@ mod tests {
     #[test]
     fn pass_error_display() {
         let err = PassError::new("something broke");
-        assert_eq!(err.message, "something broke");
+        assert_eq!(err.0, "something broke");
         assert_eq!(format!("{err}"), "something broke");
     }
 
@@ -100,5 +125,40 @@ mod tests {
             toc: Vec::new(),
         };
         assert_eq!(ctx.source, "# Hello");
+    }
+
+    #[test]
+    fn ast_payload_mdast_mut() {
+        use crate::ast::common::{NodeId, Span};
+        let mut payload = AstPayload::Mdast(Document {
+            id: NodeId(0),
+            span: Span::empty(),
+            children: vec![],
+        });
+        assert!(payload.mdast_mut().is_some());
+        assert!(payload.hast_mut().is_none());
+    }
+
+    #[test]
+    fn ast_payload_hast_mut() {
+        use crate::ast::common::{NodeId, Span};
+        let mut payload = AstPayload::Hast(HRoot {
+            id: NodeId(0),
+            span: Span::empty(),
+            children: vec![],
+        });
+        assert!(payload.hast_mut().is_some());
+        assert!(payload.mdast_mut().is_none());
+    }
+
+    #[test]
+    fn fn_pass_works() {
+        let pass = FnPass {
+            name: "test",
+            phase: Phase::Transform,
+            run_fn: Box::new(|_ctx, _ast| Ok(())),
+        };
+        assert_eq!(pass.name(), "test");
+        assert_eq!(pass.phase(), Phase::Transform);
     }
 }

@@ -86,6 +86,8 @@ tree-sitter-erlang = { workspace = true, optional = true }
 url = { workspace = true }
 lasso = { workspace = true }
 sourcemap = { workspace = true }
+thiserror = { workspace = true }
+phf = { workspace = true }
 
 [lints]
 workspace = true

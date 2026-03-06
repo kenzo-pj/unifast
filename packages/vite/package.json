@@ -24,6 +24,7 @@
     "test:coverage": "vitest run --coverage --coverage.reporter=text --coverage.reporter=lcov"
   },
   "dependencies": {
+    "@unifast/core": "workspace:*",
     "gray-matter": "^4.0.3"
   },
   "devDependencies": {

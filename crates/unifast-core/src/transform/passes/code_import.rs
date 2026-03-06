@@ -1,31 +1,6 @@
 use crate::ast::mdast::nodes::MdNode;
-use crate::transform::pass::{AstPayload, Pass, PassContext, PassResult, Phase};
 
-pub struct CodeImportPass;
-
-impl Pass for CodeImportPass {
-    fn name(&self) -> &'static str {
-        "code_import"
-    }
-    fn phase(&self) -> Phase {
-        Phase::Transform
-    }
-    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
-        if !ctx.options.code_import.enabled {
-            return Ok(());
-        }
-        let root_dir = ctx.options.code_import.root_dir.as_deref();
-        match ast {
-            AstPayload::Mdast(doc) | AstPayload::Both { mdast: doc, .. } => {
-                apply_code_import(&mut doc.children, root_dir);
-                Ok(())
-            }
-            _ => Ok(()),
-        }
-    }
-}
-
-fn apply_code_import(children: &mut [MdNode], root_dir: Option<&str>) {
+pub fn apply_code_import(children: &mut [MdNode], root_dir: Option<&str>) {
     for child in children.iter_mut() {
         if let MdNode::Code(code) = child
             && let Some(ref meta) = code.meta
@@ -51,7 +26,7 @@ fn apply_code_import(children: &mut [MdNode], root_dir: Option<&str>) {
     }
 }
 
-fn extract_file_path(meta: &str) -> Option<String> {
+pub fn extract_file_path(meta: &str) -> Option<String> {
     for part in meta.split_whitespace() {
         if let Some(path) = part.strip_prefix("file=") {
             let path = path.trim_matches('"').trim_matches('\'');
@@ -66,13 +41,6 @@ fn extract_file_path(meta: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn metadata() {
-        let pass = CodeImportPass;
-        assert_eq!(pass.name(), "code_import");
-        assert_eq!(pass.phase(), Phase::Transform);
-    }
 
     #[test]
     fn extracts_file_path() {

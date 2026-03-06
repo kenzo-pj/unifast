@@ -1,11 +1,7 @@
 import type { HastRoot, HastElement, HastText, HastNode } from "@unifast/core";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, expectTypeOf } from "vitest";
 
 import { highlight } from "../index";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function makeText(value: string): HastText {
   return { type: "text", value };
@@ -42,10 +38,6 @@ function getTransform() {
   return plugin.hastTransform!;
 }
 
-// ---------------------------------------------------------------------------
-// 1. Plugin metadata
-// ---------------------------------------------------------------------------
-
 describe("plugin metadata", () => {
   it("has name 'highlight'", () => {
     const plugin = highlight();
@@ -61,13 +53,9 @@ describe("plugin metadata", () => {
 
   it("exposes hastTransform as a function", () => {
     const plugin = highlight();
-    expect(typeof plugin.hastTransform).toBe("function");
+    expectTypeOf(plugin.hastTransform).toBeFunction();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 2. JavaScript code block highlighting
-// ---------------------------------------------------------------------------
 
 describe("JavaScript highlighting", () => {
   it("adds hljs class and produces highlighted spans", () => {
@@ -80,15 +68,10 @@ describe("JavaScript highlighting", () => {
     const code = pre.children[0] as HastElement;
     expect(code.tagName).toBe("code");
     expect(code.properties.className).toStrictEqual(["language-javascript", "hljs"]);
-    // Lowlight should produce at least one span element for syntax highlighting
     const hasSpan = code.children.some((c) => c.type === "element" && c.tagName === "span");
     expect(hasSpan).toBeTruthy();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 3. Python code block highlighting
-// ---------------------------------------------------------------------------
 
 describe("Python highlighting", () => {
   it("highlights Python code and adds hljs class", () => {
@@ -103,10 +86,6 @@ describe("Python highlighting", () => {
     expect(hasSpan).toBeTruthy();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 4. Multiple code blocks in same document
-// ---------------------------------------------------------------------------
 
 describe("multiple code blocks", () => {
   it("highlights all code blocks in the same document", () => {
@@ -127,10 +106,6 @@ describe("multiple code blocks", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 5. Pre without code child -> unchanged
-// ---------------------------------------------------------------------------
-
 describe("pre without code child", () => {
   it("leaves pre unchanged when it has no code child", () => {
     const transform = getTransform();
@@ -149,10 +124,6 @@ describe("pre without code child", () => {
     expect(resultPre.children[0]).toStrictEqual(makeText("plain text"));
   });
 });
-
-// ---------------------------------------------------------------------------
-// 6. Code without language className -> unchanged
-// ---------------------------------------------------------------------------
 
 describe("code without language className", () => {
   it("leaves code block unchanged when no language- class is present", () => {
@@ -173,10 +144,6 @@ describe("code without language className", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 7. Code with unregistered language -> unchanged
-// ---------------------------------------------------------------------------
-
 describe("unregistered language", () => {
   it("leaves code block unchanged for an unregistered language", () => {
     const transform = getTransform();
@@ -196,10 +163,6 @@ describe("unregistered language", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 8. Empty code block
-// ---------------------------------------------------------------------------
-
 describe("empty code block", () => {
   it("handles an empty code block with a known language", () => {
     const transform = getTransform();
@@ -215,14 +178,9 @@ describe("empty code block", () => {
     const pre = result.children[0] as HastElement;
     const resultCode = pre.children[0] as HastElement;
     expect(resultCode.properties.className).toStrictEqual(["language-javascript", "hljs"]);
-    // Empty input should produce no children or empty children
     expect(resultCode.children).toHaveLength(0);
   });
 });
-
-// ---------------------------------------------------------------------------
-// 9. Code with nested elements (text extraction works)
-// ---------------------------------------------------------------------------
 
 describe("nested elements for text extraction", () => {
   it("extracts text from nested elements within code", () => {
@@ -252,15 +210,10 @@ describe("nested elements for text extraction", () => {
     const pre = result.children[0] as HastElement;
     const resultCode = pre.children[0] as HastElement;
     expect(resultCode.properties.className).toStrictEqual(["language-javascript", "hljs"]);
-    // The highlighted output should have spans from lowlight
     const hasSpan = resultCode.children.some((c) => c.type === "element" && c.tagName === "span");
     expect(hasSpan).toBeTruthy();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 10. className as non-array (string) -> ignored
-// ---------------------------------------------------------------------------
 
 describe("className as non-array", () => {
   it("returns null language when className is a string instead of array", () => {
@@ -276,15 +229,10 @@ describe("className as non-array", () => {
 
     const pre = result.children[0] as HastElement;
     const resultCode = pre.children[0] as HastElement;
-    // ClassName is not an array so extractLang returns null -> no transformation
     expect(resultCode.properties.className).toBe("language-javascript");
     expect(resultCode.children).toStrictEqual([makeText("const x = 1;")]);
   });
 });
-
-// ---------------------------------------------------------------------------
-// 11. className with non-language- classes -> ignored
-// ---------------------------------------------------------------------------
 
 describe("className with non-language- classes", () => {
   it("ignores classes that do not start with language-", () => {
@@ -304,10 +252,6 @@ describe("className with non-language- classes", () => {
     expect(resultCode.children).toStrictEqual([makeText("hello")]);
   });
 });
-
-// ---------------------------------------------------------------------------
-// 12. Preserves non-pre elements (p, div, etc.)
-// ---------------------------------------------------------------------------
 
 describe("preserves non-pre elements", () => {
   it("passes through p elements unchanged", () => {
@@ -343,10 +287,6 @@ describe("preserves non-pre elements", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 13. Passes through text nodes unchanged
-// ---------------------------------------------------------------------------
-
 describe("text nodes", () => {
   it("passes through text nodes unchanged", () => {
     const transform = getTransform();
@@ -357,10 +297,6 @@ describe("text nodes", () => {
     expect(result.children[0]).toStrictEqual(makeText("just text"));
   });
 });
-
-// ---------------------------------------------------------------------------
-// 14. Passes through comment nodes unchanged
-// ---------------------------------------------------------------------------
 
 describe("comment nodes", () => {
   it("passes through comment nodes unchanged", () => {
@@ -373,10 +309,6 @@ describe("comment nodes", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 15. Passes through raw nodes unchanged
-// ---------------------------------------------------------------------------
-
 describe("raw nodes", () => {
   it("passes through raw nodes unchanged", () => {
     const transform = getTransform();
@@ -388,10 +320,6 @@ describe("raw nodes", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 16. Passes through doctype nodes unchanged
-// ---------------------------------------------------------------------------
-
 describe("doctype nodes", () => {
   it("passes through doctype nodes unchanged", () => {
     const transform = getTransform();
@@ -402,10 +330,6 @@ describe("doctype nodes", () => {
     expect(result.children[0]).toStrictEqual({ type: "doctype" });
   });
 });
-
-// ---------------------------------------------------------------------------
-// 17. Recursively transforms nested elements (div > pre > code)
-// ---------------------------------------------------------------------------
 
 describe("recursive transformation", () => {
   it("transforms pre>code inside a div", () => {
@@ -429,10 +353,6 @@ describe("recursive transformation", () => {
     expect(hasSpan).toBeTruthy();
   });
 });
-
-// ---------------------------------------------------------------------------
-// 18. Deeply nested structure (section > article > pre > code)
-// ---------------------------------------------------------------------------
 
 describe("deeply nested structure", () => {
   it("transforms pre>code inside section>article", () => {
@@ -463,10 +383,6 @@ describe("deeply nested structure", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 19. Empty root
-// ---------------------------------------------------------------------------
-
 describe("empty root", () => {
   it("handles an empty root with no children", () => {
     const transform = getTransform();
@@ -478,10 +394,6 @@ describe("empty root", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 20. Code with special characters (HTML entities, quotes)
-// ---------------------------------------------------------------------------
-
 describe("special characters", () => {
   it("handles code containing HTML special characters", () => {
     const transform = getTransform();
@@ -492,7 +404,6 @@ describe("special characters", () => {
     const pre = result.children[0] as HastElement;
     const code = pre.children[0] as HastElement;
     expect(code.properties.className).toStrictEqual(["language-javascript", "hljs"]);
-    // The highlight should still produce output (not crash)
     expect(code.children.length).toBeGreaterThanOrEqual(0);
   });
 
@@ -508,10 +419,6 @@ describe("special characters", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// 21. Code with unicode characters
-// ---------------------------------------------------------------------------
-
 describe("unicode characters", () => {
   it("handles code with unicode identifiers and strings", () => {
     const transform = getTransform();
@@ -523,7 +430,6 @@ describe("unicode characters", () => {
     const code = pre.children[0] as HastElement;
     expect(code.properties.className).toStrictEqual(["language-javascript", "hljs"]);
 
-    // Collect all text content from the highlighted output
     function collectText(node: HastNode): string {
       if (node.type === "text") return node.value;
       if (node.type === "element" || node.type === "root") {
@@ -535,10 +441,6 @@ describe("unicode characters", () => {
     expect(outputText).toContain("こんにちは世界");
   });
 });
-
-// ---------------------------------------------------------------------------
-// 22. First language- class wins when multiple present
-// ---------------------------------------------------------------------------
 
 describe("first language- class wins", () => {
   it("uses the first language- class when multiple are present", () => {
@@ -554,14 +456,9 @@ describe("first language- class wins", () => {
 
     const pre = result.children[0] as HastElement;
     const resultCode = pre.children[0] as HastElement;
-    // The first language- class is "python", so it should be highlighted as python
     expect(resultCode.properties.className).toStrictEqual(["language-python", "hljs"]);
   });
 });
-
-// ---------------------------------------------------------------------------
-// 23. Code with className having empty array
-// ---------------------------------------------------------------------------
 
 describe("empty className array", () => {
   it("leaves code unchanged when className is an empty array", () => {
@@ -580,10 +477,6 @@ describe("empty className array", () => {
     expect(resultCode.children).toStrictEqual([makeText("no highlight")]);
   });
 });
-
-// ---------------------------------------------------------------------------
-// Additional edge cases
-// ---------------------------------------------------------------------------
 
 describe("preserves existing code properties", () => {
   it("keeps existing properties on the code element after highlighting", () => {
@@ -635,11 +528,7 @@ describe("mixed content in root", () => {
 
 describe("root node inside element children", () => {
   it("transforms root nodes nested in element children", () => {
-    // While unusual, the transformNode function handles root nodes recursively
     const transform = getTransform();
-    // We can't directly nest a root in children via the type system easily,
-    // But the code handles it. We test via the top-level root which exercises
-    // The root -> children -> map path.
     const root: HastRoot = {
       type: "root",
       children: [
@@ -673,7 +562,6 @@ describe("pre with multiple children including code", () => {
     const result = transform(root);
 
     const resultPre = result.children[0] as HastElement;
-    // When code is found, the pre's children get replaced with just the highlighted code
     const code = resultPre.children[0] as HastElement;
     expect(code.properties.className).toStrictEqual(["language-javascript", "hljs"]);
   });

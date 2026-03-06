@@ -1,4 +1,4 @@
-use super::pass::Pass;
+use super::pass::{FnPass, Pass, PassResult, Phase};
 
 pub struct PassRegistry {
     passes: Vec<Box<dyn Pass>>,
@@ -12,6 +12,22 @@ impl PassRegistry {
 
     pub fn register(&mut self, pass: Box<dyn Pass>) {
         self.passes.push(pass);
+    }
+
+    pub fn register_fn(
+        &mut self,
+        name: &'static str,
+        phase: Phase,
+        run: impl Fn(&mut super::pass::PassContext, &mut super::pass::AstPayload) -> PassResult
+        + Send
+        + Sync
+        + 'static,
+    ) {
+        self.passes.push(Box::new(FnPass {
+            name,
+            phase,
+            run_fn: Box::new(run),
+        }));
     }
 
     #[must_use]
