@@ -74,5 +74,6 @@ async function fetchSponsors(): Promise<Sponsor[]> {
 }
 
 const sponsors = await fetchSponsors();
+fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, JSON.stringify(sponsors, null, 2) + "\n");
 console.log(`[fetch-sponsors] Wrote ${sponsors.length} sponsors to ${outPath}`);
