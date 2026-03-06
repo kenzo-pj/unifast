@@ -19,6 +19,7 @@
     },
     "website": {
       "entry": ["src/entry-server.tsx", "plugins/*.ts"],
+      "ignore": ["src/components/Example/**"],
       "ignoreDependencies": ["babel-plugin-react-compiler", "lightningcss"]
     }
   }
