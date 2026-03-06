@@ -8,6 +8,8 @@ use crate::parse;
 use crate::transform::pass::{AstPayload, PassContext, Phase};
 #[cfg(feature = "highlight")]
 use crate::transform::passes::highlight;
+#[cfg(feature = "highlight")]
+use crate::transform::passes::highlight::HighlightEngine as _;
 use crate::transform::passes::{
     autolink_headings, breaks, cjk, code_import, definition_list, directive, emoji, external_links,
     github_alert,
@@ -360,7 +362,33 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
                 }
             };
             crate::transform::passes::slug::apply_slugs(&mut mdx_doc, slug_mode);
-            let mdx_output = crate::emit::mdx_js::printer::print_mdx_js(&mdx_doc);
+
+            #[cfg(feature = "highlight")]
+            let highlight_fn: Option<Box<crate::emit::mdx_js::printer::HighlightFn>> =
+                if opts.highlight.enabled {
+                    match opts.highlight.engine {
+                        crate::api::options::HighlightEngine::Syntect => {
+                            let engine = highlight::SyntectHighlighter::new();
+                            Some(Box::new(move |code: &str, lang: &str| {
+                                engine.highlight(code, lang)
+                            }))
+                        }
+                        crate::api::options::HighlightEngine::TreeSitter => {
+                            let engine = highlight::TreeSitterHighlighter;
+                            Some(Box::new(move |code: &str, lang: &str| {
+                                engine.highlight(code, lang)
+                            }))
+                        }
+                        crate::api::options::HighlightEngine::None => None,
+                    }
+                } else {
+                    None
+                };
+            #[cfg(not(feature = "highlight"))]
+            let highlight_fn: Option<Box<crate::emit::mdx_js::printer::HighlightFn>> = None;
+
+            let mdx_output =
+                crate::emit::mdx_js::printer::print_mdx_js(&mdx_doc, highlight_fn.as_deref());
             let map = Some(crate::emit::mdx_js::sourcemap::generate_sourcemap(
                 "output.js",
                 input,

@@ -107,48 +107,6 @@ function transformMd(source: string, compile: CompileFn | null, compileOpts: Com
   };
 }
 
-function highlightMdxCodeBlocks(
-  jsOutput: string,
-  compile: CompileFn,
-  compileOpts: CompileOptions,
-): string {
-  return jsOutput.replaceAll(
-    /_jsx\("pre", \{\s*children:\s*_jsx\("code", \{\s*children:\s*"((?:[^"\\]|\\.)*)"\s*,\s*className:\s*"language-(\w+)"\s*\}\)\s*\}\)/g,
-    (match, rawCode, rawLang) => {
-      try {
-        const escapedCode = String(rawCode);
-        const lang = String(rawLang);
-        const code = escapedCode
-          .replaceAll("\\n", "\n")
-          .replaceAll('\\"', '"')
-          .replaceAll("\\\\", "\\");
-
-        const result = compile(`\`\`\`${lang}\n${code}\n\`\`\`\n`, {
-          ...compileOpts,
-          inputKind: "md",
-          outputKind: "html",
-        });
-
-        const innerHtml = result.output.replace(/^<pre[^>]*>/, "").replace(/<\/pre>\s*$/, "");
-        return `_jsx("pre", { __rawCode: ${JSON.stringify(code)}, dangerouslySetInnerHTML: { __html: ${JSON.stringify(innerHtml)} } })`;
-      } catch {
-        return match;
-      }
-    },
-  );
-}
-
-function injectComponentsSupport(jsOutput: string): string {
-  const replaced = jsOutput.replace(
-    /function MDXContent\(props\) \{/,
-    "function MDXContent({ components: _components = {}, ...props }) {\nconst _c = (t) => _components[t] || t;",
-  );
-  if (replaced === jsOutput) return jsOutput;
-  return replaced
-    .replaceAll(/_jsx\("([a-z][a-z0-9]*)"/g, '_jsx(_c("$1")')
-    .replaceAll(/_jsxs\("([a-z][a-z0-9]*)"/g, '_jsxs(_c("$1")');
-}
-
 function transformMdx(source: string, compile: CompileFn, compileOpts: CompileOptions) {
   const result = compile(source, {
     ...compileOpts,
@@ -156,13 +114,10 @@ function transformMdx(source: string, compile: CompileFn, compileOpts: CompileOp
     outputKind: "mdxJs",
   });
 
-  const highlighted = highlightMdxCodeBlocks(result.output, compile, compileOpts);
-  const withComponents = injectComponentsSupport(highlighted);
-
   return {
     code: [
       `import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";`,
-      withComponents,
+      result.output,
       `export const frontmatter = ${JSON.stringify(result.frontmatter ?? {})};`,
       `export const toc = ${JSON.stringify(result.toc ?? [])};`,
     ].join("\n"),
