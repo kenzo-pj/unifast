@@ -1,35 +1,24 @@
-use std::collections::HashMap;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Symbol(u32);
+pub use lasso::Spur as Symbol;
 
 pub struct Interner {
-    map: HashMap<String, Symbol>,
-    strings: Vec<String>,
+    rodeo: lasso::Rodeo,
 }
 
 impl Interner {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            map: HashMap::new(),
-            strings: vec![],
+            rodeo: lasso::Rodeo::new(),
         }
     }
 
     pub fn intern(&mut self, s: &str) -> Symbol {
-        if let Some(&sym) = self.map.get(s) {
-            return sym;
-        }
-        let sym = Symbol(self.strings.len() as u32);
-        self.strings.push(s.to_owned());
-        self.map.insert(s.to_owned(), sym);
-        sym
+        self.rodeo.get_or_intern(s)
     }
 
     #[must_use]
     pub fn resolve(&self, sym: Symbol) -> &str {
-        &self.strings[sym.0 as usize]
+        self.rodeo.resolve(&sym)
     }
 }
 

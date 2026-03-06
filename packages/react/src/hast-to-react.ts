@@ -1,4 +1,5 @@
 import type { HastNode, HastRoot } from "@unifast/core";
+import StyleToObject from "style-to-object";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type CreateElement = (type: any, props: any, ...children: any[]) => any;
@@ -52,16 +53,14 @@ const PROP_RENAMES: Record<string, string> = {
 
 function parseStyleString(style: string): Record<string, string> {
   const result: Record<string, string> = {};
-  for (const declaration of style.split(";")) {
-    const trimmed = declaration.trim();
-    if (!trimmed) continue;
-    const colonIndex = trimmed.indexOf(":");
-    if (colonIndex === -1) continue;
-    const prop = trimmed.slice(0, colonIndex).trim();
-    const value = trimmed.slice(colonIndex + 1).trim();
-    const camelProp = prop.replaceAll(/-([a-z])/g, (_, c) => String(c).toUpperCase());
-    result[camelProp] = value;
-  }
+  StyleToObject(style, (name, value) => {
+    if (name && value) {
+      const camelName = name.startsWith("--")
+        ? name
+        : name.replaceAll(/-([a-z])/g, (_, c) => String(c).toUpperCase());
+      result[camelName] = value;
+    }
+  });
   return result;
 }
 

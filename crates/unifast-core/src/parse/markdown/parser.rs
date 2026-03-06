@@ -1869,24 +1869,7 @@ fn try_parse_entity(s: &str) -> Option<(String, usize)> {
         let ch = char::from_u32(code_point)?;
         Some((ch.to_string(), semi + 2))
     } else {
-        let decoded = match entity_body {
-            "amp" => "&",
-            "lt" => "<",
-            "gt" => ">",
-            "quot" => "\"",
-            "apos" => "'",
-            "nbsp" => "\u{00A0}",
-            "copy" => "\u{00A9}",
-            "reg" => "\u{00AE}",
-            "mdash" => "\u{2014}",
-            "ndash" => "\u{2013}",
-            "hellip" => "\u{2026}",
-            "laquo" => "\u{00AB}",
-            "raquo" => "\u{00BB}",
-            "trade" => "\u{2122}",
-            _ => return None,
-        };
-        Some((decoded.to_string(), semi + 2))
+        crate::parse::entities::lookup(entity_body).map(|decoded| (decoded.to_string(), semi + 2))
     }
 }
 

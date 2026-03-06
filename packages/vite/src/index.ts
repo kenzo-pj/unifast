@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import { createRequire } from "node:module";
 
+import matter from "gray-matter";
 import type { Plugin } from "vite";
 
 export interface UnifastPluginOptions {
@@ -36,23 +37,8 @@ function extractFrontmatter(source: string): {
   frontmatter: Record<string, unknown>;
   body: string;
 } {
-  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
-  if (!match) return { frontmatter: {}, body: source };
-
-  const raw = match[1];
-  const body = match[2];
-  const frontmatter: Record<string, unknown> = {};
-
-  for (const line of raw.split("\n")) {
-    const idx = line.indexOf(":");
-    if (idx > 0) {
-      const key = line.slice(0, idx).trim();
-      const value = line.slice(idx + 1).trim();
-      frontmatter[key] = value;
-    }
-  }
-
-  return { frontmatter, body };
+  const { data, content } = matter(source);
+  return { frontmatter: data, body: content };
 }
 
 export default function unifastPlugin(options: UnifastPluginOptions = {}): Plugin {

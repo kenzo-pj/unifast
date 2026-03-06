@@ -21,8 +21,7 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-      - name: 🦀 Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/setup-rust
         with:
           components: rustfmt
       - name: 🎨 Check formatting
@@ -34,17 +33,7 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-      - name: 🦀 Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: 💾 Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-clippy-
+      - uses: ./.github/actions/setup-rust
       - name: 📎 Run Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
 
@@ -54,17 +43,7 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-      - name: 🦀 Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: 💾 Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-test-
+      - uses: ./.github/actions/setup-rust
       - name: 🧪 Run tests
         run: cargo test --all --all-features
 
@@ -74,17 +53,7 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-      - name: 🦀 Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: 💾 Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-node-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-node-
+      - uses: ./.github/actions/setup-rust
       - name: 🔨 Check Node binding
         run: cargo check -p unifast-bindings-node
 
@@ -94,18 +63,8 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-      - name: 🦀 Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-      - name: 💾 Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-wasm-
+      - uses: ./.github/actions/setup-rust
+      - name: 🔧 Add WASM target
+        run: rustup target add wasm32-unknown-unknown
       - name: 🔨 Check WASM binding
         run: cargo check -p unifast-bindings-wasm --target wasm32-unknown-unknown

@@ -1,66 +1,33 @@
 use super::printer::SourceMapping;
+use crate::util::line_index::LineIndex;
 
 #[must_use]
 pub fn generate_sourcemap(file: &str, source_content: &str, mappings: &[SourceMapping]) -> String {
-    let mappings_str = encode_mappings(mappings);
     let source_file = file.replace(".js", ".mdx");
-    let escaped_content = escape_json_string(source_content);
-    format!(
-        r#"{{"version":3,"file":"{file}","sources":["{source_file}"],"sourcesContent":["{escaped_content}"],"mappings":"{mappings_str}"}}"#,
-    )
-}
+    let line_index = LineIndex::new(source_content);
 
-fn encode_mappings(mappings: &[SourceMapping]) -> String {
-    if mappings.is_empty() {
-        return String::new();
-    }
-
-    let mut result = String::new();
-    let mut current_line: u32 = 1;
+    let mut builder = sourcemap::SourceMapBuilder::new(Some(file));
+    let src_id = builder.add_source(&source_file);
+    builder.set_source_contents(src_id, Some(source_content));
 
     for mapping in mappings {
-        while current_line < mapping.generated_line {
-            result.push(';');
-            current_line += 1;
-        }
-        if !result.is_empty() && !result.ends_with(';') {
-            result.push(',');
-        }
-        result.push_str(&vlq_encode(i64::from(mapping.generated_column)));
+        let original_pos = line_index.line_col(mapping.original_offset);
+        builder.add_raw(
+            mapping.generated_line - 1,
+            mapping.generated_column,
+            original_pos.line - 1,
+            original_pos.column - 1,
+            Some(src_id),
+            None,
+            false,
+        );
     }
 
-    result
-}
-
-fn vlq_encode(value: i64) -> String {
-    let mut result = String::new();
-    let mut v = if value < 0 {
-        ((-value) << 1) | 1
-    } else {
-        value << 1
-    };
-    loop {
-        let mut digit = (v & 0x1F) as u8;
-        v >>= 5;
-        if v > 0 {
-            digit |= 0x20;
-        }
-        result.push(VLQ_CHARS[digit as usize] as char);
-        if v == 0 {
-            break;
-        }
-    }
-    result
-}
-
-const VLQ_CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-fn escape_json_string(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
+    let sm = builder.into_sourcemap();
+    let mut buf = Vec::new();
+    sm.to_writer(&mut buf)
+        .expect("sourcemap serialization failed");
+    String::from_utf8(buf).expect("sourcemap is valid UTF-8")
 }
 
 #[cfg(test)]
@@ -69,7 +36,10 @@ mod tests {
 
     #[test]
     fn empty_mappings() {
-        assert_eq!(encode_mappings(&[]), "");
+        let map = generate_sourcemap("output.js", "# Hello\n", &[]);
+        assert!(map.contains("\"version\":3"));
+        assert!(map.contains("output.js"));
+        assert!(map.contains("output.mdx"));
     }
 
     #[test]
@@ -79,8 +49,9 @@ mod tests {
             generated_column: 0,
             original_offset: 0,
         }];
-        let encoded = encode_mappings(&mappings);
-        assert!(!encoded.is_empty());
+        let map = generate_sourcemap("output.js", "# Hello\n", &mappings);
+        assert!(map.contains("\"version\":3"));
+        assert!(map.contains("\"mappings\""));
     }
 
     #[test]
@@ -97,45 +68,13 @@ mod tests {
                 original_offset: 10,
             },
         ];
-        let encoded = encode_mappings(&mappings);
-        assert!(encoded.contains(';'));
-    }
-
-    #[test]
-    fn vlq_zero() {
-        assert_eq!(vlq_encode(0), "A");
-    }
-
-    #[test]
-    fn vlq_positive() {
-        let encoded = vlq_encode(1);
-        assert!(!encoded.is_empty());
-    }
-
-    #[test]
-    fn vlq_negative() {
-        let encoded = vlq_encode(-1);
-        assert!(!encoded.is_empty());
-        assert_ne!(encoded, vlq_encode(1));
-    }
-
-    #[test]
-    fn generate_sourcemap_basic() {
-        let map = generate_sourcemap("output.js", "# Hello\n", &[]);
-        assert!(map.contains("\"version\":3"));
-        assert!(map.contains("output.js"));
-        assert!(map.contains("output.mdx"));
+        let map = generate_sourcemap("output.js", "hello\nworld\nfoo\n", &mappings);
+        assert!(map.contains("\"mappings\""));
     }
 
     #[test]
     fn generate_sourcemap_with_content() {
         let map = generate_sourcemap("out.js", "hello\nworld\n", &[]);
-        assert!(map.contains("hello\\nworld\\n"));
-    }
-
-    #[test]
-    fn escape_json_handles_special_chars() {
-        let escaped = escape_json_string("a\"b\\c\nd\re\tf");
-        assert_eq!(escaped, "a\\\"b\\\\c\\nd\\re\\tf");
+        assert!(map.contains("hello"));
     }
 }

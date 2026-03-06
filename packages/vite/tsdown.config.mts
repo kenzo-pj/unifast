@@ -1,9 +1,8 @@
 import { defineConfig } from "tsdown";
 
+import { shared } from "../tsdown.shared.mts";
+
 export default defineConfig({
-  entry: ["src/index.ts"],
+  ...shared,
   format: ["esm"],
-  dts: true,
-  clean: true,
-  exports: true,
 });

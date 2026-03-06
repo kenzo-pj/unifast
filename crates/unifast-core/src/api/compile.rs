@@ -4,13 +4,15 @@ use crate::ast::common::NodeIdGen;
 use crate::emit::html::stringify;
 use crate::parse;
 use crate::transform::pass::{AstPayload, PassContext};
+#[cfg(feature = "highlight")]
+use crate::transform::passes::highlight_pass::HighlightPass;
 use crate::transform::passes::{
     autolink_headings_pass::AutolinkHeadingsPass, breaks_pass::BreaksPass, cjk_pass::CjkPass,
     cleanup_pass::CleanupPass, code_import_pass::CodeImportPass,
     definition_list_pass::DefinitionListPass, directive_pass::DirectivePass, emoji_pass::EmojiPass,
     external_links_pass::ExternalLinksPass, github_alert_pass::GithubAlertPass,
-    highlight_pass::HighlightPass, line_number_pass::LineNumberPass, lower_pass::LowerPass,
-    math_pass::MathPass, normalize_pass::NormalizePass, resolve_defs_pass::ResolveDefsPass,
+    line_number_pass::LineNumberPass, lower_pass::LowerPass, math_pass::MathPass,
+    normalize_pass::NormalizePass, resolve_defs_pass::ResolveDefsPass,
     ruby_annotation_pass::RubyAnnotationPass, sanitize_pass::SanitizePass,
     sectionize_pass::SectionizePass, slug_pass::SlugPass, smartypants_pass::SmartypantsPass,
     toc_pass::TocPass, wiki_link_pass::WikiLinkPass,
@@ -56,6 +58,7 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         if opts.sanitize.enabled {
             registry.register(Box::new(SanitizePass));
         }
+        #[cfg(feature = "highlight")]
         if opts.highlight.enabled {
             registry.register(Box::new(HighlightPass));
         }

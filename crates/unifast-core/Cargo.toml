@@ -6,46 +6,86 @@ license.workspace = true
 repository.workspace = true
 description.workspace = true
 
+[features]
+default = ["highlight"]
+highlight = [
+    "dep:syntect",
+    "dep:tree-sitter",
+    "dep:tree-sitter-highlight",
+    "dep:tree-sitter-javascript",
+    "dep:tree-sitter-typescript",
+    "dep:tree-sitter-html",
+    "dep:tree-sitter-css",
+    "dep:tree-sitter-markdown",
+    "dep:tree-sitter-python",
+    "dep:tree-sitter-rust",
+    "dep:tree-sitter-bash",
+    "dep:tree-sitter-json",
+    "dep:tree-sitter-yaml",
+    "dep:tree-sitter-c",
+    "dep:tree-sitter-cpp",
+    "dep:tree-sitter-go",
+    "dep:tree-sitter-ruby",
+    "dep:tree-sitter-toml-ng",
+    "dep:tree-sitter-swift",
+    "dep:tree-sitter-php",
+    "dep:tree-sitter-java",
+    "dep:tree-sitter-lua",
+    "dep:tree-sitter-scala",
+    "dep:tree-sitter-zig",
+    "dep:tree-sitter-elixir",
+    "dep:tree-sitter-ocaml",
+    "dep:tree-sitter-r",
+    "dep:tree-sitter-cmake",
+    "dep:tree-sitter-make",
+    "dep:tree-sitter-nix",
+    "dep:tree-sitter-regex",
+    "dep:tree-sitter-erlang",
+]
+
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_yaml = { workspace = true }
 toml = { workspace = true }
 bumpalo = { workspace = true }
-syntect = { workspace = true }
-tree-sitter = { workspace = true }
-tree-sitter-highlight = { workspace = true }
-tree-sitter-javascript = { workspace = true }
-tree-sitter-typescript = { workspace = true }
-tree-sitter-html = { workspace = true }
-tree-sitter-css = { workspace = true }
-tree-sitter-markdown = { workspace = true }
-tree-sitter-python = { workspace = true }
-tree-sitter-rust = { workspace = true }
-tree-sitter-bash = { workspace = true }
-tree-sitter-json = { workspace = true }
-tree-sitter-yaml = { workspace = true }
-tree-sitter-c = { workspace = true }
-tree-sitter-cpp = { workspace = true }
-tree-sitter-go = { workspace = true }
-tree-sitter-ruby = { workspace = true }
-tree-sitter-toml-ng = { workspace = true }
-tree-sitter-swift = { workspace = true }
-tree-sitter-php = { workspace = true }
-tree-sitter-java = { workspace = true }
-tree-sitter-lua = { workspace = true }
-# tree-sitter-kotlin = { workspace = true } # TODO: incompatible tree-sitter version
-tree-sitter-scala = { workspace = true }
-tree-sitter-zig = { workspace = true }
-tree-sitter-elixir = { workspace = true }
-tree-sitter-ocaml = { workspace = true }
-tree-sitter-r = { workspace = true }
-tree-sitter-cmake = { workspace = true }
-# tree-sitter-dockerfile = { workspace = true } # TODO: incompatible tree-sitter version
-tree-sitter-make = { workspace = true }
-tree-sitter-nix = { workspace = true }
-tree-sitter-regex = { workspace = true }
-tree-sitter-erlang = { workspace = true }
+syntect = { workspace = true, optional = true }
+tree-sitter = { workspace = true, optional = true }
+tree-sitter-highlight = { workspace = true, optional = true }
+tree-sitter-javascript = { workspace = true, optional = true }
+tree-sitter-typescript = { workspace = true, optional = true }
+tree-sitter-html = { workspace = true, optional = true }
+tree-sitter-css = { workspace = true, optional = true }
+tree-sitter-markdown = { workspace = true, optional = true }
+tree-sitter-python = { workspace = true, optional = true }
+tree-sitter-rust = { workspace = true, optional = true }
+tree-sitter-bash = { workspace = true, optional = true }
+tree-sitter-json = { workspace = true, optional = true }
+tree-sitter-yaml = { workspace = true, optional = true }
+tree-sitter-c = { workspace = true, optional = true }
+tree-sitter-cpp = { workspace = true, optional = true }
+tree-sitter-go = { workspace = true, optional = true }
+tree-sitter-ruby = { workspace = true, optional = true }
+tree-sitter-toml-ng = { workspace = true, optional = true }
+tree-sitter-swift = { workspace = true, optional = true }
+tree-sitter-php = { workspace = true, optional = true }
+tree-sitter-java = { workspace = true, optional = true }
+tree-sitter-lua = { workspace = true, optional = true }
+# tree-sitter-kotlin = { workspace = true, optional = true } # TODO: incompatible tree-sitter version
+tree-sitter-scala = { workspace = true, optional = true }
+tree-sitter-zig = { workspace = true, optional = true }
+tree-sitter-elixir = { workspace = true, optional = true }
+tree-sitter-ocaml = { workspace = true, optional = true }
+tree-sitter-r = { workspace = true, optional = true }
+tree-sitter-cmake = { workspace = true, optional = true }
+# tree-sitter-dockerfile = { workspace = true, optional = true } # TODO: incompatible tree-sitter version
+tree-sitter-make = { workspace = true, optional = true }
+tree-sitter-nix = { workspace = true, optional = true }
+tree-sitter-regex = { workspace = true, optional = true }
+tree-sitter-erlang = { workspace = true, optional = true }
+url = { workspace = true }
+lasso = { workspace = true }
+sourcemap = { workspace = true }
 
 [lints]
 workspace = true

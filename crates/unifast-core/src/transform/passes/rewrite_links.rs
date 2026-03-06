@@ -46,6 +46,16 @@ fn is_relative(url: &str) -> bool {
 }
 
 fn resolve_url(base: &str, relative: &str) -> String {
+    let normalized = if base.ends_with('/') {
+        base.to_string()
+    } else {
+        format!("{base}/")
+    };
+    if let Ok(base_url) = url::Url::parse(&normalized)
+        && let Ok(resolved) = base_url.join(relative)
+    {
+        return resolved.to_string();
+    }
     let base = base.trim_end_matches('/');
     let relative = relative.trim_start_matches("./");
     format!("{base}/{relative}")
@@ -376,6 +386,34 @@ mod tests {
             }
         } else {
             panic!("Expected blockquote");
+        }
+    }
+
+    #[test]
+    fn rewrite_parent_directory_traversal() {
+        let mut id_gen = NodeIdGen::new();
+        let link = make_link(&mut id_gen, "../other/page.html", "link");
+        let para = MdNode::Paragraph(Paragraph {
+            id: id_gen.next_id(),
+            span: Span::new(0, 30),
+            children: vec![link],
+        });
+        let mut doc = make_doc_with(&mut id_gen, vec![para]);
+
+        let options = RewriteOptions {
+            base_url: Some("https://example.com/docs/guide/".to_string()),
+            make_absolute: true,
+        };
+        rewrite_links(&mut doc, &options);
+
+        if let MdNode::Paragraph(p) = &doc.children[0] {
+            if let MdNode::Link(l) = &p.children[0] {
+                assert_eq!(l.url, "https://example.com/docs/other/page.html");
+            } else {
+                panic!("Expected link");
+            }
+        } else {
+            panic!("Expected paragraph");
         }
     }
 }

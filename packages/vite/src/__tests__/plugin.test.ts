@@ -127,7 +127,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     const result = transform.call({}, "", "test.md");
 
     const { code } = result;
-    expect(code).toContain('"time":"12:30:45"');
+    expect(code).toContain('"time":45045');
   });
 
   // ---- 11. Key with empty value -------------------------------------------
@@ -138,7 +138,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     const result = transform.call({}, "", "test.md");
 
     const { code } = result;
-    expect(code).toContain('"draft":""');
+    expect(code).toContain('"draft":null');
   });
 
   // ---- 12. HTML escaping (< → &lt;) ---------------------------------------

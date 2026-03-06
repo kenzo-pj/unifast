@@ -10,7 +10,7 @@ description.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-unifast-core = { workspace = true }
+unifast-core = { workspace = true, features = ["highlight"] }
 napi = { workspace = true }
 napi-derive = { workspace = true }
 serde = { workspace = true }

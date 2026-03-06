@@ -7,9 +7,10 @@ repository.workspace = true
 description.workspace = true
 
 [dependencies]
-unifast-core = { workspace = true }
+unifast-core = { workspace = true, features = ["highlight"] }
 clap = { workspace = true }
 serde_json = { workspace = true }
+miette = { workspace = true }
 
 [lints]
 workspace = true

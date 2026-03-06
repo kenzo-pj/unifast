@@ -1,11 +1,9 @@
 import { defineConfig } from "tsdown";
 
+import { shared } from "../tsdown.shared.mts";
+
 export default defineConfig({
-  entry: ["src/index.ts"],
-  format: ["esm", "cjs"],
-  dts: true,
-  clean: true,
-  exports: true,
+  ...shared,
   deps: {
     neverBundle: [/\.node$/],
   },

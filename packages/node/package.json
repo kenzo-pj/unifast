@@ -30,7 +30,8 @@
     "test:coverage": "vitest run --coverage --coverage.reporter=text --coverage.reporter=lcov"
   },
   "dependencies": {
-    "@unifast/core": "workspace:*"
+    "@unifast/core": "workspace:*",
+    "deepmerge": "^4.3.1"
   },
   "devDependencies": {
     "@types/node": "^25.3.5",

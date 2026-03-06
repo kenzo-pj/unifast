@@ -1,3 +1,4 @@
+pub mod entities;
 pub mod frontmatter;
 pub mod gfm;
 pub mod markdown;

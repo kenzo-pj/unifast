@@ -1,0 +1,19 @@
+name: Setup Rust
+description: Setup Rust toolchain with cargo caching
+
+inputs:
+  components:
+    description: Additional rustup components (e.g., rustfmt, clippy)
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: dtolnay/rust-toolchain@stable
+      if: inputs.components == ''
+    - uses: dtolnay/rust-toolchain@stable
+      if: inputs.components != ''
+      with:
+        components: ${{ inputs.components }}
+    - uses: Swatinem/rust-cache@v2

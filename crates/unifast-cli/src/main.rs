@@ -93,17 +93,29 @@ fn main() {
     }
 
     if cli.diagnostics && !result.diagnostics.is_empty() {
-        eprintln!("\n--- Diagnostics ---");
+        let line_index = unifast_core::util::line_index::LineIndex::new(&input);
         for d in &result.diagnostics {
-            eprintln!(
-                "{}: {}",
-                if d.level == unifast_core::diagnostics::diagnostic::DiagLevel::Error {
-                    "error"
-                } else {
-                    "warning"
-                },
+            let _pos = line_index.line_col(d.span.start);
+            let _len = (d.span.end - d.span.start).max(1) as usize;
+            let severity = if d.level == unifast_core::diagnostics::diagnostic::DiagLevel::Error {
+                miette::Severity::Error
+            } else {
+                miette::Severity::Warning
+            };
+            let report = miette::miette!(
+                severity = severity,
+                labels = vec![miette::LabeledSpan::at(
+                    d.span.start as usize..d.span.end as usize,
+                    &d.message
+                )],
+                "{}",
                 d.message
-            );
+            )
+            .with_source_code(miette::NamedSource::new(
+                cli.input.display().to_string(),
+                input.clone(),
+            ));
+            eprintln!("{report:?}");
         }
     }
 

@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "@unifast/core": "workspace:*",
-    "@unifast/node": "workspace:*"
+    "@unifast/node": "workspace:*",
+    "style-to-object": "^1.0.14"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

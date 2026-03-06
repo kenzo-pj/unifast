@@ -23,15 +23,7 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: pnpm
-      - name: 📥 Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup-node
       - name: 🎨 Lint CSS
         run: pnpm --filter @unifast/website lint:css
       - name: 📝 Lint Markdown
@@ -46,18 +38,7 @@ jobs:
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 🦀 Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: 💾 Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-website-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-website-
+      - uses: ./.github/actions/setup-rust
 
       - name: 🔨 Build native binding
         run: |
@@ -65,16 +46,7 @@ jobs:
           mkdir -p packages/node/native
           cp target/release/libunifast_bindings_node.so packages/node/native/unifast.node
 
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: pnpm
-
-      - name: 📥 Install dependencies
-        run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup-node
       - name: 🏗️ Build website
         run: pnpm build:website
         env:

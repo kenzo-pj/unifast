@@ -1,5 +1,6 @@
 import type { CompileOptions, CompileResult, HastRoot, HastNode, HastElement } from "@unifast/core";
 import { hastToHtml } from "@unifast/core";
+import deepmerge from "deepmerge";
 
 import { loadNativeBinding } from "./native";
 
@@ -42,30 +43,6 @@ export type {
   WikiLinkPluginOptions,
   CodeImportPluginOptions,
 } from "@unifast/core";
-
-function deepMerge(
-  target: Record<string, unknown>,
-  source: Record<string, unknown>,
-): Record<string, unknown> {
-  const result = { ...target };
-  for (const key of Object.keys(source)) {
-    const srcVal = source[key];
-    const tgtVal = result[key];
-    if (
-      srcVal &&
-      typeof srcVal === "object" &&
-      !Array.isArray(srcVal) &&
-      tgtVal &&
-      typeof tgtVal === "object" &&
-      !Array.isArray(tgtVal)
-    ) {
-      result[key] = deepMerge(tgtVal as Record<string, unknown>, srcVal as Record<string, unknown>);
-    } else {
-      result[key] = srcVal;
-    }
-  }
-  return result;
-}
 
 function applyDataLineAttributes(node: HastNode): void {
   if (node.type === "element") {
@@ -118,7 +95,7 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
   delete mergedOpts.plugins;
   for (const plugin of plugins) {
     if (plugin.options) {
-      mergedOpts = deepMerge(mergedOpts, plugin.options as Record<string, unknown>);
+      mergedOpts = deepmerge(mergedOpts, plugin.options as Record<string, unknown>);
     }
   }
 

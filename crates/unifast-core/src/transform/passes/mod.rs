@@ -1,3 +1,4 @@
+#[cfg(feature = "highlight")]
 pub mod highlight;
 pub mod html_cleanup;
 pub mod mdast_to_hast;
@@ -23,6 +24,7 @@ pub mod external_links;
 pub mod external_links_pass;
 pub mod github_alert;
 pub mod github_alert_pass;
+#[cfg(feature = "highlight")]
 pub mod highlight_pass;
 pub mod line_number;
 pub mod line_number_pass;

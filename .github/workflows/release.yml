@@ -61,8 +61,22 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-      - name: ⏳ Wait for crates.io index update
-        run: sleep 30
+      - name: ⏳ Wait for unifast-core on crates.io
+        run: |
+          wait_for_crate() {
+            local crate="$1" version="$2"
+            echo "Waiting for $crate@$version on crates.io..."
+            for i in $(seq 1 30); do
+              if curl -sf "https://crates.io/api/v1/crates/$crate/$version" > /dev/null 2>&1; then
+                echo "$crate@$version is available"
+                return 0
+              fi
+              sleep 2
+            done
+            echo "Warning: timeout waiting for $crate@$version, proceeding anyway"
+          }
+          VERSION="${GITHUB_REF_NAME#v}"
+          wait_for_crate "unifast-core" "$VERSION"
 
       - name: 📦 Publish unifast-bindings-node
         run: cargo publish -p unifast-bindings-node
