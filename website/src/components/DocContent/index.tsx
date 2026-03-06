@@ -96,7 +96,7 @@ export function DocContent({
       roots.push(root);
     });
 
-    return () => roots.forEach((root) => root.unmount());
+    return () => roots.forEach((root) => setTimeout(() => root.unmount(), 0));
   }, [html]);
 
   const showBanner =

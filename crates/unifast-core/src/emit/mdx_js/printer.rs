@@ -63,6 +63,28 @@ impl<'a> MdxJsPrinter<'a> {
         self.emit(s);
     }
 
+    fn inject_jsx_key(&mut self, start_len: usize, key: usize) {
+        let emitted = &self.output[start_len..];
+        let trimmed = emitted.trim_start();
+        if trimmed.starts_with("_jsx")
+            && let Some(rel_pos) = emitted.rfind(')')
+        {
+            let abs_pos = start_len + rel_pos;
+            self.output.insert_str(abs_pos, &format!(", \"{key}\""));
+        }
+    }
+
+    fn emit_keyed_children(&mut self, children: &[MdNode], indent: usize) {
+        for (i, child) in children.iter().enumerate() {
+            let start = self.output.len();
+            self.print_mdx_node(child, indent);
+            self.inject_jsx_key(start, i);
+            if i < children.len() - 1 {
+                self.emit(",\n");
+            }
+        }
+    }
+
     fn print_document(&mut self, doc: &Document) {
         let mut esm_nodes: Vec<&MdNode> = Vec::new();
         let mut content_nodes: Vec<&MdNode> = Vec::new();
@@ -92,7 +114,9 @@ impl<'a> MdxJsPrinter<'a> {
             self.emit("    children: [\n");
 
             for (i, node) in content_nodes.iter().enumerate() {
+                let start = self.output.len();
                 self.print_mdx_node(node, 6);
+                self.inject_jsx_key(start, i);
                 if i < content_nodes.len() - 1 {
                     self.emit(",\n");
                 }
@@ -169,33 +193,18 @@ impl<'a> MdxJsPrinter<'a> {
             }
             MdNode::Blockquote(bq) => {
                 self.emit(&format!("{pad}_jsxs(_c(\"blockquote\"), {{ children: [\n"));
-                for (i, child) in bq.children.iter().enumerate() {
-                    self.print_mdx_node(child, indent + 2);
-                    if i < bq.children.len() - 1 {
-                        self.emit(",\n");
-                    }
-                }
+                self.emit_keyed_children(&bq.children, indent + 2);
                 self.emit(&format!("\n{pad}] }})"));
             }
             MdNode::List(l) => {
                 let tag = if l.ordered { "ol" } else { "ul" };
                 self.emit(&format!("{pad}_jsxs(_c(\"{tag}\"), {{ children: [\n"));
-                for (i, child) in l.children.iter().enumerate() {
-                    self.print_mdx_node(child, indent + 2);
-                    if i < l.children.len() - 1 {
-                        self.emit(",\n");
-                    }
-                }
+                self.emit_keyed_children(&l.children, indent + 2);
                 self.emit(&format!("\n{pad}] }})"));
             }
             MdNode::ListItem(li) => {
                 self.emit(&format!("{pad}_jsxs(_c(\"li\"), {{ children: [\n"));
-                for (i, child) in li.children.iter().enumerate() {
-                    self.print_mdx_node(child, indent + 2);
-                    if i < li.children.len() - 1 {
-                        self.emit(",\n");
-                    }
-                }
+                self.emit_keyed_children(&li.children, indent + 2);
                 self.emit(&format!("\n{pad}] }})"));
             }
             MdNode::Emphasis(e) => {
@@ -249,17 +258,19 @@ impl<'a> MdxJsPrinter<'a> {
                 if let Some(head_row) = t.children.first() {
                     self.emit(&format!("{pad}  _jsx(_c(\"thead\"), {{ children: \n"));
                     self.print_table_row(head_row, indent + 4, true);
-                    self.emit(&format!("\n{pad}  }})"));
+                    self.emit(&format!("\n{pad}  }}, \"0\")"));
                     if t.children.len() > 1 {
                         self.emit(",\n");
                         self.emit(&format!("{pad}  _jsxs(_c(\"tbody\"), {{ children: [\n"));
                         for (i, child) in t.children[1..].iter().enumerate() {
+                            let start = self.output.len();
                             self.print_table_row(child, indent + 4, false);
+                            self.inject_jsx_key(start, i);
                             if i < t.children.len() - 2 {
                                 self.emit(",\n");
                             }
                         }
-                        self.emit(&format!("\n{pad}  ] }})"));
+                        self.emit(&format!("\n{pad}  ] }}, \"1\")"));
                     }
                 }
                 self.emit(&format!("\n{pad}] }})"));
@@ -294,12 +305,7 @@ impl<'a> MdxJsPrinter<'a> {
                     "{pad}_jsxs(_c(\"div\"), {{ className: \"directive directive-{}\", \"data-directive\": \"{}\", children: [\n",
                     escape_js_string(&d.name), escape_js_string(&d.name),
                 ));
-                for (i, child) in d.children.iter().enumerate() {
-                    self.print_mdx_node(child, indent + 2);
-                    if i < d.children.len() - 1 {
-                        self.emit(",\n");
-                    }
-                }
+                self.emit_keyed_children(&d.children, indent + 2);
                 self.emit(&format!("\n{pad}] }})"));
             }
             MdNode::WikiLink(w) => {
@@ -313,12 +319,7 @@ impl<'a> MdxJsPrinter<'a> {
             }
             MdNode::DefinitionList(dl) => {
                 self.emit(&format!("{pad}_jsxs(_c(\"dl\"), {{ children: [\n"));
-                for (i, child) in dl.children.iter().enumerate() {
-                    self.print_mdx_node(child, indent + 2);
-                    if i < dl.children.len() - 1 {
-                        self.emit(",\n");
-                    }
-                }
+                self.emit_keyed_children(&dl.children, indent + 2);
                 self.emit(&format!("\n{pad}] }})"));
             }
             MdNode::DefinitionTerm(dt) => {
@@ -374,12 +375,7 @@ impl<'a> MdxJsPrinter<'a> {
             self.emit(&format!("{pad}_jsx({tag_ref}, {{ {clean_props} }})"));
         } else {
             self.emit(&format!("{pad}_jsxs({tag_ref}, {{ children: [\n"));
-            for (i, child) in el.children.iter().enumerate() {
-                self.print_mdx_node(child, indent + 2);
-                if i < el.children.len() - 1 {
-                    self.emit(",\n");
-                }
-            }
+            self.emit_keyed_children(&el.children, indent + 2);
             self.emit(&format!("\n{pad}]{props}}})"));
         }
     }
@@ -390,6 +386,7 @@ impl<'a> MdxJsPrinter<'a> {
             self.emit(&format!("{pad}_jsxs(_c(\"tr\"), {{ children: [\n"));
             let tag = if is_header { "th" } else { "td" };
             for (i, child) in tr.children.iter().enumerate() {
+                let start = self.output.len();
                 if let MdNode::TableCell(tc) = child {
                     let cpad = " ".repeat((indent + 1) * 2);
                     self.emit(&format!("{cpad}_jsx(_c(\"{tag}\"), {{ children: "));
@@ -398,6 +395,7 @@ impl<'a> MdxJsPrinter<'a> {
                 } else {
                     self.print_mdx_node(child, indent + 1);
                 }
+                self.inject_jsx_key(start, i);
                 if i < tr.children.len() - 1 {
                     self.emit(",\n");
                 }
@@ -415,7 +413,9 @@ impl<'a> MdxJsPrinter<'a> {
         }
         self.emit("[");
         for (i, child) in children.iter().enumerate() {
+            let start = self.output.len();
             self.print_mdx_node(child, 0);
+            self.inject_jsx_key(start, i);
             if i < children.len() - 1 {
                 self.emit(", ");
             }
@@ -677,6 +677,22 @@ mod tests {
         assert!(
             !output.code.contains("dangerouslySetInnerHTML"),
             "should not use dangerouslySetInnerHTML without highlighting"
+        );
+    }
+
+    #[test]
+    fn mdx_js_emit_children_have_keys() {
+        let r = parse_mdx("# Title\n\nParagraph\n\n- item\n");
+        let output = print_mdx_js(&r.document, None);
+        assert!(
+            output.code.contains(", \"0\")"),
+            "first child should have key \"0\": {}",
+            output.code
+        );
+        assert!(
+            output.code.contains(", \"1\")"),
+            "second child should have key \"1\": {}",
+            output.code
         );
     }
 }

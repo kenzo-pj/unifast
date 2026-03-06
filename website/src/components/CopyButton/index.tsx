@@ -10,6 +10,7 @@ interface CopyButtonProps {
 
 export const CopyButton = memo(function CopyButton({ text }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
+  const [hovering, setHovering] = useState(false);
 
   const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(text);
@@ -19,7 +20,7 @@ export const CopyButton = memo(function CopyButton({ text }: CopyButtonProps) {
 
   return (
     <Tooltip.Provider delay={200}>
-      <Tooltip.Root open={copied || undefined}>
+      <Tooltip.Root open={copied || hovering} onOpenChange={setHovering}>
         <Tooltip.Trigger className={styles.button} onClick={handleCopy} type="button">
           {copied ? <Tick01Icon size={14} /> : <Copy01Icon size={14} />}
         </Tooltip.Trigger>
