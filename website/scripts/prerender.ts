@@ -41,6 +41,29 @@ function injectModulePreloads(html: string): string {
   return html.replace("</head>", `    ${preloadTags}\n  </head>`);
 }
 
+function injectCodeSplitCss(html: string): string {
+  const assetDir = path.resolve(distClient, "assets");
+  if (!fs.existsSync(assetDir)) return html;
+
+  const linkedCss = new Set<string>();
+  for (const m of html.matchAll(/href="([^"]*\.css)"/g)) {
+    linkedCss.add(m[1]);
+  }
+
+  const extraCss = fs.readdirSync(assetDir)
+    .filter((f) => f.endsWith(".css"))
+    .map((f) => `${BASE_PATH}/assets/${f}`)
+    .filter((href) => !linkedCss.has(href));
+
+  if (extraCss.length === 0) return html;
+
+  const tags = extraCss
+    .map((href) => `<link rel="stylesheet" href="${href}">`)
+    .join("\n    ");
+
+  return html.replace("</head>", `    ${tags}\n  </head>`);
+}
+
 async function collectRoutes(dir: string, prefix = ""): Promise<string[]> {
   const routes: string[] = [];
   if (!fs.existsSync(dir)) return routes;
@@ -78,6 +101,7 @@ async function prerender() {
   );
 
   template = injectModulePreloads(template);
+  template = injectCodeSplitCss(template);
   template = template.replace('href="/sitemap.xml"', `href="${BASE_PATH}/sitemap.xml"`);
 
   const allRoutes: string[] = [];

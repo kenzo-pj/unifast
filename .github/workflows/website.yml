@@ -51,6 +51,7 @@ jobs:
         run: pnpm build:website
         env:
           GH_SPONSORS_TOKEN: ${{ secrets.GH_SPONSORS_TOKEN }}
+          VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
       - name: 📄 Add .nojekyll
         run: touch website/dist/client/.nojekyll
 
