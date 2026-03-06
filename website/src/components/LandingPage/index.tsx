@@ -364,7 +364,7 @@ export function LandingPage() {
 
       <section className={styles.hero}>
         <h1 className={styles.title}>
-          The <span className={styles.accent}>fastest</span> Markdown compiler
+          Blazing <span className={styles.accent}>fast</span> Markdown compiler
         </h1>
         <p className={styles.subtitle}>
           High-performance Markdown / MDX compiler built with Rust.
@@ -438,6 +438,41 @@ export function LandingPage() {
           </div>
         </section>
       )}
+
+      <section className={styles.cta}>
+        <div className={styles.ctaInner}>
+          <h2 className={styles.ctaTitle}>Ready to compile?</h2>
+          <p className={styles.ctaDescription}>
+            Explore the documentation or dive into the API reference.
+          </p>
+          <div className={styles.ctaCards}>
+            <Link
+              to={localePath("/docs/introduction/what-is-unifast", locale)}
+              className={styles.ctaCard}
+            >
+              <span className={styles.ctaCardText}>
+                <span className={styles.ctaCardTitle}>Documentation</span>
+                <span className={styles.ctaCardDescription}>
+                  Learn how to install and use unifast in your project.
+                </span>
+              </span>
+              <span className={styles.ctaCardArrow}>&rarr;</span>
+            </Link>
+            <Link
+              to={localePath("/docs/packages/node/overview", locale)}
+              className={styles.ctaCard}
+            >
+              <span className={styles.ctaCardText}>
+                <span className={styles.ctaCardTitle}>API Reference</span>
+                <span className={styles.ctaCardDescription}>
+                  Explore @unifast/node APIs, plugins, and options.
+                </span>
+              </span>
+              <span className={styles.ctaCardArrow}>&rarr;</span>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <Footer />
     </div>

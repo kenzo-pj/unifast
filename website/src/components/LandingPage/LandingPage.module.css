@@ -371,11 +371,11 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
-  overflow-x: auto;
 }
 
 .showcaseCode pre {
   margin: 0;
+  overflow-x: auto;
 }
 
 .showcaseCode code {
@@ -474,6 +474,87 @@
   object-fit: cover;
 }
 
+/* ── CTA ── */
+
+.cta {
+  padding: 5rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.ctaInner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+}
+
+.ctaDescription {
+  color: var(--color-text-muted);
+  margin: 0 0 2rem;
+  font-size: 0.9375rem;
+}
+
+.ctaCards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.ctaCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-code-bg);
+  text-align: left;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.ctaCard:hover {
+  border-color: var(--color-text-muted);
+  background: var(--color-hover);
+}
+
+.ctaCardText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.ctaCardTitle {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ctaCardDescription {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.ctaCardArrow {
+  font-size: 1.125rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.ctaCard:hover .ctaCardArrow {
+  color: var(--color-text);
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 768px) {
@@ -517,5 +598,13 @@
   .showcasePill {
     font-size: 0.8125rem;
     padding: 0.3125rem 0.75rem;
+  }
+
+  .cta {
+    padding: 3rem 1.5rem;
+  }
+
+  .ctaCards {
+    grid-template-columns: 1fr;
   }
 }

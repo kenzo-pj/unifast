@@ -14,9 +14,9 @@ interface Sponsor {
 }
 
 async function fetchSponsors(): Promise<Sponsor[]> {
-  const token = process.env.GITHUB_TOKEN;
+  const token = process.env.GH_SPONSORS_TOKEN;
   if (!token) {
-    console.log("[fetch-sponsors] GITHUB_TOKEN not set, skipping.");
+    console.log("[fetch-sponsors] GH_SPONSORS_TOKEN not set, skipping.");
     return [];
   }
 
