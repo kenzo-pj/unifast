@@ -8,35 +8,75 @@ on:
       - "crates/**"
       - "packages/**"
       - ".github/workflows/benchmark.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  codspeed:
-    name: CodSpeed
+  codspeed-node:
+    name: ⚡ CodSpeed (Node.js)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/cache@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: 💾 Cache Cargo
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-bench-
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+          key: ${{ runner.os }}-cargo-bench-node-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-bench-node-
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - name: Run benchmarks
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: 🔨 Build native binding
+        run: |
+          cargo build -p unifast-bindings-node --release
+          mkdir -p packages/node/native
+          cp target/release/libunifast_bindings_node.so packages/node/native/unifast.node
+      - name: 🏗️ Build packages
+        run: pnpm build --filter=@unifast/benchmark...
+      - name: 🚀 Run benchmarks
         uses: CodSpeedHQ/action@v4
         with:
           mode: simulation
           run: pnpm --filter @unifast/benchmark exec vitest bench --run
+
+  codspeed-rust:
+    name: ⚡ CodSpeed (Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: 💾 Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-bench-rust-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-bench-rust-
+      - name: 📦 Install cargo-codspeed
+        run: cargo install cargo-codspeed --locked
+      - name: 🔨 Build benchmarks
+        run: cargo codspeed build -m simulation
+      - name: 🚀 Run benchmarks
+        uses: CodSpeedHQ/action@v4
+        with:
+          mode: simulation
+          run: cargo codspeed run

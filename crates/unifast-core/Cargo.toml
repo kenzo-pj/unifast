@@ -51,6 +51,7 @@ tree-sitter-erlang = { workspace = true }
 workspace = true
 
 [dev-dependencies]
+divan = { version = "4.3.0", package = "codspeed-divan-compat" }
 insta = { workspace = true }
 
 [[bench]]

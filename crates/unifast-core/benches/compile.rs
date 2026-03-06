@@ -1,27 +1,21 @@
-use std::hint::black_box;
-use std::time::Instant;
 use unifast_core::api::compile::compile;
 use unifast_core::api::options::{
     CompileOptions, FrontmatterOptions, GfmOptions, HighlightEngine, HighlightOptions,
 };
 
-fn bench_compile_simple(iterations: u32) {
-    let input = "# Hello World\n\nThis is a paragraph with **bold** and *italic* text.\n\n- Item 1\n- Item 2\n- Item 3\n";
-    let opts = CompileOptions::default();
-    let start = Instant::now();
-    for _ in 0..iterations {
-        let _ = black_box(compile(black_box(input), black_box(&opts)));
-    }
-    let elapsed = start.elapsed();
-    println!(
-        "compile_simple: {} iterations in {:?} ({:.2} µs/iter)",
-        iterations,
-        elapsed,
-        elapsed.as_micros() as f64 / f64::from(iterations)
-    );
+fn main() {
+    divan::main();
 }
 
-fn bench_compile_complex(iterations: u32) {
+#[divan::bench]
+fn compile_simple(bencher: divan::Bencher<'_, '_>) {
+    let input = "# Hello World\n\nThis is a paragraph with **bold** and *italic* text.\n\n- Item 1\n- Item 2\n- Item 3\n";
+    let opts = CompileOptions::default();
+    bencher.bench_local(|| compile(divan::black_box(input), divan::black_box(&opts)));
+}
+
+#[divan::bench]
+fn compile_complex(bencher: divan::Bencher<'_, '_>) {
     let input = r#"---
 title: Benchmark Document
 author: unifast
@@ -93,20 +87,11 @@ Footnote reference[^1].
         ..Default::default()
     };
 
-    let start = Instant::now();
-    for _ in 0..iterations {
-        let _ = black_box(compile(black_box(input), black_box(&opts)));
-    }
-    let elapsed = start.elapsed();
-    println!(
-        "compile_complex: {} iterations in {:?} ({:.2} µs/iter)",
-        iterations,
-        elapsed,
-        elapsed.as_micros() as f64 / f64::from(iterations)
-    );
+    bencher.bench_local(|| compile(divan::black_box(input), divan::black_box(&opts)));
 }
 
-fn bench_compile_large(iterations: u32) {
+#[divan::bench]
+fn compile_large(bencher: divan::Bencher<'_, '_>) {
     let mut input = String::with_capacity(50_000);
     for i in 0..100 {
         input.push_str(&format!("## Section {i}\n\n"));
@@ -129,23 +114,5 @@ fn bench_compile_large(iterations: u32) {
         ..Default::default()
     };
 
-    let start = Instant::now();
-    for _ in 0..iterations {
-        let _ = black_box(compile(black_box(&input), black_box(&opts)));
-    }
-    let elapsed = start.elapsed();
-    println!(
-        "compile_large (100 sections): {} iterations in {:?} ({:.2} µs/iter)",
-        iterations,
-        elapsed,
-        elapsed.as_micros() as f64 / f64::from(iterations)
-    );
-}
-
-fn main() {
-    println!("=== unifast compile benchmarks ===\n");
-    bench_compile_simple(10_000);
-    bench_compile_complex(5_000);
-    bench_compile_large(100);
-    println!("\nDone.");
+    bencher.bench_local(|| compile(divan::black_box(&input), divan::black_box(&opts)));
 }

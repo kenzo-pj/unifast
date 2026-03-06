@@ -18,29 +18,39 @@ env:
 
 jobs:
   lint:
-    name: Lint
+    name: 🔍 Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @unifast/website lint:css
-      - run: pnpm --filter @unifast/website lint:md
-      - run: pnpm --filter @unifast/website lint:text
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: 🎨 Lint CSS
+        run: pnpm --filter @unifast/website lint:css
+      - name: 📝 Lint Markdown
+        run: pnpm --filter @unifast/website lint:md
+      - name: ✏️ Lint text
+        run: pnpm --filter @unifast/website lint:text
 
   build:
-    name: Build
+    name: 🏗️ Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - uses: actions/cache@v4
+      - name: 💾 Cache Cargo
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -49,32 +59,37 @@ jobs:
           key: ${{ runner.os }}-cargo-website-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-website-
 
-      - name: Build native binding
+      - name: 🔨 Build native binding
         run: |
           cargo build -p unifast-bindings-node --release
           mkdir -p packages/node/native
           cp target/release/libunifast_bindings_node.so packages/node/native/unifast.node
 
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build:website
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: 🏗️ Build website
+        run: pnpm build:website
         env:
           GH_SPONSORS_TOKEN: ${{ secrets.GH_SPONSORS_TOKEN }}
-      - run: touch website/dist/client/.nojekyll
+      - name: 📄 Add .nojekyll
+        run: touch website/dist/client/.nojekyll
 
-      - name: Upload artifact
+      - name: 📤 Upload artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
           path: website/dist/client
 
   deploy:
-    name: Deploy
+    name: 🚀 Deploy
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: [lint, build]
     runs-on: ubuntu-latest
@@ -85,6 +100,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - name: 🚀 Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

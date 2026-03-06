@@ -1,5 +1,7 @@
 # unifast
 
+[![CodSpeed](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json&label=CodSpeed)](https://codspeed.io/kenzo-pj/unifast?utm_source=badge)
+
 High-performance Markdown and MDX compiler with a Rust core.
 
 unifast covers the mainstream use-cases of remark/rehype by implementing features directly as built-in passes — not through JS plugin compatibility. One call compiles Markdown to HTML with all features applied.
