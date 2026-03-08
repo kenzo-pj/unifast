@@ -10,25 +10,15 @@ import example from "./directive-example.md?example"
 import { directive } from "@unifast/node";
 ```
 
-### Signature
+## Signature
 
 ```ts
 function directive(): UnifastPlugin
 ```
 
-### Parameters
+## Parameters
 
 None.
-
-### Returns
-
-`UnifastPlugin`
-
-## Examples
-
-<Example data={example} />
-
-You can style these with CSS using the `.directive-note`, `.directive-warning` classes, similar to GitHub Alerts but with fully custom names.
 
 ## Usage
 
@@ -37,6 +27,14 @@ import { compile, directive } from "@unifast/node";
 
 const result = compile(md, { plugins: [directive()] });
 ```
+
+## Examples
+
+### Container directives
+
+<Example data={example} />
+
+You can style these with CSS using the `.directive-note`, `.directive-warning` classes, similar to GitHub Alerts but with fully custom names.
 
 ### Containers with attributes
 

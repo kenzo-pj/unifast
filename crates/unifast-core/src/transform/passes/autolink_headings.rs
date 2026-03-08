@@ -119,6 +119,122 @@ mod tests {
     }
 
     #[test]
+    fn appends_anchor_to_heading() {
+        let mut id_gen = NodeIdGen::new();
+        let mut attrs = SmallMap::new();
+        attrs.insert("id".to_string(), "foo".to_string());
+        let mut root = HRoot {
+            id: id_gen.next_id(),
+            span: Span::empty(),
+            children: vec![HNode::Element(HElement {
+                id: id_gen.next_id(),
+                span: Span::empty(),
+                tag: "h3".to_string(),
+                attributes: attrs,
+                children: vec![HNode::Text(HText {
+                    id: id_gen.next_id(),
+                    span: Span::empty(),
+                    value: "Foo".to_string(),
+                })],
+                self_closing: false,
+            })],
+        };
+        apply_autolink_headings(&mut root, AutolinkHeadingsBehavior::Append, &mut id_gen);
+        if let HNode::Element(h) = &root.children[0] {
+            assert_eq!(h.children.len(), 2);
+            assert!(matches!(&h.children[0], HNode::Text(_)));
+            if let HNode::Element(a) = &h.children[1] {
+                assert_eq!(a.tag, "a");
+                assert_eq!(
+                    a.attributes.get(&"href".to_string()),
+                    Some(&"#foo".to_string())
+                );
+            } else {
+                panic!("expected anchor");
+            }
+        }
+    }
+
+    #[test]
+    fn wraps_heading_content_in_anchor() {
+        let mut id_gen = NodeIdGen::new();
+        let mut attrs = SmallMap::new();
+        attrs.insert("id".to_string(), "bar".to_string());
+        let mut root = HRoot {
+            id: id_gen.next_id(),
+            span: Span::empty(),
+            children: vec![HNode::Element(HElement {
+                id: id_gen.next_id(),
+                span: Span::empty(),
+                tag: "h1".to_string(),
+                attributes: attrs,
+                children: vec![HNode::Text(HText {
+                    id: id_gen.next_id(),
+                    span: Span::empty(),
+                    value: "Bar".to_string(),
+                })],
+                self_closing: false,
+            })],
+        };
+        apply_autolink_headings(&mut root, AutolinkHeadingsBehavior::Wrap, &mut id_gen);
+        if let HNode::Element(h) = &root.children[0] {
+            assert_eq!(h.children.len(), 1);
+            if let HNode::Element(a) = &h.children[0] {
+                assert_eq!(a.tag, "a");
+                assert_eq!(
+                    a.attributes.get(&"href".to_string()),
+                    Some(&"#bar".to_string())
+                );
+                assert_eq!(a.children.len(), 1);
+                assert!(matches!(&a.children[0], HNode::Text(t) if t.value == "Bar"));
+            } else {
+                panic!("expected anchor");
+            }
+        }
+    }
+
+    #[test]
+    fn processes_nested_heading() {
+        let mut id_gen = NodeIdGen::new();
+        let mut attrs = SmallMap::new();
+        attrs.insert("id".to_string(), "deep".to_string());
+        let mut root = HRoot {
+            id: id_gen.next_id(),
+            span: Span::empty(),
+            children: vec![HNode::Element(HElement {
+                id: id_gen.next_id(),
+                span: Span::empty(),
+                tag: "div".to_string(),
+                attributes: SmallMap::new(),
+                children: vec![HNode::Element(HElement {
+                    id: id_gen.next_id(),
+                    span: Span::empty(),
+                    tag: "h4".to_string(),
+                    attributes: attrs,
+                    children: vec![HNode::Text(HText {
+                        id: id_gen.next_id(),
+                        span: Span::empty(),
+                        value: "Deep".to_string(),
+                    })],
+                    self_closing: false,
+                })],
+                self_closing: false,
+            })],
+        };
+        apply_autolink_headings(&mut root, AutolinkHeadingsBehavior::Prepend, &mut id_gen);
+        if let HNode::Element(div) = &root.children[0]
+            && let HNode::Element(h) = &div.children[0]
+        {
+            assert_eq!(h.children.len(), 2);
+            if let HNode::Element(a) = &h.children[0] {
+                assert_eq!(a.tag, "a");
+            } else {
+                panic!("expected anchor");
+            }
+        }
+    }
+
+    #[test]
     fn skips_heading_without_id() {
         let mut id_gen = NodeIdGen::new();
         let mut root = HRoot {

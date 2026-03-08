@@ -34,6 +34,17 @@ export {
   definitionList,
   rubyAnnotation,
   cjk,
+  codeMeta,
+  figure,
+  customHeadingId,
+  readingTime,
+  excerpt,
+  abbr,
+  commentRemoval,
+  imgLazyLoading,
+  accessibleEmoji,
+  addClasses,
+  minify,
 } from "./plugins";
 export type {
   GfmPluginOptions,
@@ -47,4 +58,9 @@ export type {
   SmartypantsPluginOptions,
   WikiLinkPluginOptions,
   CodeImportPluginOptions,
+  GithubAlertPluginOptions,
+  GithubAlertIconDef,
+  ReadingTimePluginOptions,
+  ExcerptPluginOptions,
+  ImgLazyLoadingPluginOptions,
 } from "./plugins";

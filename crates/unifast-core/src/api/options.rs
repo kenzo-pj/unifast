@@ -260,6 +260,22 @@ pub struct EmojiOptions {
 #[derive(Debug, Clone, Default)]
 pub struct GithubAlertOptions {
     pub enabled: bool,
+    pub icons: GithubAlertIconMode,
+}
+
+#[derive(Debug, Clone, Default)]
+pub enum GithubAlertIconMode {
+    None,
+    #[default]
+    Octicon,
+    Custom(std::collections::HashMap<String, AlertIconDef>),
+}
+
+#[derive(Debug, Clone)]
+pub struct AlertIconDef {
+    pub svg: Option<String>,
+    pub import_source: Option<String>,
+    pub import_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -308,6 +324,89 @@ pub struct CodeImportOptions {
     pub root_dir: Option<String>,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct CodeMetaOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct FigureOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct CustomHeadingIdOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct ReadingTimeOptions {
+    pub enabled: bool,
+    pub words_per_minute: u32,
+    pub cjk_chars_per_minute: u32,
+}
+
+impl Default for ReadingTimeOptions {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            words_per_minute: 200,
+            cjk_chars_per_minute: 500,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ExcerptOptions {
+    pub enabled: bool,
+    pub separator: String,
+    pub fallback_paragraphs: Option<u32>,
+    pub fallback_characters: Option<u32>,
+}
+
+impl Default for ExcerptOptions {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            separator: "<!-- more -->".to_string(),
+            fallback_paragraphs: Some(1),
+            fallback_characters: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct AbbrOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct CommentRemovalOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct ImgLazyLoadingOptions {
+    pub enabled: bool,
+    pub skip_first: u32,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct AccessibleEmojiOptions {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct AddClassesOptions {
+    pub enabled: bool,
+    pub rules: Vec<(String, String)>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct MinifyOptions {
+    pub enabled: bool,
+}
+
 #[derive(Default)]
 pub struct CompileOptions {
     pub input_kind: InputKind,
@@ -338,6 +437,17 @@ pub struct CompileOptions {
     pub ruby_annotation: RubyAnnotationOptions,
     pub cjk: CjkOptions,
     pub code_import: CodeImportOptions,
+    pub code_meta: CodeMetaOptions,
+    pub figure: FigureOptions,
+    pub custom_heading_id: CustomHeadingIdOptions,
+    pub reading_time_opts: ReadingTimeOptions,
+    pub excerpt_opts: ExcerptOptions,
+    pub abbr: AbbrOptions,
+    pub comment_removal: CommentRemovalOptions,
+    pub img_lazy_loading: ImgLazyLoadingOptions,
+    pub accessible_emoji: AccessibleEmojiOptions,
+    pub add_classes: AddClassesOptions,
+    pub minify: MinifyOptions,
 }
 
 impl std::fmt::Debug for CompileOptions {
@@ -371,6 +481,17 @@ impl std::fmt::Debug for CompileOptions {
             .field("ruby_annotation", &self.ruby_annotation)
             .field("cjk", &self.cjk)
             .field("code_import", &self.code_import)
+            .field("code_meta", &self.code_meta)
+            .field("figure", &self.figure)
+            .field("custom_heading_id", &self.custom_heading_id)
+            .field("reading_time_opts", &self.reading_time_opts)
+            .field("excerpt_opts", &self.excerpt_opts)
+            .field("abbr", &self.abbr)
+            .field("comment_removal", &self.comment_removal)
+            .field("img_lazy_loading", &self.img_lazy_loading)
+            .field("accessible_emoji", &self.accessible_emoji)
+            .field("add_classes", &self.add_classes)
+            .field("minify", &self.minify)
             .finish()
     }
 }

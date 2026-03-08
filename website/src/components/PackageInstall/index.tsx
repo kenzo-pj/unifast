@@ -1,26 +1,30 @@
 import { Tabs } from "@base-ui/react/tabs";
-import { ComputerTerminal01Icon } from "hugeicons-react";
-import { memo, useState, useCallback, useMemo } from "react";
+import { memo, useState, useCallback, useMemo, type ComponentType } from "react";
 
 import { CopyButton } from "~/components/CopyButton";
+import { NpmIcon, YarnIcon, PnpmIcon, BunIcon } from "~/components/icons/logos";
 
 import styles from "./PackageInstall.module.css";
 
 const STORAGE_KEY = "unifast-pkg-manager";
 
 const MANAGERS = [
-  { id: "npm", label: "npm", command: (pkg: string) => `npm install ${pkg}` },
-  { id: "yarn", label: "yarn", command: (pkg: string) => `yarn add ${pkg}` },
-  { id: "pnpm", label: "pnpm", command: (pkg: string) => `pnpm add ${pkg}` },
-  { id: "bun", label: "bun", command: (pkg: string) => `bun add ${pkg}` },
-] as const;
+  { id: "npm", label: "npm", icon: NpmIcon, command: (pkg: string) => `npm install ${pkg}` },
+  { id: "yarn", label: "yarn", icon: YarnIcon, command: (pkg: string) => `yarn add ${pkg}` },
+  { id: "pnpm", label: "pnpm", icon: PnpmIcon, command: (pkg: string) => `pnpm add ${pkg}` },
+  { id: "bun", label: "bun", icon: BunIcon, command: (pkg: string) => `bun add ${pkg}` },
+] as const satisfies readonly {
+  id: string;
+  label: string;
+  icon: ComponentType<{ size?: number; className?: string }>;
+  command: (pkg: string) => string;
+}[];
 
 function getDefaultManager(): string {
-  if (typeof window === "undefined") return "npm";
+  if (globalThis.window === undefined) return "npm";
   return localStorage.getItem(STORAGE_KEY) ?? "npm";
 }
 
-// Highlighted HTML is pre-sanitized by the Rust sanitize pass at build time
 const ManagerPanel = memo(function ManagerPanel({
   id,
   command,
@@ -77,9 +81,9 @@ export const PackageInstall = memo(function PackageInstall(props: PackageInstall
     <Tabs.Root value={manager} onValueChange={handleTabChange}>
       <div className={styles.container}>
         <Tabs.List className={styles.tabList}>
-          <ComputerTerminal01Icon size={14} className={styles.terminalIcon} />
           {MANAGERS.map((m) => (
             <Tabs.Tab key={m.id} value={m.id} className={styles.tab}>
+              <m.icon size={14} className={styles.tabIcon} />
               {m.label}
             </Tabs.Tab>
           ))}

@@ -51,6 +51,51 @@ mod tests {
         })];
         apply_breaks(&mut children, &mut id_gen);
         assert_eq!(children.len(), 3);
+        assert!(matches!(&children[0], MdNode::Text(t) if t.value == "hello"));
+        assert!(matches!(&children[1], MdNode::Break(_)));
+        assert!(matches!(&children[2], MdNode::Text(t) if t.value == "world"));
+    }
+
+    #[test]
+    fn no_newline_is_noop() {
+        let mut id_gen = NodeIdGen::new();
+        let mut children = vec![MdNode::Text(Text {
+            id: id_gen.next_id(),
+            span: Span::new(0, 5),
+            value: "hello".to_string(),
+        })];
+        apply_breaks(&mut children, &mut id_gen);
+        assert_eq!(children.len(), 1);
+        assert!(matches!(&children[0], MdNode::Text(t) if t.value == "hello"));
+    }
+
+    #[test]
+    fn multiple_newlines_produce_multiple_breaks() {
+        let mut id_gen = NodeIdGen::new();
+        let mut children = vec![MdNode::Text(Text {
+            id: id_gen.next_id(),
+            span: Span::new(0, 10),
+            value: "a\n\nb".to_string(),
+        })];
+        apply_breaks(&mut children, &mut id_gen);
+        assert_eq!(children.len(), 4);
+        assert!(matches!(&children[0], MdNode::Text(t) if t.value == "a"));
+        assert!(matches!(&children[1], MdNode::Break(_)));
+        assert!(matches!(&children[2], MdNode::Break(_)));
+        assert!(matches!(&children[3], MdNode::Text(t) if t.value == "b"));
+    }
+
+    #[test]
+    fn trailing_newline() {
+        let mut id_gen = NodeIdGen::new();
+        let mut children = vec![MdNode::Text(Text {
+            id: id_gen.next_id(),
+            span: Span::new(0, 6),
+            value: "hello\n".to_string(),
+        })];
+        apply_breaks(&mut children, &mut id_gen);
+        assert_eq!(children.len(), 2);
+        assert!(matches!(&children[0], MdNode::Text(t) if t.value == "hello"));
         assert!(matches!(&children[1], MdNode::Break(_)));
     }
 }

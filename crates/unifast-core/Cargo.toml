@@ -88,6 +88,10 @@ lasso = { workspace = true }
 sourcemap = { workspace = true }
 thiserror = { workspace = true }
 phf = { workspace = true }
+selectors = { workspace = true }
+cssparser = { workspace = true }
+fxhash = { workspace = true }
+precomputed-hash = { workspace = true }
 
 [lints]
 workspace = true

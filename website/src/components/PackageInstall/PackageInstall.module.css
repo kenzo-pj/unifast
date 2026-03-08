@@ -14,13 +14,15 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.terminalIcon {
-  color: var(--color-text-muted);
-  margin: 0 var(--gap-xs) 0 var(--gap-sm);
+.tabIcon {
   flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .tab {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
   padding: var(--gap-sm) var(--gap-md);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -43,6 +45,7 @@
 .tab[data-active] {
   color: var(--color-text);
   background: var(--color-bg);
+  box-shadow: 0 0 0 1px var(--color-border);
 }
 
 .codeArea {

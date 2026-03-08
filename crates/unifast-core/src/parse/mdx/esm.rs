@@ -4,19 +4,58 @@ pub fn is_esm_line(line: &str) -> bool {
     trimmed.starts_with("import ") || trimmed.starts_with("export ")
 }
 
+fn count_nesting(text: &str, braces: &mut i32, brackets: &mut i32, parens: &mut i32) {
+    let bytes = text.as_bytes();
+    let len = bytes.len();
+    let mut i = 0;
+    while i < len {
+        let b = bytes[i];
+        match b {
+            b'"' | b'\'' | b'`' => {
+                let quote = b;
+                i += 1;
+                while i < len {
+                    if bytes[i] == b'\\' {
+                        i += 2; // skip escaped char
+                        continue;
+                    }
+                    if bytes[i] == quote {
+                        break;
+                    }
+                    i += 1;
+                }
+            }
+            b'{' => *braces += 1,
+            b'}' => *braces -= 1,
+            b'[' => *brackets += 1,
+            b']' => *brackets -= 1,
+            b'(' => *parens += 1,
+            b')' => *parens -= 1,
+            _ => {}
+        }
+        i += 1;
+    }
+}
+
 #[must_use]
 pub fn is_esm_continuation(line: &str, prev_lines: &[String]) -> bool {
-    let prev = match prev_lines.last() {
-        Some(s) => s.as_str(),
-        None => return false,
-    };
-    let prev_trimmed = prev.trim();
-    let line_trimmed = line.trim();
+    if prev_lines.is_empty() {
+        return false;
+    }
 
-    if prev_trimmed.ends_with(',') || prev_trimmed.ends_with('{') {
+    let mut braces: i32 = 0;
+    let mut brackets: i32 = 0;
+    let mut parens: i32 = 0;
+
+    for prev in prev_lines {
+        count_nesting(prev, &mut braces, &mut brackets, &mut parens);
+    }
+
+    if braces > 0 || brackets > 0 || parens > 0 {
         return true;
     }
 
+    let line_trimmed = line.trim();
     if (line_trimmed.starts_with('}') || line_trimmed.contains("} from"))
         && prev_lines.iter().any(|l| l.contains('{'))
     {
@@ -66,5 +105,65 @@ mod tests {
     fn no_continuation_for_independent_line() {
         let prev = vec!["import React from 'react'".to_string()];
         assert!(!is_esm_continuation("# Hello", &prev));
+    }
+
+    #[test]
+    fn multiline_export_with_array() {
+        let prev = vec!["export const params = [".to_string()];
+        assert!(is_esm_continuation("  { name: \"a\" },", &prev));
+
+        let prev2 = vec![
+            "export const params = [".to_string(),
+            "  { name: \"a\" },".to_string(),
+        ];
+        assert!(is_esm_continuation("];", &prev2));
+    }
+
+    #[test]
+    fn multiline_export_with_nested_objects_in_array() {
+        let prev = vec![
+            "export const params = [".to_string(),
+            "  {".to_string(),
+            "    name: \"options\",".to_string(),
+            "    properties: [".to_string(),
+            "      { name: \"a\", type: \"string\" },".to_string(),
+        ];
+        assert!(is_esm_continuation("    ],", &prev));
+    }
+
+    #[test]
+    fn multiline_export_with_parens() {
+        let prev = vec!["export const fn = (".to_string()];
+        assert!(is_esm_continuation("  x,", &prev));
+
+        let prev2 = vec!["export const fn = (".to_string(), "  x,".to_string()];
+        assert!(is_esm_continuation(");", &prev2));
+    }
+
+    #[test]
+    fn balanced_braces_no_continuation() {
+        let prev = vec!["export const meta = { title: \"hi\" };".to_string()];
+        assert!(!is_esm_continuation("# Heading", &prev));
+    }
+
+    #[test]
+    fn brackets_inside_strings_are_ignored() {
+        let prev = vec![
+            "export const params = [".to_string(),
+            "  {".to_string(),
+            "    properties: [".to_string(),
+            r#"      { name: "json", description: "Enable JSON frontmatter (opening {)" },"#
+                .to_string(),
+            "    ],".to_string(),
+            "  },".to_string(),
+            "];".to_string(),
+        ];
+        assert!(!is_esm_continuation("## Heading", &prev));
+    }
+
+    #[test]
+    fn escaped_quotes_in_strings() {
+        let prev = vec![r#"export const x = [{ desc: "a \"quoted\" {value}" }];"#.to_string()];
+        assert!(!is_esm_continuation("# Next", &prev));
     }
 }

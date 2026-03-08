@@ -1,6 +1,7 @@
 import { Avatar } from "@base-ui/react/avatar";
 import { Tabs } from "@base-ui/react/tabs";
 import { Link } from "@tanstack/react-router";
+import { ArrowRight01Icon } from "hugeicons-react";
 import { lazy, Suspense } from "react";
 
 import { CopyButton } from "~/components/CopyButton";
@@ -12,6 +13,8 @@ import { ThemeToggle } from "~/components/ThemeToggle";
 import sponsorsJson from "~/data/sponsors.json";
 import { useTranslation, localePath } from "~/i18n";
 
+import styles from "./LandingPage.module.css";
+
 interface Sponsor {
   login: string;
   avatarUrl: string;
@@ -19,8 +22,6 @@ interface Sponsor {
 }
 
 const sponsors = sponsorsJson as Sponsor[];
-
-import styles from "./LandingPage.module.css";
 
 const SearchDialog = lazy(() =>
   import("~/components/SearchDialog").then((m) => ({ default: m.SearchDialog })),
@@ -456,7 +457,7 @@ export function LandingPage() {
                   Learn how to install and use unifast in your project.
                 </span>
               </span>
-              <span className={styles.ctaCardArrow}>&rarr;</span>
+              <ArrowRight01Icon size={16} className={styles.ctaCardArrow} />
             </Link>
             <Link
               to={localePath("/docs/packages/node/overview/", locale)}
@@ -468,7 +469,7 @@ export function LandingPage() {
                   Explore @unifast/node APIs, plugins, and options.
                 </span>
               </span>
-              <span className={styles.ctaCardArrow}>&rarr;</span>
+              <ArrowRight01Icon size={16} className={styles.ctaCardArrow} />
             </Link>
           </div>
         </div>

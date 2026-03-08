@@ -4,8 +4,6 @@
   flex-direction: column;
 }
 
-/* ── Header ── */
-
 .headerBar {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -56,8 +54,6 @@
 .githubLink:hover {
   background: var(--color-hover-strong);
 }
-
-/* ── Hero ── */
 
 .hero {
   display: flex;
@@ -143,8 +139,6 @@
   max-width: 480px;
 }
 
-/* ── Sections ── */
-
 .section {
   padding: 4rem 1.5rem;
   border-top: 1px solid var(--color-border);
@@ -169,8 +163,6 @@
   margin: 0 0 2.5rem;
   font-size: 0.9375rem;
 }
-
-/* ── Benchmarks ── */
 
 .benchTabs {
   display: flex;
@@ -327,8 +319,6 @@
   background: oklch(0.6 0 0);
 }
 
-/* ── Showcase ── */
-
 .showcasePills {
   display: flex;
   flex-wrap: wrap;
@@ -397,8 +387,6 @@
   user-select: none;
 }
 
-/* ── Features ── */
-
 .features {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -432,8 +420,6 @@
   line-height: 1.5;
   margin: 0;
 }
-
-/* ── Sponsors ── */
 
 .sponsors {
   display: flex;
@@ -473,8 +459,6 @@
   height: 100%;
   object-fit: cover;
 }
-
-/* ── CTA ── */
 
 .cta {
   padding: 5rem 1.5rem;
@@ -554,8 +538,6 @@
 .ctaCard:hover .ctaCardArrow {
   color: var(--color-text);
 }
-
-/* ── Responsive ── */
 
 @media (max-width: 768px) {
   .desktopOnly {

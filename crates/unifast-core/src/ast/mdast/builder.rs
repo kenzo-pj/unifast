@@ -5,6 +5,7 @@ use super::nodes::{
     TableRow, Text, ThematicBreak, Toml, Yaml,
 };
 use crate::ast::common::{NodeIdGen, Span};
+use crate::util::small_map::SmallMap;
 
 pub struct MdBuilder<'a> {
     id_gen: &'a mut NodeIdGen,
@@ -30,6 +31,7 @@ impl<'a> MdBuilder<'a> {
             depth,
             children,
             slug: None,
+            extra_attrs: SmallMap::new(),
         })
     }
 

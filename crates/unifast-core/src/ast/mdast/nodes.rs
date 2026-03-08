@@ -1,4 +1,5 @@
 use crate::ast::common::{NodeId, Span};
+use crate::util::small_map::SmallMap;
 
 #[derive(Debug, Clone)]
 pub enum MdNode {
@@ -43,6 +44,7 @@ pub enum MdNode {
     DefinitionTerm(DefinitionTerm),
     DefinitionDescription(DefinitionDescription),
     RubyAnnotation(RubyAnnotation),
+    Abbr(Abbr),
 }
 
 impl MdNode {
@@ -90,6 +92,7 @@ impl MdNode {
             Self::DefinitionTerm(n) => n.span,
             Self::DefinitionDescription(n) => n.span,
             Self::RubyAnnotation(n) => n.span,
+            Self::Abbr(n) => n.span,
         }
     }
 
@@ -137,6 +140,7 @@ impl MdNode {
             Self::DefinitionTerm(n) => n.id,
             Self::DefinitionDescription(n) => n.id,
             Self::RubyAnnotation(n) => n.id,
+            Self::Abbr(n) => n.id,
         }
     }
 
@@ -183,7 +187,8 @@ impl MdNode {
             | Self::InlineMath(_)
             | Self::LeafDirective(_)
             | Self::TextDirective(_)
-            | Self::RubyAnnotation(_) => None,
+            | Self::RubyAnnotation(_)
+            | Self::Abbr(_) => None,
         }
     }
 
@@ -229,7 +234,8 @@ impl MdNode {
             | Self::InlineMath(_)
             | Self::LeafDirective(_)
             | Self::TextDirective(_)
-            | Self::RubyAnnotation(_) => None,
+            | Self::RubyAnnotation(_)
+            | Self::Abbr(_) => None,
         }
     }
 }
@@ -248,6 +254,7 @@ pub struct Heading {
     pub depth: u8,
     pub children: Vec<MdNode>,
     pub slug: Option<String>,
+    pub extra_attrs: SmallMap<String, String>,
 }
 
 #[derive(Debug, Clone)]
@@ -553,6 +560,14 @@ pub struct RubyAnnotation {
     pub annotation: String,
 }
 
+#[derive(Debug, Clone)]
+pub struct Abbr {
+    pub id: NodeId,
+    pub span: Span,
+    pub term: String,
+    pub definition: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -598,6 +613,7 @@ mod tests {
                 depth: 1,
                 children: vec![],
                 slug: None,
+                extra_attrs: SmallMap::new(),
             }),
             MdNode::Paragraph(Paragraph {
                 id: id_gen.next_id(),

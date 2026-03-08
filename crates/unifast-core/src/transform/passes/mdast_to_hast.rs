@@ -1,9 +1,10 @@
-use crate::api::options::RawHtmlPolicy;
+use crate::api::options::{GithubAlertIconMode, RawHtmlPolicy};
 use crate::ast::common::{NodeIdGen, Span};
 use crate::ast::hast::builder::HBuilder;
 use crate::ast::hast::nodes::*;
 use crate::ast::mdast::nodes::*;
 use crate::diagnostics::sink::DiagnosticSink;
+use crate::transform::passes::github_alert::resolve_icon_svg;
 use crate::util::small_map::SmallMap;
 
 pub fn lower(
@@ -12,8 +13,33 @@ pub fn lower(
     policy: RawHtmlPolicy,
     diagnostics: &mut DiagnosticSink,
 ) -> HNode {
+    lower_with_icons(
+        doc,
+        id_gen,
+        policy,
+        diagnostics,
+        &GithubAlertIconMode::default(),
+        false,
+    )
+}
+
+pub fn lower_with_icons(
+    doc: &Document,
+    id_gen: &mut NodeIdGen,
+    policy: RawHtmlPolicy,
+    diagnostics: &mut DiagnosticSink,
+    icon_mode: &GithubAlertIconMode,
+    figure_enabled: bool,
+) -> HNode {
     let mut builder = HBuilder::new(id_gen);
-    let children = lower_children(&doc.children, &mut builder, policy, diagnostics);
+    let children = lower_children(
+        &doc.children,
+        &mut builder,
+        policy,
+        diagnostics,
+        icon_mode,
+        figure_enabled,
+    );
     builder.root(doc.span, children)
 }
 
@@ -22,10 +48,21 @@ fn lower_children(
     builder: &mut HBuilder,
     policy: RawHtmlPolicy,
     diagnostics: &mut DiagnosticSink,
+    icon_mode: &GithubAlertIconMode,
+    figure_enabled: bool,
 ) -> Vec<HNode> {
     children
         .iter()
-        .filter_map(|node| lower_node(node, builder, policy, diagnostics))
+        .filter_map(|node| {
+            lower_node(
+                node,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            )
+        })
         .collect()
 }
 
@@ -34,34 +71,70 @@ fn lower_node(
     builder: &mut HBuilder,
     policy: RawHtmlPolicy,
     diagnostics: &mut DiagnosticSink,
+    icon_mode: &GithubAlertIconMode,
+    figure_enabled: bool,
 ) -> Option<HNode> {
     match node {
         MdNode::Document(_) => None,
 
         MdNode::Heading(h) => {
             let tag = format!("h{}", h.depth);
-            let children = lower_children(&h.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &h.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             let mut attrs = SmallMap::new();
             if let Some(ref slug) = h.slug {
                 attrs.insert("id".to_string(), slug.clone());
+            }
+            for (k, v) in h.extra_attrs.iter() {
+                attrs.insert(k.clone(), v.clone());
             }
             Some(builder.element(h.span, &tag, attrs, children, false))
         }
 
         MdNode::Paragraph(p) => {
-            let children = lower_children(&p.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &p.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.elem(p.span, "p", children))
         }
 
-        MdNode::Text(t) => Some(builder.text(t.span, &t.value)),
+        MdNode::Text(t) => {
+            let value = t.value.replace('\n', " ");
+            Some(builder.text(t.span, &value))
+        }
 
         MdNode::Emphasis(e) => {
-            let children = lower_children(&e.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &e.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.elem(e.span, "em", children))
         }
 
         MdNode::Strong(s) => {
-            let children = lower_children(&s.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &s.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.elem(s.span, "strong", children))
         }
 
@@ -77,13 +150,27 @@ fn lower_node(
             }
             let text = builder.text(c.span, &c.value);
             let code_elem = builder.element(c.span, "code", code_attrs, vec![text], false);
-            Some(builder.elem(c.span, "pre", vec![code_elem]))
+            let mut pre_attrs = SmallMap::new();
+            if let Some(ref meta) = c.meta {
+                pre_attrs.insert("data-meta".to_string(), meta.clone());
+            }
+            if let Some(ref lang) = c.lang {
+                pre_attrs.insert("data-lang".to_string(), lang.clone());
+            }
+            Some(builder.element(c.span, "pre", pre_attrs, vec![code_elem], false))
         }
 
         MdNode::Blockquote(bq) => {
-            let children = lower_children(&bq.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &bq.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             if let Some(ref alert_kind) = bq.alert_type {
-                lower_alert(bq.span, alert_kind, children, builder)
+                lower_alert(bq.span, alert_kind, children, builder, icon_mode)
             } else {
                 Some(builder.elem(bq.span, "blockquote", children))
             }
@@ -91,7 +178,14 @@ fn lower_node(
 
         MdNode::List(l) => {
             let tag = if l.ordered { "ol" } else { "ul" };
-            let children = lower_children(&l.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &l.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             let mut attrs = SmallMap::new();
             if l.ordered
                 && let Some(start) = l.start
@@ -114,7 +208,14 @@ fn lower_node(
                 let checkbox = builder.element(li.span, "input", checkbox_attrs, vec![], true);
                 children.push(checkbox);
             }
-            children.extend(lower_children(&li.children, builder, policy, diagnostics));
+            children.extend(lower_children(
+                &li.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            ));
             Some(builder.elem(li.span, "li", children))
         }
 
@@ -128,18 +229,37 @@ fn lower_node(
             if let Some(ref title) = l.title {
                 attrs.insert("title".to_string(), title.clone());
             }
-            let children = lower_children(&l.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &l.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.element(l.span, "a", attrs, children, false))
         }
 
         MdNode::Image(img) => {
             let mut attrs = SmallMap::new();
-            attrs.insert("alt".to_string(), img.alt.clone());
             attrs.insert("src".to_string(), img.url.clone());
+            attrs.insert("alt".to_string(), img.alt.clone());
             if let Some(ref title) = img.title {
                 attrs.insert("title".to_string(), title.clone());
             }
-            Some(builder.element(img.span, "img", attrs, vec![], true))
+            let img_elem = builder.element(img.span, "img", attrs, vec![], true);
+
+            if figure_enabled {
+                let mut children = vec![img_elem];
+                if !img.alt.is_empty() {
+                    let caption_text = builder.text(img.span, &img.alt);
+                    let figcaption = builder.elem(img.span, "figcaption", vec![caption_text]);
+                    children.push(figcaption);
+                }
+                Some(builder.elem(img.span, "figure", children))
+            } else {
+                Some(img_elem)
+            }
         }
 
         MdNode::Definition(_) => None,
@@ -152,8 +272,16 @@ fn lower_node(
             let mut table_children = Vec::new();
 
             if let Some(first) = t.children.first()
-                && let Some(row) =
-                    lower_table_row(first, builder, policy, diagnostics, true, &t.align)
+                && let Some(row) = lower_table_row(
+                    first,
+                    builder,
+                    policy,
+                    diagnostics,
+                    true,
+                    &t.align,
+                    icon_mode,
+                    figure_enabled,
+                )
             {
                 let thead = builder.elem(first.span(), "thead", vec![row]);
                 table_children.push(thead);
@@ -163,7 +291,16 @@ fn lower_node(
                 let body_rows: Vec<HNode> = t.children[1..]
                     .iter()
                     .filter_map(|r| {
-                        lower_table_row(r, builder, policy, diagnostics, false, &t.align)
+                        lower_table_row(
+                            r,
+                            builder,
+                            policy,
+                            diagnostics,
+                            false,
+                            &t.align,
+                            icon_mode,
+                            figure_enabled,
+                        )
                     })
                     .collect();
                 if !body_rows.is_empty() {
@@ -182,12 +319,26 @@ fn lower_node(
         MdNode::TableCell(_) => None,
 
         MdNode::Delete(d) => {
-            let children = lower_children(&d.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &d.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.elem(d.span, "del", children))
         }
 
         MdNode::FootnoteDefinition(fd) => {
-            let children = lower_children(&fd.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &fd.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             let mut attrs = SmallMap::new();
             attrs.insert("id".to_string(), format!("fn-{}", fd.identifier));
             Some(builder.element(fd.span, "li", attrs, children, false))
@@ -250,9 +401,31 @@ fn lower_node(
             );
             attrs.insert("data-directive".to_string(), d.name.clone());
             for (k, v) in &d.attributes {
-                attrs.insert(format!("data-{k}"), v.clone());
+                if k != "title" {
+                    attrs.insert(format!("data-{k}"), v.clone());
+                }
             }
-            let children = lower_children(&d.children, builder, policy, diagnostics);
+            let mut children = Vec::new();
+
+            if let Some(title) = d
+                .attributes
+                .iter()
+                .find_map(|(k, v)| if k == "title" { Some(v.as_str()) } else { None })
+            {
+                let mut title_attrs = SmallMap::new();
+                title_attrs.insert("class".to_string(), "directive-title".to_string());
+                let title_text = builder.text(d.span, title);
+                children.push(builder.element(d.span, "p", title_attrs, vec![title_text], false));
+            }
+
+            children.extend(lower_children(
+                &d.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            ));
             Some(builder.element(d.span, "div", attrs, children, false))
         }
 
@@ -289,22 +462,50 @@ fn lower_node(
             let mut attrs = SmallMap::new();
             attrs.insert("href".to_string(), format!("/wiki/{slug}"));
             attrs.insert("class".to_string(), "wiki-link".to_string());
-            let children = lower_children(&w.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &w.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.element(w.span, "a", attrs, children, false))
         }
 
         MdNode::DefinitionList(dl) => {
-            let children = lower_children(&dl.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &dl.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.elem(dl.span, "dl", children))
         }
 
         MdNode::DefinitionTerm(dt) => {
-            let children = lower_children(&dt.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &dt.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.elem(dt.span, "dt", children))
         }
 
         MdNode::DefinitionDescription(dd) => {
-            let children = lower_children(&dd.children, builder, policy, diagnostics);
+            let children = lower_children(
+                &dd.children,
+                builder,
+                policy,
+                diagnostics,
+                icon_mode,
+                figure_enabled,
+            );
             Some(builder.elem(dd.span, "dd", children))
         }
 
@@ -318,9 +519,17 @@ fn lower_node(
             let rp_close = builder.elem(r.span, "rp", vec![rp_close_text]);
             Some(builder.elem(r.span, "ruby", vec![base, rp_open, rt, rp_close]))
         }
+
+        MdNode::Abbr(a) => {
+            let mut attrs = SmallMap::new();
+            attrs.insert("title".to_string(), a.definition.clone());
+            let text = builder.text(a.span, &a.term);
+            Some(builder.element(a.span, "abbr", attrs, vec![text], false))
+        }
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn lower_table_row(
     node: &MdNode,
     builder: &mut HBuilder,
@@ -328,6 +537,8 @@ fn lower_table_row(
     diagnostics: &mut DiagnosticSink,
     is_header: bool,
     align: &[AlignKind],
+    icon_mode: &GithubAlertIconMode,
+    figure_enabled: bool,
 ) -> Option<HNode> {
     if let MdNode::TableRow(row) = node {
         let cell_tag = if is_header { "th" } else { "td" };
@@ -337,7 +548,14 @@ fn lower_table_row(
             .enumerate()
             .filter_map(|(i, cell)| {
                 if let MdNode::TableCell(tc) = cell {
-                    let children = lower_children(&tc.children, builder, policy, diagnostics);
+                    let children = lower_children(
+                        &tc.children,
+                        builder,
+                        policy,
+                        diagnostics,
+                        icon_mode,
+                        figure_enabled,
+                    );
                     let mut attrs = SmallMap::new();
                     if let Some(a) = align.get(i) {
                         match a {
@@ -370,6 +588,7 @@ fn lower_alert(
     alert_kind: &str,
     content_children: Vec<HNode>,
     builder: &mut HBuilder,
+    icon_mode: &GithubAlertIconMode,
 ) -> Option<HNode> {
     let title = match alert_kind {
         "note" => "Note",
@@ -384,15 +603,59 @@ fn lower_alert(
     outer_attrs.insert("class".to_string(), format!("alert alert-{alert_kind}"));
     outer_attrs.insert("role".to_string(), "alert".to_string());
 
+    let mut title_children: Vec<HNode> = Vec::new();
+
+    match icon_mode {
+        GithubAlertIconMode::Octicon => {
+            if let Some(svg_html) = resolve_icon_svg(alert_kind, icon_mode) {
+                build_icon_element(span, &svg_html, builder, &mut title_children);
+            }
+        }
+        GithubAlertIconMode::Custom(map) => {
+            if let Some(svg_html) = resolve_icon_svg(alert_kind, icon_mode) {
+                if map.get(alert_kind).and_then(|d| d.svg.as_ref()).is_some() {
+                    title_children.push(builder.raw(span, &svg_html));
+                } else {
+                    build_icon_element(span, &svg_html, builder, &mut title_children);
+                }
+            }
+        }
+        GithubAlertIconMode::None => {}
+    }
+
+    title_children.push(builder.text(span, title));
+
     let mut title_attrs = SmallMap::new();
     title_attrs.insert("class".to_string(), "alert-title".to_string());
-    let title_text = builder.text(span, title);
-    let title_elem = builder.element(span, "p", title_attrs, vec![title_text], false);
+    let title_elem = builder.element(span, "p", title_attrs, title_children, false);
 
     let mut all_children = vec![title_elem];
     all_children.extend(content_children);
 
     Some(builder.element(span, "div", outer_attrs, all_children, false))
+}
+
+fn build_icon_element(span: Span, svg_html: &str, builder: &mut HBuilder, target: &mut Vec<HNode>) {
+    let path_d = svg_html.find("d=\"").and_then(|start| {
+        let rest = &svg_html[start + 3..];
+        rest.find('"').map(|end| &rest[..end])
+    });
+
+    let mut svg_attrs = SmallMap::new();
+    svg_attrs.insert("class".to_string(), "alert-icon".to_string());
+    svg_attrs.insert("viewBox".to_string(), "0 0 16 16".to_string());
+    svg_attrs.insert("width".to_string(), "16".to_string());
+    svg_attrs.insert("height".to_string(), "16".to_string());
+    svg_attrs.insert("aria-hidden".to_string(), "true".to_string());
+
+    let mut children = Vec::new();
+    if let Some(d) = path_d {
+        let mut path_attrs = SmallMap::new();
+        path_attrs.insert("d".to_string(), d.to_string());
+        children.push(builder.element(span, "path", path_attrs, vec![], true));
+    }
+
+    target.push(builder.element(span, "svg", svg_attrs, children, false));
 }
 
 fn lower_raw_html(
@@ -505,6 +768,7 @@ mod tests {
             depth: 1,
             children: vec![text],
             slug: None,
+            extra_attrs: SmallMap::new(),
         });
         let doc = make_doc(&mut id_gen, vec![heading]);
         let root = lower_doc(&doc);
@@ -527,6 +791,7 @@ mod tests {
                 depth,
                 children: vec![text],
                 slug: None,
+                extra_attrs: SmallMap::new(),
             });
             let doc = make_doc(&mut id_gen, vec![heading]);
             let root = lower_doc(&doc);
@@ -546,6 +811,7 @@ mod tests {
             depth: 2,
             children: vec![text],
             slug: Some("hello-world".to_string()),
+            extra_attrs: SmallMap::new(),
         });
         let doc = make_doc(&mut id_gen, vec![heading]);
         let root = lower_doc(&doc);
@@ -1508,6 +1774,7 @@ mod tests {
             depth: 3,
             children: vec![text],
             slug: None,
+            extra_attrs: SmallMap::new(),
         });
         let doc = make_doc(&mut id_gen, vec![heading]);
         let root = lower_doc(&doc);

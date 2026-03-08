@@ -1,11 +1,15 @@
 use napi_derive::napi;
+use std::collections::HashMap;
 use unifast_core::api::options::{
-    AutolinkHeadingsBehavior, AutolinkHeadingsOptions, BreaksOptions, CjkOptions,
-    CodeImportOptions, CompileOptions, DefinitionListOptions, DirectiveOptions, EmojiOptions,
-    ExternalLinksOptions, FrontmatterOptions, GfmOptions, GithubAlertOptions, HighlightEngine,
-    HighlightOptions, InputKind, LineNumberOptions, MathOptions, OutputKind, RawHtmlPolicy,
-    RubyAnnotationOptions, SanitizeOptions, SectionizeOptions, SlugMode, SlugOptions,
-    SmartypantsOptions, TocOptions, WikiLinkOptions,
+    AbbrOptions, AccessibleEmojiOptions, AddClassesOptions, AlertIconDef, AutolinkHeadingsBehavior,
+    AutolinkHeadingsOptions, BreaksOptions, CjkOptions, CodeImportOptions, CodeMetaOptions,
+    CommentRemovalOptions, CompileOptions, CustomHeadingIdOptions, DefinitionListOptions,
+    DirectiveOptions, EmojiOptions, ExcerptOptions, ExternalLinksOptions, FigureOptions,
+    FrontmatterOptions, GfmOptions, GithubAlertIconMode, GithubAlertOptions, HighlightEngine,
+    HighlightOptions, ImgLazyLoadingOptions, InputKind, LineNumberOptions, MathOptions,
+    MinifyOptions, OutputKind, RawHtmlPolicy, ReadingTimeOptions, RubyAnnotationOptions,
+    SanitizeOptions, SectionizeOptions, SlugMode, SlugOptions, SmartypantsOptions, TocOptions,
+    WikiLinkOptions,
 };
 
 #[napi(object)]
@@ -101,6 +105,53 @@ pub struct JsFeatureToggle {
 }
 
 #[napi(object)]
+pub struct JsAlertIconDef {
+    pub svg: Option<String>,
+    pub import_source: Option<String>,
+    pub import_name: Option<String>,
+}
+
+#[napi(object)]
+pub struct JsGithubAlertOptions {
+    pub enabled: Option<bool>,
+    pub icons: Option<String>,
+    pub custom_icons: Option<HashMap<String, JsAlertIconDef>>,
+}
+
+#[napi(object)]
+pub struct JsReadingTimeOptions {
+    pub enabled: Option<bool>,
+    pub words_per_minute: Option<u32>,
+    pub cjk_chars_per_minute: Option<u32>,
+}
+
+#[napi(object)]
+pub struct JsExcerptOptions {
+    pub enabled: Option<bool>,
+    pub separator: Option<String>,
+    pub fallback_paragraphs: Option<u32>,
+    pub fallback_characters: Option<u32>,
+}
+
+#[napi(object)]
+pub struct JsImgLazyLoadingOptions {
+    pub enabled: Option<bool>,
+    pub skip_first: Option<u32>,
+}
+
+#[napi(object)]
+pub struct JsAddClassesRule {
+    pub selector: String,
+    pub classes: String,
+}
+
+#[napi(object)]
+pub struct JsAddClassesOptions {
+    pub enabled: Option<bool>,
+    pub rules: Option<Vec<JsAddClassesRule>>,
+}
+
+#[napi(object)]
 pub struct JsCompileOptions {
     pub input_kind: Option<String>,
     pub output_kind: Option<String>,
@@ -120,7 +171,7 @@ pub struct JsCompileOptions {
     pub breaks: Option<JsFeatureToggle>,
     pub smartypants: Option<JsSmartypantsOptions>,
     pub emoji: Option<JsFeatureToggle>,
-    pub github_alert: Option<JsFeatureToggle>,
+    pub github_alert: Option<JsGithubAlertOptions>,
     pub math: Option<JsFeatureToggle>,
     pub directive: Option<JsFeatureToggle>,
     pub wiki_link: Option<JsWikiLinkOptions>,
@@ -128,6 +179,17 @@ pub struct JsCompileOptions {
     pub ruby_annotation: Option<JsFeatureToggle>,
     pub cjk: Option<JsFeatureToggle>,
     pub code_import: Option<JsCodeImportOptions>,
+    pub code_meta: Option<JsFeatureToggle>,
+    pub figure: Option<JsFeatureToggle>,
+    pub custom_heading_id: Option<JsFeatureToggle>,
+    pub reading_time: Option<JsReadingTimeOptions>,
+    pub excerpt: Option<JsExcerptOptions>,
+    pub abbr: Option<JsFeatureToggle>,
+    pub comment_removal: Option<JsFeatureToggle>,
+    pub img_lazy_loading: Option<JsImgLazyLoadingOptions>,
+    pub accessible_emoji: Option<JsFeatureToggle>,
+    pub add_classes: Option<JsAddClassesOptions>,
+    pub minify: Option<JsFeatureToggle>,
 }
 
 pub fn convert_options(js_opts: Option<JsCompileOptions>) -> CompileOptions {
@@ -257,8 +319,37 @@ pub fn convert_options(js_opts: Option<JsCompileOptions>) -> CompileOptions {
         emoji: EmojiOptions {
             enabled: js.emoji.and_then(|e| e.enabled).unwrap_or(false),
         },
-        github_alert: GithubAlertOptions {
-            enabled: js.github_alert.and_then(|g| g.enabled).unwrap_or(false),
+        github_alert: if let Some(ga) = js.github_alert {
+            let icons = match ga.icons.as_deref() {
+                Some("none") => GithubAlertIconMode::None,
+                Some("octicon") | None => {
+                    if let Some(custom) = ga.custom_icons {
+                        let map = custom
+                            .into_iter()
+                            .map(|(k, v)| {
+                                (
+                                    k,
+                                    AlertIconDef {
+                                        svg: v.svg,
+                                        import_source: v.import_source,
+                                        import_name: v.import_name,
+                                    },
+                                )
+                            })
+                            .collect();
+                        GithubAlertIconMode::Custom(map)
+                    } else {
+                        GithubAlertIconMode::Octicon
+                    }
+                }
+                _ => GithubAlertIconMode::Octicon,
+            };
+            GithubAlertOptions {
+                enabled: ga.enabled.unwrap_or(false),
+                icons,
+            }
+        } else {
+            GithubAlertOptions::default()
         },
         math: MathOptions {
             enabled: js.math.and_then(|m| m.enabled).unwrap_or(false),
@@ -292,6 +383,72 @@ pub fn convert_options(js_opts: Option<JsCompileOptions>) -> CompileOptions {
             }
         } else {
             CodeImportOptions::default()
+        },
+        code_meta: CodeMetaOptions {
+            enabled: js.code_meta.and_then(|c| c.enabled).unwrap_or(false),
+        },
+        figure: FigureOptions {
+            enabled: js.figure.and_then(|f| f.enabled).unwrap_or(false),
+        },
+        custom_heading_id: CustomHeadingIdOptions {
+            enabled: js
+                .custom_heading_id
+                .and_then(|c| c.enabled)
+                .unwrap_or(false),
+        },
+        reading_time_opts: if let Some(rt) = js.reading_time {
+            ReadingTimeOptions {
+                enabled: rt.enabled.unwrap_or(false),
+                words_per_minute: rt.words_per_minute.unwrap_or(200),
+                cjk_chars_per_minute: rt.cjk_chars_per_minute.unwrap_or(500),
+            }
+        } else {
+            ReadingTimeOptions::default()
+        },
+        excerpt_opts: if let Some(ex) = js.excerpt {
+            ExcerptOptions {
+                enabled: ex.enabled.unwrap_or(false),
+                separator: ex.separator.unwrap_or_else(|| "<!-- more -->".to_string()),
+                fallback_paragraphs: ex.fallback_paragraphs.or(Some(1)),
+                fallback_characters: ex.fallback_characters,
+            }
+        } else {
+            ExcerptOptions::default()
+        },
+        abbr: AbbrOptions {
+            enabled: js.abbr.and_then(|a| a.enabled).unwrap_or(false),
+        },
+        comment_removal: CommentRemovalOptions {
+            enabled: js.comment_removal.and_then(|c| c.enabled).unwrap_or(false),
+        },
+        img_lazy_loading: if let Some(il) = js.img_lazy_loading {
+            ImgLazyLoadingOptions {
+                enabled: il.enabled.unwrap_or(false),
+                skip_first: il.skip_first.unwrap_or(0),
+            }
+        } else {
+            ImgLazyLoadingOptions::default()
+        },
+        accessible_emoji: AccessibleEmojiOptions {
+            enabled: js.accessible_emoji.and_then(|a| a.enabled).unwrap_or(false),
+        },
+        add_classes: if let Some(ac) = js.add_classes {
+            AddClassesOptions {
+                enabled: ac.enabled.unwrap_or(false),
+                rules: ac
+                    .rules
+                    .map(|r| {
+                        r.into_iter()
+                            .map(|rule| (rule.selector, rule.classes))
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+            }
+        } else {
+            AddClassesOptions::default()
+        },
+        minify: MinifyOptions {
+            enabled: js.minify.and_then(|m| m.enabled).unwrap_or(false),
         },
         ..Default::default()
     }

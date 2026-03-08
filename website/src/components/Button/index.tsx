@@ -1,6 +1,5 @@
 import { Button as BaseButton } from "@base-ui/react/button";
-import { memo } from "react";
-import type { ComponentPropsWithoutRef, ReactElement } from "react";
+import { memo, type ComponentPropsWithoutRef, type ReactElement } from "react";
 
 import styles from "./Button.module.css";
 

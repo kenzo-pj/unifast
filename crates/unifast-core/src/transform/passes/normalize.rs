@@ -40,6 +40,7 @@ fn merge_adjacent_text(children: &mut Vec<MdNode>) {
 mod tests {
     use super::*;
     use crate::ast::common::{NodeIdGen, Span};
+    use crate::util::small_map::SmallMap;
 
     fn make_text(id_gen: &mut NodeIdGen, value: &str, start: u32, end: u32) -> MdNode {
         MdNode::Text(Text {
@@ -62,6 +63,7 @@ mod tests {
             depth,
             children,
             slug: None,
+            extra_attrs: SmallMap::new(),
         })
     }
 

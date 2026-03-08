@@ -16,15 +16,100 @@
   margin-bottom: 0;
 }
 
+.preview :global(.directive) > :first-child {
+  margin-top: 0;
+}
+.preview :global(.directive) > :last-child {
+  margin-bottom: 0;
+}
+
+.preview dl {
+  margin: 0;
+}
+
+.preview dt {
+  font-weight: 600;
+}
+
+.preview dt + dt {
+  margin-top: var(--gap-sm);
+}
+
+.preview dd {
+  margin-left: var(--gap-2xl);
+  margin-top: var(--gap-sm);
+}
+
+.preview dd + dt {
+  margin-top: var(--gap-lg);
+}
+
+.tabBar {
+  display: flex;
+  align-items: center;
+  background: var(--color-code-bg);
+  padding: var(--gap-sm) var(--gap-sm);
+  gap: var(--gap-xs);
+  border-top: 1px solid var(--color-border);
+}
+
+.tabIcon {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: var(--gap-sm) var(--gap-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+  line-height: 1.4;
+}
+
+.tab:hover {
+  color: var(--color-text);
+}
+
+.tabActive {
+  color: var(--color-text);
+  background: var(--color-bg);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+
 .codeWrapper {
   border-top: 1px solid var(--color-border);
 }
 
-.codeWrapper div {
+.codeWrapperTabbed {
+  border-top: none;
+}
+
+.codeWrapper div,
+.codeWrapperTabbed div {
   margin: 0;
 }
 
-.card .codeWrapper pre {
+.codeBlock {
+  position: relative;
+}
+
+.codeBlock > pre {
+  margin: 0;
+}
+
+.card .codeWrapper pre,
+.card .codeWrapperTabbed pre {
   margin: 0;
   border: none;
   border-radius: 0;

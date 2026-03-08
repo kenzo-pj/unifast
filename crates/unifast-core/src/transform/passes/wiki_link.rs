@@ -74,6 +74,9 @@ pub fn split_wiki_links(text: &str, span: Span, id_gen: &mut NodeIdGen) -> Vec<M
                 } else {
                     current.push_str("[[");
                     current.push_str(&link_content);
+                    if found_end {
+                        current.push_str("]]");
+                    }
                 }
             } else {
                 current.push(ch);
@@ -116,6 +119,42 @@ mod tests {
         );
         assert_eq!(nodes.len(), 3);
         assert!(matches!(&nodes[1], MdNode::WikiLink(w) if w.target == "Page Name"));
+    }
+
+    #[test]
+    fn preserves_empty_wiki_link_syntax() {
+        let mut id_gen = NodeIdGen::new();
+        let nodes = split_wiki_links("before [[]] after", Span::new(0, 17), &mut id_gen);
+        assert_eq!(nodes.len(), 2);
+        assert!(matches!(&nodes[0], MdNode::Text(t) if t.value == "before "));
+        assert!(matches!(&nodes[1], MdNode::Text(t) if t.value == "[[]] after"));
+    }
+
+    #[test]
+    fn preserves_unclosed_wiki_link() {
+        let mut id_gen = NodeIdGen::new();
+        let nodes = split_wiki_links("before [[no close", Span::new(0, 17), &mut id_gen);
+        assert_eq!(nodes.len(), 2);
+        assert!(matches!(&nodes[0], MdNode::Text(t) if t.value == "before "));
+        assert!(matches!(&nodes[1], MdNode::Text(t) if t.value == "[[no close"));
+    }
+
+    #[test]
+    fn handles_multiple_wiki_links() {
+        let mut id_gen = NodeIdGen::new();
+        let nodes = split_wiki_links("[[A]] and [[B]]", Span::new(0, 15), &mut id_gen);
+        assert_eq!(nodes.len(), 3);
+        assert!(matches!(&nodes[0], MdNode::WikiLink(w) if w.target == "A"));
+        assert!(matches!(&nodes[1], MdNode::Text(t) if t.value == " and "));
+        assert!(matches!(&nodes[2], MdNode::WikiLink(w) if w.target == "B"));
+    }
+
+    #[test]
+    fn no_wiki_links_returns_single_text() {
+        let mut id_gen = NodeIdGen::new();
+        let nodes = split_wiki_links("just plain text", Span::new(0, 15), &mut id_gen);
+        assert_eq!(nodes.len(), 1);
+        assert!(matches!(&nodes[0], MdNode::Text(t) if t.value == "just plain text"));
     }
 
     #[test]

@@ -10,27 +10,17 @@ import example from "./definition-list-example.md?example"
 import { definitionList } from "@unifast/node";
 ```
 
-### Signature
+## Signature
 
 ```ts
 function definitionList(): UnifastPlugin
 ```
 
-### Parameters
+## Parameters
 
 None.
 
-### Returns
-
-`UnifastPlugin`
-
-## Examples
-
-<Example data={example} />
-
 ## Usage
-
-### Basic usage
 
 ```ts
 import { compile, definitionList } from "@unifast/node";
@@ -56,6 +46,12 @@ The above Markdown produces the following HTML:
   <dd>The standard markup language for documents designed to be displayed in a web browser.</dd>
 </dl>
 ```
+
+## Examples
+
+### Definition list
+
+<Example data={example} />
 
 ### Multiple descriptions per term
 
@@ -108,14 +104,4 @@ Output:
   <dt>Transformer</dt>
   <dd>A function that modifies the AST during compilation.</dd>
 </dl>
-```
-
-### Combined with other plugins
-
-```ts
-import { compile, definitionList, gfm, frontmatter } from "@unifast/node";
-
-const result = compile(md, {
-  plugins: [definitionList(), gfm(), frontmatter()],
-});
 ```

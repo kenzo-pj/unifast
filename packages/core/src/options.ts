@@ -46,7 +46,14 @@ export type CompileOptions = {
 
   emoji?: { enabled?: boolean };
 
-  githubAlert?: { enabled?: boolean };
+  githubAlert?: {
+    enabled?: boolean;
+    icons?: "none" | "octicon";
+    customIcons?: Record<
+      string,
+      string | { svg?: string; importName?: string; importSource?: string }
+    >;
+  };
 
   math?: { enabled?: boolean };
 
@@ -61,6 +68,23 @@ export type CompileOptions = {
   cjk?: { enabled?: boolean };
 
   codeImport?: { enabled?: boolean; rootDir?: string };
+
+  codeMeta?: { enabled?: boolean };
+  figure?: { enabled?: boolean };
+  customHeadingId?: { enabled?: boolean };
+  readingTime?: { enabled?: boolean; wordsPerMinute?: number; cjkCharsPerMinute?: number };
+  excerpt?: {
+    enabled?: boolean;
+    separator?: string;
+    fallbackParagraphs?: number;
+    fallbackCharacters?: number;
+  };
+  abbr?: { enabled?: boolean };
+  commentRemoval?: { enabled?: boolean };
+  imgLazyLoading?: { enabled?: boolean; skipFirst?: number };
+  accessibleEmoji?: { enabled?: boolean };
+  addClass?: { enabled?: boolean; rules?: Record<string, string> };
+  minify?: { enabled?: boolean };
 
   diagnostics?: { format?: "compact" | "verbose" };
 

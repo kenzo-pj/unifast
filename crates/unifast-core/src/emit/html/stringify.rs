@@ -65,6 +65,108 @@ fn stringify_node(node: &HNode, output: &mut String) {
     }
 }
 
+static BOOLEAN_ATTRS: &[&str] = &[
+    "allowfullscreen",
+    "async",
+    "autofocus",
+    "autoplay",
+    "checked",
+    "controls",
+    "default",
+    "defer",
+    "disabled",
+    "formnovalidate",
+    "hidden",
+    "inert",
+    "ismap",
+    "itemscope",
+    "loop",
+    "multiple",
+    "muted",
+    "nomodule",
+    "novalidate",
+    "open",
+    "playsinline",
+    "readonly",
+    "required",
+    "reversed",
+    "selected",
+];
+
+static OPTIONAL_CLOSING_TAGS: &[&str] = &[
+    "p", "li", "td", "th", "tr", "thead", "tbody", "tfoot", "option", "dt", "dd", "colgroup",
+    "caption",
+];
+
+fn needs_quotes(value: &str) -> bool {
+    if value.is_empty() {
+        return true;
+    }
+    value
+        .chars()
+        .any(|c| !matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9' | '_' | '-' | '.'))
+}
+
+#[must_use]
+pub fn stringify_minified(root: &HRoot) -> String {
+    let mut output = String::new();
+    stringify_children_minified(&root.children, &mut output);
+    output
+}
+
+fn stringify_children_minified(children: &[HNode], output: &mut String) {
+    for child in children {
+        stringify_node_minified(child, output);
+    }
+}
+
+fn stringify_node_minified(node: &HNode, output: &mut String) {
+    match node {
+        HNode::Element(elem) => {
+            output.push('<');
+            output.push_str(&elem.tag);
+
+            for (key, value) in elem.attributes.iter() {
+                output.push(' ');
+                output.push_str(key);
+                if BOOLEAN_ATTRS.contains(&key.as_str()) && (value.is_empty() || value == key) {
+                    continue;
+                }
+                if !value.is_empty() {
+                    output.push('=');
+                    if needs_quotes(value) {
+                        output.push('"');
+                        output.push_str(&escape_html(value));
+                        output.push('"');
+                    } else {
+                        output.push_str(value);
+                    }
+                }
+            }
+
+            output.push('>');
+
+            if !is_void_element(&elem.tag) {
+                stringify_children_minified(&elem.children, output);
+                if !OPTIONAL_CLOSING_TAGS.contains(&elem.tag.as_str()) {
+                    output.push_str("</");
+                    output.push_str(&elem.tag);
+                    output.push('>');
+                }
+            }
+        }
+        HNode::Text(text) => {
+            output.push_str(&escape_html(&text.value));
+        }
+        HNode::Comment(_) => {}
+        HNode::Doctype(_) => {
+            output.push_str("<!DOCTYPE html>");
+        }
+        HNode::Root(root) => stringify_children_minified(&root.children, output),
+        HNode::Raw(raw) => output.push_str(&raw.value),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

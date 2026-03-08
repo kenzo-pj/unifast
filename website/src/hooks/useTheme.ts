@@ -4,12 +4,12 @@ type ThemeMode = "light" | "dark" | "system";
 type ResolvedTheme = "light" | "dark";
 
 function getSystemTheme(): ResolvedTheme {
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  if (globalThis.window === undefined) return "light";
+  return globalThis.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function getStoredMode(): ThemeMode {
-  if (typeof window === "undefined") return "system";
+  if (globalThis.window === undefined) return "system";
   const stored = localStorage.getItem("theme");
   if (stored === "light" || stored === "dark") return stored;
   return "system";
@@ -37,7 +37,7 @@ export function useTheme() {
 
   useEffect(() => {
     if (mode !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const mq = globalThis.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => {
       const newResolved = e.matches ? "dark" : "light";
       setResolved(newResolved);

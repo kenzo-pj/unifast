@@ -20,14 +20,11 @@ export default function packageInstallHighlightPlugin({ compile, plugins }: Opti
     transform(code, id) {
       if (!/\.(?:mdx|tsx?)$/.test(id)) return null;
 
-      // Match the props object { package: "..." } after PackageInstall
       const pattern = /(\{\s*package:\s*)"([^"]+)"(\s*\})/g;
-      // Only match if preceded by PackageInstall
       const replacements: Array<{ start: number; end: number; replacement: string }> = [];
 
       let m: RegExpExecArray | null;
       while ((m = pattern.exec(code)) !== null) {
-        // Check that this props object belongs to a PackageInstall call
         const before = code.slice(Math.max(0, m.index - 100), m.index);
         if (!before.includes("PackageInstall")) continue;
 

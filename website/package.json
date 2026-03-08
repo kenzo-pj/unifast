@@ -26,6 +26,7 @@
     "@unifast/node": "workspace:*",
     "@unifast/vite": "workspace:*",
     "hugeicons-react": "^0.4.0",
+    "katex": "^0.16.35",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
@@ -34,6 +35,7 @@
     "@css-modules-kit/stylelint-plugin": "^0.10.0",
     "@tanstack/router-plugin": "^1.166.2",
     "@types/html-minifier-terser": "^7.0.2",
+    "@types/katex": "^0.16.8",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",

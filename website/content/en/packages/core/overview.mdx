@@ -17,7 +17,7 @@ For the compiler and built-in plugins, use [`@unifast/node`](/docs/packages/node
 
 ## Type Definitions
 
-### `CompileOptions`
+### CompileOptions
 
 Configuration for the `compile()` function.
 
@@ -41,7 +41,7 @@ Configuration for the `compile()` function.
 | `sanitize.schema` | `SanitizeSchema` | - | Custom sanitization rules |
 | `highlight` | `object` | - | Syntax highlighting settings |
 | `highlight.enabled` | `boolean` | - | Enable syntax highlighting |
-| `highlight.engine` | `"none" \| "syntect"` | - | Highlighting engine |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | Highlighting engine |
 | `slug` | `object` | - | Heading slug generation settings |
 | `slug.mode` | `"github" \| "unicode"` | - | Slug generation algorithm |
 | `toc` | `object` | - | Table of contents settings |
@@ -54,7 +54,7 @@ Configuration for the `compile()` function.
 | `cache.dir` | `string` | - | Cache directory path |
 | `plugins` | `UnifastPlugin[]` | `[]` | Array of plugins to apply |
 
-### `CompileResult`
+### CompileResult
 
 Returned by the `compile()` function.
 
@@ -66,7 +66,7 @@ Returned by the `compile()` function.
 | `stats` | `{ parseMs, transformMs, emitMs }` | Timing breakdown in milliseconds |
 | `toc` | `TocEntry[]` | Extracted table of contents entries |
 
-### `Diagnostic`
+### Diagnostic
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -77,7 +77,7 @@ Returned by the `compile()` function.
 | `line` | `number \| undefined` | Line number (1-based) |
 | `column` | `number \| undefined` | Column number (1-based) |
 
-### `TocEntry`
+### TocEntry
 
 A single heading extracted for the table of contents.
 
@@ -87,7 +87,7 @@ A single heading extracted for the table of contents.
 | `text` | `string` | Plain text content of the heading |
 | `slug` | `string` | Generated slug for anchor linking |
 
-### `SanitizeSchema`
+### SanitizeSchema
 
 Custom sanitization rules.
 
@@ -97,7 +97,7 @@ Custom sanitization rules.
 | `allowedAttributes` | `Record<string, string[]>` | Allowed attributes per tag |
 | `allowedProtocols` | `Record<string, string[]>` | Allowed URL protocols per attribute |
 
-### `UnifastPlugin`
+### UnifastPlugin
 
 The plugin interface for extending unifast.
 
@@ -159,6 +159,11 @@ try {
 | `HastComment` | type | HAST comment node |
 | `HastDoctype` | type | HAST doctype node |
 | `hastToHtml` | function | HAST-to-HTML serializer |
+| `escapeHtml` | function | Escape HTML special characters (`&`, `<`, `>`, `"`) |
+| `extractLang` | function | Extract language identifier from a HAST `<code>` element |
+| `extractText` | function | Extract plain text content from a HAST node |
+| `findCodeChild` | function | Find the `<code>` child element inside a `<pre>` element |
+| `visitHast` | function | Visitor pattern utility for walking HAST trees |
 | `UnifastError` | class | Base error class |
 | `ParseError` | class | Parse error class |
 | `CompileError` | class | Compile error class |

@@ -1,10 +1,15 @@
 import { Select } from "@base-ui/react/select";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { LanguageSquareIcon } from "hugeicons-react";
-import { useCallback } from "react";
+import { memo, useCallback } from "react";
 
-import { useTranslation, DEFAULT_LOCALE, SUPPORTED_LOCALES, parseLocaleFromPath } from "~/i18n";
-import type { LocaleCode } from "~/i18n";
+import {
+  useTranslation,
+  DEFAULT_LOCALE,
+  SUPPORTED_LOCALES,
+  parseLocaleFromPath,
+  type LocaleCode,
+} from "~/i18n";
 
 import styles from "./LanguageSwitcher.module.css";
 
@@ -13,19 +18,18 @@ const LOCALE_ITEMS = SUPPORTED_LOCALES.map((loc) => ({
   label: loc === "en" ? "English" : "日本語",
 }));
 
-export function LanguageSwitcher() {
+export const LanguageSwitcher = memo(function LanguageSwitcher() {
   const { locale } = useTranslation();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const navigate = useNavigate();
-  const { restPath } = parseLocaleFromPath(pathname);
+  const router = useRouter();
 
   const handleValueChange = useCallback(
     (nextLocale: LocaleCode | null) => {
       if (!nextLocale || nextLocale === locale) return;
+      const { restPath } = parseLocaleFromPath(router.state.location.pathname);
       const targetPath = nextLocale === DEFAULT_LOCALE ? restPath : `/${nextLocale}${restPath}`;
-      navigate({ to: targetPath });
+      router.navigate({ to: targetPath });
     },
-    [locale, restPath, navigate],
+    [locale, router],
   );
 
   return (
@@ -56,7 +60,7 @@ export function LanguageSwitcher() {
       </Select.Portal>
     </Select.Root>
   );
-}
+});
 
 function ChevronIcon() {
   return (

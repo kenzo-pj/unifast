@@ -58,4 +58,101 @@ mod tests {
         );
         assert_eq!(extract_file_path("no file here"), None);
     }
+
+    #[test]
+    fn empty_file_value_returns_none() {
+        assert_eq!(extract_file_path("file="), None);
+        assert_eq!(extract_file_path("file=\"\""), None);
+        assert_eq!(extract_file_path("file=''"), None);
+    }
+
+    #[test]
+    fn single_quoted_path() {
+        assert_eq!(
+            extract_file_path("file='./src/main.rs'"),
+            Some("./src/main.rs".to_string())
+        );
+    }
+
+    #[test]
+    fn apply_reads_existing_file() {
+        use crate::ast::common::{NodeIdGen, Span};
+        use crate::ast::mdast::nodes::{Code, MdNode};
+        use std::io::Write;
+
+        let dir = std::env::temp_dir().join("unifast_test_code_import");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file_path = dir.join("sample.txt");
+        let mut f = std::fs::File::create(&file_path).unwrap();
+        write!(f, "imported content").unwrap();
+
+        let mut id_gen = NodeIdGen::new();
+        let meta = format!("file={}", file_path.display());
+        let mut children = vec![MdNode::Code(Code {
+            id: id_gen.next_id(),
+            span: Span::new(0, 10),
+            value: "placeholder".to_string(),
+            lang: Some("rust".to_string()),
+            meta: Some(meta),
+        })];
+        apply_code_import(&mut children, None);
+        if let MdNode::Code(code) = &children[0] {
+            assert_eq!(code.value, "imported content");
+        } else {
+            panic!("expected code node");
+        }
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn apply_with_root_dir_resolves_relative() {
+        use crate::ast::common::{NodeIdGen, Span};
+        use crate::ast::mdast::nodes::{Code, MdNode};
+        use std::io::Write;
+
+        let dir = std::env::temp_dir().join("unifast_test_code_import_root");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file_path = dir.join("example.rs");
+        let mut f = std::fs::File::create(&file_path).unwrap();
+        write!(f, "fn main() {{}}").unwrap();
+
+        let mut id_gen = NodeIdGen::new();
+        let mut children = vec![MdNode::Code(Code {
+            id: id_gen.next_id(),
+            span: Span::new(0, 10),
+            value: String::new(),
+            lang: Some("rust".to_string()),
+            meta: Some("file=example.rs".to_string()),
+        })];
+        apply_code_import(&mut children, Some(dir.to_str().unwrap()));
+        if let MdNode::Code(code) = &children[0] {
+            assert_eq!(code.value, "fn main() {}");
+        } else {
+            panic!("expected code node");
+        }
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn apply_missing_file_keeps_original() {
+        use crate::ast::common::{NodeIdGen, Span};
+        use crate::ast::mdast::nodes::{Code, MdNode};
+
+        let mut id_gen = NodeIdGen::new();
+        let mut children = vec![MdNode::Code(Code {
+            id: id_gen.next_id(),
+            span: Span::new(0, 10),
+            value: "original".to_string(),
+            lang: Some("rust".to_string()),
+            meta: Some("file=/nonexistent/path.rs".to_string()),
+        })];
+        apply_code_import(&mut children, None);
+        if let MdNode::Code(code) = &children[0] {
+            assert_eq!(code.value, "original");
+        } else {
+            panic!("expected code node");
+        }
+    }
 }

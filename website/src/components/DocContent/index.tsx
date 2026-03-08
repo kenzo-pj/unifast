@@ -1,8 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef } from "react";
-import type { ComponentType } from "react";
-import { createRoot } from "react-dom/client";
-import type { Root } from "react-dom/client";
+import { ArrowLeft01Icon, ArrowRight01Icon, PencilEdit01Icon } from "hugeicons-react";
+import { useCallback, useEffect, useRef, type ComponentType } from "react";
+import { createRoot, type Root } from "react-dom/client";
 
 import { CopyButton } from "~/components/CopyButton";
 import { TableOfContents } from "~/components/TableOfContents";
@@ -112,14 +111,6 @@ export function DocContent({
                 ? t("i18n.untranslatedBanner")
                 : t("i18n.outdatedBanner")}
             </span>
-            {slug && (
-              <Link
-                to={(slug === "index" ? "/" : `/docs/${slug}/`) as "/"}
-                className={styles.bannerLink}
-              >
-                {t("i18n.viewOriginal")}
-              </Link>
-            )}
           </div>
         )}
         {title && (
@@ -133,7 +124,6 @@ export function DocContent({
             <MdxContent components={mdxComponents} />
           </div>
         ) : html ? (
-          /* eslint-disable-next-line react/no-danger -- HTML is pre-sanitized by Rust sanitize pass */
           <div
             key={slug}
             ref={contentRef}
@@ -142,64 +132,54 @@ export function DocContent({
             dangerouslySetInnerHTML={{ __html: html }}
           />
         ) : null}
-        {slug && (
-          <a
-            className={styles.editLink}
-            href={`https://github.com/kenzo-pj/unifast/edit/main/website/content/en/${slug}${MdxContent ? ".mdx" : ".md"}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+        <footer className={styles.footer}>
+          {slug && (
+            <a
+              className={styles.editLink}
+              href={`https://github.com/kenzo-pj/unifast/edit/main/website/content/en/${slug}${MdxContent ? ".mdx" : ".md"}`}
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-              <path d="m15 5 4 4" />
-            </svg>
-            {t("nav.editThisPage")}
-          </a>
-        )}
-        {(prevPage || nextPage) && (
-          <nav className={styles.pageNav}>
-            {prevPage ? (
-              <Link to={prevPage.href} className={styles.pageNavCard}>
-                <span className={styles.pageNavDirection}>{t("nav.previous")}</span>
-                <span className={styles.pageNavTitle}>
-                  <span className={styles.pageNavArrow}>&larr;</span>
-                  {prevPage.label}
-                </span>
-              </Link>
-            ) : (
-              <span />
-            )}
-            {nextPage ? (
-              <Link
-                to={nextPage.href}
-                className={`${styles.pageNavCard} ${styles.pageNavCardNext}`}
-              >
-                <span className={styles.pageNavDirection}>{t("nav.next")}</span>
-                <span className={styles.pageNavTitle}>
-                  {nextPage.label}
-                  <span className={styles.pageNavArrow}>&rarr;</span>
-                </span>
-              </Link>
-            ) : (
-              <span />
-            )}
-          </nav>
-        )}
-        <p className={styles.attribution}>
-          Made with ❤️ by{" "}
-          <a href="https://github.com/Kenzo-Wada" target="_blank" rel="noopener noreferrer">
-            Kenzo Wada
-          </a>
-        </p>
+              <PencilEdit01Icon size={16} />
+              {t("nav.editThisPage")}
+            </a>
+          )}
+          {(prevPage || nextPage) && (
+            <nav className={styles.pageNav}>
+              {prevPage ? (
+                <Link to={prevPage.href} className={styles.pageNavCard}>
+                  <span className={styles.pageNavDirection}>{t("nav.previous")}</span>
+                  <span className={styles.pageNavTitle}>
+                    <ArrowLeft01Icon size={16} className={styles.pageNavArrow} />
+                    {prevPage.label}
+                  </span>
+                </Link>
+              ) : (
+                <span />
+              )}
+              {nextPage ? (
+                <Link
+                  to={nextPage.href}
+                  className={`${styles.pageNavCard} ${styles.pageNavCardNext}`}
+                >
+                  <span className={styles.pageNavDirection}>{t("nav.next")}</span>
+                  <span className={styles.pageNavTitle}>
+                    {nextPage.label}
+                    <ArrowRight01Icon size={16} className={styles.pageNavArrow} />
+                  </span>
+                </Link>
+              ) : (
+                <span />
+              )}
+            </nav>
+          )}
+          <p className={styles.attribution}>
+            Made with ❤️ by{" "}
+            <a href="https://github.com/Kenzo-Wada" target="_blank" rel="noopener noreferrer">
+              Kenzo Wada
+            </a>
+          </p>
+        </footer>
       </article>
       <TableOfContents toc={toc} />
     </div>

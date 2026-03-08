@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "Vite plugin for unifast — transform Markdown and MDX files into JS modules"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Overview
+
+`@unifast/vite` is a Vite plugin that transforms `.md` and `.mdx` files into JavaScript modules. It integrates unifast's Markdown/MDX compiler into the Vite build pipeline, enabling you to import Markdown files directly in your application.
+
+## Installation
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` is a peer dependency (optional) — when available, the plugin uses the native Rust compiler for maximum performance. Without it, `.md` files fall back to basic HTML rendering, and `.mdx` files require it.
+
+## Quick Start
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // compile options for .md files
+      },
+      mdx: {
+        // compile options for .mdx files
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // compiled HTML string
+console.log(doc.frontmatter);  // parsed frontmatter object
+console.log(doc.toc);          // table of contents entries
+```
+
+## Module Exports
+
+### `.md` files
+
+Each `.md` file is transformed into a module with the following exports:
+
+| Export | Type | Description |
+|--------|------|-------------|
+| `html` | `string` | Compiled HTML string |
+| `frontmatter` | `Record<string, unknown>` | Parsed frontmatter metadata |
+| `toc` | `TocEntry[]` | Extracted table of contents |
+| `default` | `object` | Object containing `html`, `frontmatter`, and `toc` |
+
+### `.mdx` files
+
+Each `.mdx` file is compiled to a JSX module using React's `jsx-runtime`. It exports a default React component along with `frontmatter` and `toc`.
+
+## Exports Summary
+
+| Export | Kind | Description |
+|--------|------|-------------|
+| `default` (unifastPlugin) | function | Vite plugin factory |
+| `UnifastPluginOptions` | type | Plugin options interface |

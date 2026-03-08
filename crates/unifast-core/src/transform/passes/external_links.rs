@@ -68,6 +68,70 @@ mod tests {
     }
 
     #[test]
+    fn handles_http_link() {
+        let mut id_gen = NodeIdGen::new();
+        let mut attrs = SmallMap::new();
+        attrs.insert("href".to_string(), "http://example.com".to_string());
+        let mut root = HRoot {
+            id: id_gen.next_id(),
+            span: Span::empty(),
+            children: vec![HNode::Element(HElement {
+                id: id_gen.next_id(),
+                span: Span::empty(),
+                tag: "a".to_string(),
+                attributes: attrs,
+                children: vec![],
+                self_closing: false,
+            })],
+        };
+        apply_external_links(&mut root, "noopener", None);
+        if let HNode::Element(a) = &root.children[0] {
+            assert_eq!(
+                a.attributes.get(&"rel".to_string()),
+                Some(&"noopener".to_string())
+            );
+            assert!(a.attributes.get(&"target".to_string()).is_none());
+        }
+    }
+
+    #[test]
+    fn processes_nested_link() {
+        let mut id_gen = NodeIdGen::new();
+        let mut link_attrs = SmallMap::new();
+        link_attrs.insert("href".to_string(), "https://example.com".to_string());
+        let mut root = HRoot {
+            id: id_gen.next_id(),
+            span: Span::empty(),
+            children: vec![HNode::Element(HElement {
+                id: id_gen.next_id(),
+                span: Span::empty(),
+                tag: "div".to_string(),
+                attributes: SmallMap::new(),
+                children: vec![HNode::Element(HElement {
+                    id: id_gen.next_id(),
+                    span: Span::empty(),
+                    tag: "a".to_string(),
+                    attributes: link_attrs,
+                    children: vec![],
+                    self_closing: false,
+                })],
+                self_closing: false,
+            })],
+        };
+        apply_external_links(&mut root, "noopener", Some("_blank"));
+        if let HNode::Element(div) = &root.children[0] {
+            if let HNode::Element(a) = &div.children[0] {
+                assert_eq!(
+                    a.attributes.get(&"rel".to_string()),
+                    Some(&"noopener".to_string())
+                );
+            } else {
+                panic!("expected anchor");
+            }
+        }
+    }
+
+    #[test]
     fn skips_internal_link() {
         let mut id_gen = NodeIdGen::new();
         let mut attrs = SmallMap::new();

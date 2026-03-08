@@ -206,8 +206,47 @@ export function math(): UnifastPlugin {
   return { name: "math", options: { math: { enabled: true } } };
 }
 
-export function githubAlert(): UnifastPlugin {
-  return { name: "github-alert", options: { githubAlert: { enabled: true } } };
+export type GithubAlertIconDef =
+  | string
+  | { svg?: string; importName?: string; importSource?: string };
+
+export type GithubAlertPluginOptions = {
+  icons?: "none" | "octicon" | Record<string, GithubAlertIconDef>;
+};
+
+export function githubAlert(options?: GithubAlertPluginOptions): UnifastPlugin {
+  const iconsOpt = options?.icons;
+
+  let icons: "none" | "octicon" | undefined;
+  let customIcons:
+    | Record<string, { svg?: string; importName?: string; importSource?: string }>
+    | undefined;
+
+  if (iconsOpt === "none") {
+    icons = "none";
+  } else if (iconsOpt === "octicon" || iconsOpt === undefined) {
+    icons = "octicon";
+  } else {
+    customIcons = {};
+    for (const [key, val] of Object.entries(iconsOpt)) {
+      if (typeof val === "string") {
+        customIcons[key] = { svg: val };
+      } else {
+        customIcons[key] = val;
+      }
+    }
+  }
+
+  return {
+    name: "github-alert",
+    options: {
+      githubAlert: {
+        enabled: true,
+        icons,
+        customIcons,
+      },
+    },
+  };
 }
 
 export function sectionize(): UnifastPlugin {
@@ -228,4 +267,97 @@ export function rubyAnnotation(): UnifastPlugin {
 
 export function cjk(): UnifastPlugin {
   return { name: "cjk", options: { cjk: { enabled: true } } };
+}
+
+export function codeMeta(): UnifastPlugin {
+  return { name: "code-meta", options: { codeMeta: { enabled: true } } };
+}
+
+export function figure(): UnifastPlugin {
+  return { name: "figure", options: { figure: { enabled: true } } };
+}
+
+export function customHeadingId(): UnifastPlugin {
+  return { name: "custom-heading-id", options: { customHeadingId: { enabled: true } } };
+}
+
+export type ReadingTimePluginOptions = {
+  wordsPerMinute?: number;
+  cjkCharsPerMinute?: number;
+};
+
+export function readingTime(options?: ReadingTimePluginOptions): UnifastPlugin {
+  return {
+    name: "reading-time",
+    options: {
+      readingTime: {
+        enabled: true,
+        wordsPerMinute: options?.wordsPerMinute ?? 200,
+        cjkCharsPerMinute: options?.cjkCharsPerMinute ?? 500,
+      },
+    },
+  };
+}
+
+export type ExcerptPluginOptions = {
+  separator?: string;
+  fallbackParagraphs?: number;
+  fallbackCharacters?: number;
+};
+
+export function excerpt(options?: ExcerptPluginOptions): UnifastPlugin {
+  return {
+    name: "excerpt",
+    options: {
+      excerpt: {
+        enabled: true,
+        separator: options?.separator ?? "<!-- more -->",
+        fallbackParagraphs: options?.fallbackParagraphs ?? 1,
+      },
+    },
+  };
+}
+
+export function abbr(): UnifastPlugin {
+  return { name: "abbr", options: { abbr: { enabled: true } } };
+}
+
+export function commentRemoval(): UnifastPlugin {
+  return { name: "comment-removal", options: { commentRemoval: { enabled: true } } };
+}
+
+export type ImgLazyLoadingPluginOptions = {
+  skipFirst?: number;
+};
+
+export function imgLazyLoading(options?: ImgLazyLoadingPluginOptions): UnifastPlugin {
+  return {
+    name: "img-lazy-loading",
+    options: {
+      imgLazyLoading: {
+        enabled: true,
+        skipFirst: options?.skipFirst ?? 0,
+      },
+    },
+  };
+}
+
+export function accessibleEmoji(): UnifastPlugin {
+  return { name: "accessible-emoji", options: { accessibleEmoji: { enabled: true } } };
+}
+
+export function addClasses(rules: Record<string, string>): UnifastPlugin {
+  return {
+    name: "add-classes",
+    options: {
+      addClass: {
+        enabled: true,
+        rules,
+      },
+    },
+  };
+}
+
+export function minify(): UnifastPlugin {
+  return { name: "minify", options: { minify: { enabled: true } } };
 }

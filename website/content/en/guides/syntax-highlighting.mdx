@@ -1,26 +1,50 @@
 ---
 title: "Syntax Highlighting"
-description: "Choose between syntect (Rust-native, build-time) and Shiki (JavaScript, runtime) syntax highlighting engines in unifast."
+description: "Choose from four syntax highlighting engines in unifast: tree-sitter, syntect, Shiki, and highlight.js."
 ---
 
 import { PackageInstall } from "~/components/PackageInstall"
 
-unifast supports two syntax highlighting engines: **syntect** (Rust-native, build-time) and **Shiki** (JavaScript, runtime). Choose based on your needs.
+unifast supports four syntax highlighting engines. Two run inside the Rust compiler (**tree-sitter**, **syntect**), and two run in JavaScript (**Shiki**, **highlight.js**).
 
 ### Comparison
 
-| | syntect | Shiki |
-|---|---------|-------|
-| **Runtime** | Rust (built-in) | JavaScript |
-| **Speed** | Fastest - runs inside the compiler | Slower - requires JS runtime |
-| **Themes** | TextMate themes | VS Code themes |
-| **Languages** | TextMate grammars | VS Code grammars |
-| **CSS output** | Class-based (`sy-*`) | Inline styles or class-based |
-| **Best for** | SSG, build-time rendering | Fine-grained theme control |
+| | tree-sitter | syntect | Shiki | highlight.js |
+|---|-------------|---------|-------|--------------|
+| **Runtime** | Rust (built-in) | Rust (built-in) | JavaScript | JavaScript |
+| **Parsing** | AST-based (tree-sitter grammars) | Regex-based (TextMate grammars) | Regex-based (VS Code grammars) | Regex-based (highlight.js grammars) |
+| **Speed** | Fastest | Fast | Slower | Slower |
+| **Languages** | 29 languages + syntect fallback | 100+ (TextMate) | VS Code grammars | 190+ |
+| **CSS output** | Class-based (`ts-*`) | Class-based (`sy-*`) | Inline styles or class-based | Class-based (`hljs`) |
+| **Package** | `@unifast/node` | `@unifast/node` | `@unifast/shiki` | `@unifast/highlight` |
+| **Best for** | Precise highlighting, broad coverage | Simple setup, fast startup | Fine-grained theme control | highlight.js theme ecosystem |
+
+### Using tree-sitter
+
+tree-sitter uses AST-based parsing for precise syntax highlighting. It runs inside the Rust compiler and supports 29 languages natively. For unsupported languages, it automatically falls back to syntect.
+
+tree-sitter is included in `@unifast/node` — no separate install needed.
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [treeSitter()] }
+);
+```
+
+tree-sitter generates CSS class names prefixed with `ts-`. You need to provide CSS rules for these classes in your stylesheet.
+
+#### Supported languages
+
+TypeScript, TSX, JavaScript, HTML, CSS, Python, Rust, JSON, YAML, Go, Ruby, TOML, Swift, PHP, Java, Lua, Scala, Zig, Elixir, OCaml, R, Make, Nix, Regex, Erlang, Bash, C, C++, CMake
+
+Language aliases are also supported (e.g. `ts`, `py`, `rs`, `sh`, `yml`, `rb`).
 
 ### Using syntect
 
-syntect runs entirely inside the Rust compiler - no additional JavaScript overhead.
+syntect uses TextMate grammars and runs entirely inside the Rust compiler — no additional JavaScript overhead.
 
 syntect is included in `@unifast/node` — no separate install needed.
 
@@ -56,15 +80,33 @@ const result = compile(
 );
 ```
 
-### Line Numbers
+### Using highlight.js
 
-Both engines support line numbers. Enable them in the compile options:
+`@unifast/highlight` uses [lowlight](https://github.com/wooorm/lowlight) (highlight.js) and runs as a HAST transform in JavaScript. It supports 190+ languages and works with any highlight.js theme.
+
+<PackageInstall package="@unifast/highlight" />
 
 ```ts
-import { compile, syntect } from "@unifast/node";
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [highlight()] }
+);
+```
+
+highlight.js generates class names with the `hljs` prefix. Use any [highlight.js theme CSS](https://highlightjs.org/demo) for styling.
+
+### Line Numbers
+
+All engines support line numbers. Enable them in the compile options:
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
 
 const result = compile(source, {
-  plugins: [syntect()],
+  plugins: [treeSitter()],
   lineNumbers: true,
 });
 ```

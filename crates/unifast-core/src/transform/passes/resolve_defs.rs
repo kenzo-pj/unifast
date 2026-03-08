@@ -23,6 +23,7 @@ fn resolve_in_children(children: &mut Vec<MdNode>) {
 mod tests {
     use super::*;
     use crate::ast::common::{NodeIdGen, Span};
+    use crate::util::small_map::SmallMap;
 
     fn make_definition(id_gen: &mut NodeIdGen, identifier: &str, url: &str) -> MdNode {
         MdNode::Definition(Definition {
@@ -160,6 +161,7 @@ mod tests {
             depth: 1,
             children: vec![],
             slug: None,
+            extra_attrs: SmallMap::new(),
         });
         let mut doc = Document {
             id: id_gen.next_id(),

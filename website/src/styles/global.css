@@ -12,11 +12,11 @@
   --color-active: oklch(0 0 0 / 0.08);
 
   --color-warning-bg: oklch(0.98 0.016 73);
-  --color-warning-text: oklch(0.495 0.163 38);
+  --color-warning-text: oklch(0.55 0.12 50);
   --color-warning-border: oklch(0.9 0.076 73);
 
   --color-caution-bg: oklch(0.99 0.03 100);
-  --color-caution-text: oklch(0.53 0.12 73);
+  --color-caution-text: oklch(0.57 0.1 80);
   --color-caution-border: oklch(0.93 0.1 100);
 
   --glass-bg: oklch(1 0 0 / 0.7);
@@ -61,11 +61,11 @@
   --color-active: oklch(1 0 0 / 0.08);
 
   --color-warning-bg: oklch(0.27 0.077 38);
-  --color-warning-text: oklch(0.84 0.11 73);
+  --color-warning-text: oklch(0.68 0.08 60);
   --color-warning-border: oklch(0.43 0.14 38);
 
   --color-caution-bg: oklch(0.265 0.07 55);
-  --color-caution-text: oklch(0.885 0.14 100);
+  --color-caution-text: oklch(0.68 0.08 80);
   --color-caution-border: oklch(0.42 0.13 45);
 
   --glass-bg: oklch(0.141 0.005 286 / 0.7);
@@ -78,6 +78,15 @@
 *::after {
   box-sizing: border-box;
   margin: 0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0 0 0 / 0.2) transparent;
+}
+
+[data-theme="dark"] * {
+  scrollbar-color: oklch(1 0 0 / 0.2) transparent;
 }
 
 html {
@@ -153,7 +162,63 @@ html[data-theme="dark"] .sy-entity.sy-name {
   color: #b392f0;
 }
 
-/* tree-sitter highlight (ts- prefix) */
+.sy-punctuation.sy-definition {
+  color: #6a737d;
+}
+.sy-punctuation.sy-definition.sy-heading {
+  color: #d73a49;
+}
+.sy-punctuation.sy-definition.sy-blockquote {
+  color: #6a737d;
+}
+.sy-entity.sy-name.sy-section {
+  color: #6f42c1;
+}
+.sy-markup.sy-bold {
+  font-weight: 600;
+}
+.sy-markup.sy-italic {
+  font-style: italic;
+}
+.sy-markup.sy-raw {
+  color: #032f62;
+}
+.sy-markup.sy-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+.sy-markup.sy-list {
+  color: #d73a49;
+}
+.sy-markup.sy-underline.sy-link {
+  color: #032f62;
+}
+
+html[data-theme="dark"] .sy-punctuation.sy-definition {
+  color: #6a737d;
+}
+html[data-theme="dark"] .sy-punctuation.sy-definition.sy-heading {
+  color: #f97583;
+}
+html[data-theme="dark"] .sy-punctuation.sy-definition.sy-blockquote {
+  color: #6a737d;
+}
+html[data-theme="dark"] .sy-entity.sy-name.sy-section {
+  color: #b392f0;
+}
+html[data-theme="dark"] .sy-markup.sy-raw {
+  color: #9ecbff;
+}
+html[data-theme="dark"] .sy-markup.sy-quote {
+  color: #6a737d;
+}
+html[data-theme="dark"] .sy-markup.sy-list {
+  color: #f97583;
+}
+html[data-theme="dark"] .sy-markup.sy-underline.sy-link {
+  color: #9ecbff;
+}
+
 .ts-keyword {
   color: #d73a49;
 }

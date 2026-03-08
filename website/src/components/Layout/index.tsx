@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { memo, lazy, Suspense } from "react";
-import type { ReactNode } from "react";
+import { memo, lazy, Suspense, type ReactNode } from "react";
 
 import { GitHubIcon } from "~/components/GitHubIcon";
 import { LanguageSwitcher } from "~/components/LanguageSwitcher";

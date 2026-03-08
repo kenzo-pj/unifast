@@ -10,27 +10,17 @@ import example from "./ruby-annotation-example.md?example"
 import { rubyAnnotation } from "@unifast/node";
 ```
 
-### Signature
+## Signature
 
 ```ts
 function rubyAnnotation(): UnifastPlugin
 ```
 
-### Parameters
+## Parameters
 
 None.
 
-### Returns
-
-`UnifastPlugin`
-
-## Examples
-
-<Example data={example} />
-
 ## Usage
-
-### Basic usage
 
 ```ts
 import { compile, rubyAnnotation } from "@unifast/node";
@@ -42,6 +32,12 @@ const md = `
 const result = compile(md, { plugins: [rubyAnnotation()] });
 // {漢字|かんじ} becomes <ruby>漢字<rp>(</rp><rt>かんじ</rt><rp>)</rp></ruby>
 ```
+
+## Examples
+
+### Ruby annotations (furigana)
+
+<Example data={example} />
 
 ### Multiple annotations in a sentence
 
@@ -70,14 +66,4 @@ const md = `
 `;
 
 const result = compile(md, { plugins: [rubyAnnotation()] });
-```
-
-### Combined with other plugins
-
-```ts
-import { compile, rubyAnnotation, gfm, frontmatter } from "@unifast/node";
-
-const result = compile(md, {
-  plugins: [rubyAnnotation(), gfm(), frontmatter()],
-});
 ```

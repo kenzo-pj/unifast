@@ -6,9 +6,7 @@ import { createShikiPlugin } from "@unifast/shiki";
 import { createShikiProcessor } from "./setup/unified.js";
 
 const fixturesDir = join(import.meta.dirname, "fixtures");
-const simple = readFileSync(join(fixturesDir, "simple.md"), "utf-8");
 const readme = readFileSync(join(fixturesDir, "readme.md"), "utf-8");
-const large = readFileSync(join(fixturesDir, "large.md"), "utf-8");
 
 const shikiPlugin = await createShikiPlugin({
   themes: "github-dark",
@@ -16,17 +14,7 @@ const shikiPlugin = await createShikiPlugin({
 });
 const unifiedShiki = await createShikiProcessor();
 
-describe("shiki: unifast vs unified (simple)", () => {
-  bench("unifast (plugin-shiki)", () => { compile(simple, { plugins: [shikiPlugin] }); });
-  bench("unified (@shikijs/rehype)", async () => { await unifiedShiki.process(simple); });
-});
-
 describe("shiki: unifast vs unified (readme)", () => {
   bench("unifast (plugin-shiki)", () => { compile(readme, { plugins: [shikiPlugin] }); });
   bench("unified (@shikijs/rehype)", async () => { await unifiedShiki.process(readme); });
-});
-
-describe("shiki: unifast vs unified (large)", () => {
-  bench("unifast (plugin-shiki)", () => { compile(large, { plugins: [shikiPlugin] }); });
-  bench("unified (@shikijs/rehype)", async () => { await unifiedShiki.process(large); });
 });

@@ -1,0 +1,42 @@
+---
+title: "cjk()"
+description: "CJK-friendly text processing that removes unwanted newlines between CJK characters."
+---
+
+import { Example } from "~/components/Example"
+import example from "./cjk-example.md?example"
+
+```ts
+import { cjk } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function cjk(): UnifastPlugin
+```
+
+## Parameters
+
+None.
+
+## Usage
+
+```ts
+import { compile, cjk } from "@unifast/node";
+
+const md = `
+今日は天気が
+とても良いです。
+`;
+
+const result = compile(md, { plugins: [cjk()] });
+console.log(result.output);
+// <p>今日は天気がとても良いです。</p>
+```
+
+## Examples
+
+### CJK newline removal
+
+<Example data={example} />

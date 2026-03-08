@@ -10,29 +10,20 @@ import example from "./emoji-example.md?example"
 import { emoji } from "@unifast/node";
 ```
 
-### Signature
+## Signature
 
 ```ts
 function emoji(): UnifastPlugin
 ```
 
-### Parameters
+## Parameters
 
 None.
-
-### Returns
-
-`UnifastPlugin`
-
-## Examples
-
-<Example data={example} />
 
 ## Usage
 
 ```ts
-import { compile } from "@unifast/node";
-import { emoji } from "@unifast/node";
+import { compile, emoji } from "@unifast/node";
 
 const md = `This is great :thumbsup: and I'm happy :smile:!`;
 
@@ -41,3 +32,9 @@ const result = compile(md, {
 });
 // :thumbsup: → 👍, :smile: → 😄
 ```
+
+## Examples
+
+### Emoji shortcodes
+
+<Example data={example} />

@@ -19,8 +19,18 @@
     },
     "website": {
       "entry": ["src/entry-server.tsx", "plugins/*.ts"],
-      "ignore": ["src/components/Example/**"],
-      "ignoreDependencies": ["babel-plugin-react-compiler", "lightningcss"]
+      "ignore": [
+        "src/components/Example/**",
+        "src/components/ParamTable/**",
+        "src/components/icons/logos.tsx",
+        "content/**/*-example.ts"
+      ],
+      "ignoreDependencies": [
+        "babel-plugin-react-compiler",
+        "katex",
+        "@types/katex",
+        "lightningcss"
+      ]
     }
   }
 }

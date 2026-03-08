@@ -144,7 +144,7 @@ fn wrap_lines_in_code(code: &mut HElement, id_gen: &mut NodeIdGen) {
     code.children = new_children;
 }
 
-fn make_lines_self_contained(html: &str) -> Vec<String> {
+pub(crate) fn make_lines_self_contained(html: &str) -> Vec<String> {
     let raw_lines: Vec<&str> = html.split('\n').collect();
     let mut result = Vec::new();
     let mut carry_spans: Vec<String> = Vec::new();
@@ -163,9 +163,8 @@ fn make_lines_self_contained(html: &str) -> Vec<String> {
         }
 
         let mut pos = 0;
-        let bytes = raw_line.as_bytes();
-        while pos < bytes.len() {
-            if bytes[pos] == b'<' {
+        while pos < raw_line.len() {
+            if raw_line.as_bytes()[pos] == b'<' {
                 let tag_end = raw_line[pos..]
                     .find('>')
                     .map_or(raw_line.len(), |p| pos + p + 1);
@@ -188,8 +187,9 @@ fn make_lines_self_contained(html: &str) -> Vec<String> {
                 }
                 pos = tag_end;
             } else {
-                line_html.push(bytes[pos] as char);
-                pos += 1;
+                let ch = raw_line[pos..].chars().next().unwrap();
+                line_html.push(ch);
+                pos += ch.len_utf8();
             }
         }
 

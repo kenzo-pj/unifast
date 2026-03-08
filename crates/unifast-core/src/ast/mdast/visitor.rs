@@ -1,9 +1,10 @@
 use super::nodes::{
-    Blockquote, Break, Code, ContainerDirective, Definition, DefinitionDescription, DefinitionList,
-    DefinitionTerm, Delete, Document, Emphasis, FootnoteDefinition, FootnoteReference, Heading,
-    Html, Image, InlineCode, InlineMath, Json, LeafDirective, Link, List, ListItem, Math, MdNode,
-    MdxExpression, MdxJsxElement, MdxjsEsm, Paragraph, RubyAnnotation, Strong, Table, TableCell,
-    TableRow, Text, TextDirective, ThematicBreak, Toml, WikiLink, Yaml,
+    Abbr, Blockquote, Break, Code, ContainerDirective, Definition, DefinitionDescription,
+    DefinitionList, DefinitionTerm, Delete, Document, Emphasis, FootnoteDefinition,
+    FootnoteReference, Heading, Html, Image, InlineCode, InlineMath, Json, LeafDirective, Link,
+    List, ListItem, Math, MdNode, MdxExpression, MdxJsxElement, MdxjsEsm, Paragraph,
+    RubyAnnotation, Strong, Table, TableCell, TableRow, Text, TextDirective, ThematicBreak, Toml,
+    WikiLink, Yaml,
 };
 
 #[allow(unused_variables)]
@@ -51,6 +52,7 @@ pub trait MdVisitor {
             MdNode::DefinitionTerm(n) => self.visit_definition_term(n),
             MdNode::DefinitionDescription(n) => self.visit_definition_description(n),
             MdNode::RubyAnnotation(n) => self.visit_ruby_annotation(n),
+            MdNode::Abbr(n) => self.visit_abbr(n),
         }
     }
 
@@ -183,6 +185,8 @@ pub trait MdVisitor {
     }
 
     fn visit_ruby_annotation(&mut self, node: &RubyAnnotation) {}
+
+    fn visit_abbr(&mut self, node: &Abbr) {}
 }
 
 #[allow(unused_variables)]
@@ -230,6 +234,7 @@ pub trait MdVisitorMut {
             MdNode::DefinitionTerm(n) => self.visit_definition_term_mut(n),
             MdNode::DefinitionDescription(n) => self.visit_definition_description_mut(n),
             MdNode::RubyAnnotation(n) => self.visit_ruby_annotation_mut(n),
+            MdNode::Abbr(n) => self.visit_abbr_mut(n),
         }
     }
 
@@ -362,12 +367,15 @@ pub trait MdVisitorMut {
     }
 
     fn visit_ruby_annotation_mut(&mut self, node: &mut RubyAnnotation) {}
+
+    fn visit_abbr_mut(&mut self, node: &mut Abbr) {}
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::ast::common::{NodeIdGen, Span};
+    use crate::util::small_map::SmallMap;
 
     struct NodeCounter {
         count: usize,
@@ -405,6 +413,7 @@ mod tests {
                         value: "Title".into(),
                     })],
                     slug: None,
+                    extra_attrs: SmallMap::new(),
                 }),
                 MdNode::Paragraph(Paragraph {
                     id: id_gen.next_id(),
@@ -469,6 +478,7 @@ mod tests {
                     depth: 1,
                     children: vec![],
                     slug: None,
+                    extra_attrs: SmallMap::new(),
                 }),
                 MdNode::Heading(Heading {
                     id: id_gen.next_id(),
@@ -476,6 +486,7 @@ mod tests {
                     depth: 2,
                     children: vec![],
                     slug: None,
+                    extra_attrs: SmallMap::new(),
                 }),
                 MdNode::Paragraph(Paragraph {
                     id: id_gen.next_id(),
@@ -488,6 +499,7 @@ mod tests {
                     depth: 3,
                     children: vec![],
                     slug: None,
+                    extra_attrs: SmallMap::new(),
                 }),
             ],
         });

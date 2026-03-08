@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "Create a Tree-sitter plugin that enables syntax highlighting for fenced code blocks using the Tree-sitter parsing library."
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## Parameters
+
+### options?
+
+Highlighting engine configuration
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | "treeSitter" uses the Tree-sitter highlighter; "none" disables highlighting |
+
+## Usage
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## Examples
+
+### Enable syntax highlighting
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Disable highlighting
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

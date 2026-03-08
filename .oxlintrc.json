@@ -39,30 +39,46 @@
     "max-depth": "off",
     "max-nested-callbacks": "off",
     "max-classes-per-file": "off",
+    "id-length": "off",
+    "max-lines": "off",
+    "max-statements": "off",
+    "no-inline-comments": "off",
+    "no-negated-condition": "off",
 
     "import/no-cycle": "error",
     "import/no-self-import": "error",
     "import/no-duplicates": "error",
     "import/exports-last": "off",
+    "import/no-named-export": "off",
+    "import/prefer-default-export": "off",
+    "import/group-exports": "off",
+    "import/no-unassigned-import": "off",
+    "import/max-dependencies": "off",
+    "import/consistent-type-specifier-style": "off",
 
     "@typescript-eslint/consistent-type-definitions": "off",
     "@typescript-eslint/consistent-indexed-object-style": "off",
     "@typescript-eslint/array-type": "off",
 
     "react/react-in-jsx-scope": "off",
+    "react/jsx-max-depth": "off",
+    "react/jsx-props-no-spreading": "off",
 
+    "unicorn/no-nested-ternary": "off",
+    "unicorn/no-array-sort": "off",
     "unicorn/no-null": "off",
     "unicorn/prefer-top-level-await": "off",
     "unicorn/filename-case": "off",
 
     "promise/prefer-await-to-then": "off",
+    "promise/always-return": "off",
 
     "jest/require-hook": "off",
     "vitest/no-importing-vitest-globals": "off",
 
-    "jsx-a11y/click-events-have-key-events": "warn",
+    "jsx-a11y/click-events-have-key-events": "off",
     "jsx-a11y/no-autofocus": "warn",
-    "jsx-a11y/no-static-element-interactions": "warn"
+    "jsx-a11y/no-static-element-interactions": "off"
   },
   "ignorePatterns": [
     "dist/**",

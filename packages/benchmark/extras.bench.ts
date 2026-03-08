@@ -15,9 +15,7 @@ import {
 } from "./setup/unified.js";
 
 const fixturesDir = join(import.meta.dirname, "fixtures");
-const simple = readFileSync(join(fixturesDir, "simple.md"), "utf-8");
 const readme = readFileSync(join(fixturesDir, "readme.md"), "utf-8");
-const large = readFileSync(join(fixturesDir, "large.md"), "utf-8");
 
 const unifiedExtLinks = createExternalLinksProcessor();
 const unifiedAutolink = createAutolinkHeadingsProcessor();

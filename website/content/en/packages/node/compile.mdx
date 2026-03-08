@@ -1,0 +1,141 @@
+---
+title: "compile()"
+description: "The primary compilation function. Transforms Markdown or MDX into HTML or other output formats using the native Rust compiler."
+---
+
+```ts
+import { compile } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function compile(input: string, options?: CompileOptions): CompileResult
+```
+
+## Parameters
+
+### input
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Markdown or MDX source string |
+
+### options?
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `options?` | `CompileOptions` | — | Compilation configuration including plugins |
+
+## Returns
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `output` | `string \| object` | Compiled output. HTML string by default; JSON string for HAST/MDAST. |
+| `frontmatter` | `Record<string, unknown>` | Parsed frontmatter metadata (empty `{}` if none) |
+| `diagnostics` | `Diagnostic[]` | Array of `{ level, message, start?, end? }` |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Timing breakdown (ms) |
+| `toc` | `TocEntry[]` | Extracted table of contents (empty `[]` if TOC disabled) |
+
+## Usage
+
+```ts
+import { compile, gfm, frontmatter, toc, sanitize } from "@unifast/node";
+
+const md = `---
+title: My Document
+---
+
+# Hello, **world**!
+
+| Column A | Column B |
+|----------|----------|
+| Cell 1   | Cell 2   |
+`;
+
+const result = compile(md, {
+  inputKind: "md",       // "md" | "mdx"
+  outputKind: "html",    // "html" | "hast" | "mdast" | "mdxJs"
+  plugins: [gfm(), frontmatter(), toc({ maxDepth: 3 }), sanitize()],
+});
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+// <table>...</table>
+
+console.log(result.frontmatter);
+// { title: "My Document" }
+
+console.log(result.toc);
+// [{ depth: 1, text: "Hello, world!", slug: "hello-world" }]
+
+console.log(result.stats);
+// { parseMs: 0.12, transformMs: 0.08, emitMs: 0.05 }
+```
+
+## Examples
+
+### Basic Markdown to HTML
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+### MDX input
+
+```ts
+import { compile } from "@unifast/node";
+
+const mdx = `
+import { Alert } from "./components";
+
+# Hello
+
+<Alert type="info">This is MDX!</Alert>
+`;
+
+const result = compile(mdx, { inputKind: "mdx" });
+```
+
+### HAST output
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "hast" });
+const hast = JSON.parse(result.output as string);
+
+console.log(hast);
+// { type: "root", children: [{ type: "element", tagName: "h1", ... }] }
+```
+
+### MDAST output
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "mdast" });
+const mdast = JSON.parse(result.output as string);
+
+console.log(mdast);
+// { type: "root", children: [{ type: "heading", depth: 1, ... }] }
+```
+
+### MDX JS output
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile(mdxSource, {
+  inputKind: "mdx",
+  outputKind: "mdxJs",
+});
+
+console.log(result.output);
+// JavaScript module string with MDX compiled to JSX
+```

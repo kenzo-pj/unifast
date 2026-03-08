@@ -3,71 +3,51 @@ title: "autolinkHeadings()"
 description: "Automatically add anchor links to headings."
 ---
 
+import { Example } from "~/components/Example"
+import example from "./autolink-headings-example.md?example"
+
 ```ts
 import { autolinkHeadings } from "@unifast/node";
 ```
 
-### Signature
+## Signature
 
 ```ts
 function autolinkHeadings(options?: AutolinkHeadingsOptions): UnifastPlugin
 ```
 
-### Parameters
+## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `options?` | `AutolinkHeadingsOptions` | Configuration for heading link behavior |
+### options?
 
-#### `AutolinkHeadingsOptions`
+Configuration for heading link behavior
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `behavior` | `"prepend" \| "append" \| "wrap"` | `"prepend"` | Where to place the anchor link relative to the heading content |
 
-### Returns
-
-`UnifastPlugin`
-
-## Examples
-
-This documentation site uses `autolinkHeadings({ behavior: "prepend" })`. Hover over any heading on this page to see the anchor link.
-
-The generated HTML for a heading looks like:
-
-```html
-<h2 id="examples">
-  <a href="#examples" class="anchor" aria-hidden="true"></a>
-  Examples
-</h2>
-```
-
 ## Usage
 
 ```ts
-import { compile } from "@unifast/node";
-import { autolinkHeadings } from "@unifast/node";
+import { compile, autolinkHeadings } from "@unifast/node";
+
+const md = `# Introduction
+
+## Getting Started
+
+### Installation`;
 
 const result = compile(md, {
-  plugins: [autolinkHeadings()],
+  plugins: [
+    autolinkHeadings({
+      behavior: "prepend", // "prepend" | "append" | "wrap"
+    }),
+  ],
 });
-// Each heading gets a prepended anchor link with its slug
 ```
 
-### Append mode
+## Examples
 
-```ts
-const result = compile(md, {
-  plugins: [autolinkHeadings({ behavior: "append" })],
-});
-// Anchor links are placed after the heading text
-```
+### Headings with anchor links
 
-### Wrap mode
-
-```ts
-const result = compile(md, {
-  plugins: [autolinkHeadings({ behavior: "wrap" })],
-});
-// The entire heading content is wrapped in an anchor link
-```
+<Example data={example} />

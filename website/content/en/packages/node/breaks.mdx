@@ -10,31 +10,20 @@ import example from "./breaks-example.md?example"
 import { breaks } from "@unifast/node";
 ```
 
-### Signature
+## Signature
 
 ```ts
 function breaks(): UnifastPlugin
 ```
 
-### Parameters
+## Parameters
 
 None.
-
-### Returns
-
-`UnifastPlugin`
-
-## Examples
-
-Without `breaks()`, these three lines would merge into a single paragraph. With the plugin enabled, each newline becomes a `<br>`:
-
-<Example data={example} />
 
 ## Usage
 
 ```ts
-import { compile } from "@unifast/node";
-import { breaks } from "@unifast/node";
+import { compile, breaks } from "@unifast/node";
 
 const md = `This is line one.
 This is line two.
@@ -45,3 +34,11 @@ const result = compile(md, {
 });
 // Each newline becomes a <br> element
 ```
+
+## Examples
+
+### Newlines to line breaks
+
+Without `breaks()`, these three lines would merge into a single paragraph. With the plugin enabled, each newline becomes a `<br>`:
+
+<Example data={example} />

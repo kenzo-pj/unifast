@@ -44,6 +44,17 @@ pub fn default_safe_schema() -> SanitizeSchema {
             "div",
             "span",
             "input",
+            "dl",
+            "dt",
+            "dd",
+            "ruby",
+            "rt",
+            "rp",
+            "svg",
+            "path",
+            "figure",
+            "figcaption",
+            "abbr",
         ]
         .iter()
         .map(std::string::ToString::to_string)
@@ -59,7 +70,7 @@ pub fn default_safe_schema() -> SanitizeSchema {
             );
             map.insert(
                 "img".to_string(),
-                ["src", "alt", "title"]
+                ["src", "alt", "title", "loading", "decoding"]
                     .iter()
                     .map(std::string::ToString::to_string)
                     .collect(),
@@ -100,8 +111,50 @@ pub fn default_safe_schema() -> SanitizeSchema {
                     .collect(),
             );
             map.insert(
+                "pre".to_string(),
+                ["data-meta", "data-lang", "data-title", "data-word-wrap"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
+            );
+            map.insert(
+                "span".to_string(),
+                ["data-line", "data-highlighted", "data-diff"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
+            );
+            map.insert(
                 "*".to_string(),
                 ["id", "class"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
+            );
+            map.insert(
+                "div".to_string(),
+                ["data-directive"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
+            );
+            map.insert(
+                "abbr".to_string(),
+                ["title"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
+            );
+            map.insert(
+                "svg".to_string(),
+                ["viewBox", "width", "height", "aria-hidden", "fill", "xmlns"]
+                    .iter()
+                    .map(std::string::ToString::to_string)
+                    .collect(),
+            );
+            map.insert(
+                "path".to_string(),
+                ["d", "fill", "fill-rule", "clip-rule"]
                     .iter()
                     .map(std::string::ToString::to_string)
                     .collect(),

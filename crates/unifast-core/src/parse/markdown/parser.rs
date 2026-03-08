@@ -2,12 +2,13 @@ use std::collections::HashMap;
 
 use crate::ast::common::{NodeIdGen, Span};
 use crate::ast::mdast::nodes::{
-    AlignKind, Blockquote, Break, Code, Delete, Document, Emphasis, FootnoteDefinition,
-    FootnoteReference, Heading, Html, Image, InlineCode, Link, List, ListItem, MdNode, Paragraph,
-    Strong, Table, TableCell, TableRow, Text, ThematicBreak,
+    AlignKind, Blockquote, Break, Code, ContainerDirective, Delete, Document, Emphasis,
+    FootnoteDefinition, FootnoteReference, Heading, Html, Image, InlineCode, Link, List, ListItem,
+    MdNode, Paragraph, Strong, Table, TableCell, TableRow, Text, ThematicBreak,
 };
 use crate::diagnostics::sink::DiagnosticSink;
 use crate::parse::gfm;
+use crate::util::small_map::SmallMap;
 
 pub fn parse(source: &str, id_gen: &mut NodeIdGen, diagnostics: &mut DiagnosticSink) -> Document {
     let mut parser = Parser::new(source, id_gen, diagnostics);
@@ -31,6 +32,50 @@ const ESCAPABLE: &[u8] = b"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
 
 fn is_escapable(ch: u8) -> bool {
     ESCAPABLE.contains(&ch)
+}
+
+fn parse_container_directive_opener(rest: &str) -> Option<(String, Vec<(String, String)>)> {
+    if rest.is_empty() {
+        return None;
+    }
+
+    let mut parts = rest.splitn(2, ' ');
+    let name = parts.next()?.to_string();
+    if name.is_empty() {
+        return None;
+    }
+
+    let mut attrs = Vec::new();
+    if let Some(attr_str) = parts.next() {
+        let mut remaining = attr_str.trim();
+        while !remaining.is_empty() {
+            if let Some((k, after_eq)) = remaining.split_once('=') {
+                let k = k.trim();
+                let after_eq = after_eq.trim_start();
+                if let Some(stripped) = after_eq.strip_prefix('"') {
+                    if let Some(end_quote) = stripped.find('"') {
+                        let v = &stripped[..end_quote];
+                        attrs.push((k.to_string(), v.to_string()));
+                        remaining = stripped[end_quote + 1..].trim_start();
+                    } else {
+                        attrs.push((k.to_string(), stripped.to_string()));
+                        break;
+                    }
+                } else {
+                    let (v, rest) = match after_eq.find(char::is_whitespace) {
+                        Some(idx) => (&after_eq[..idx], after_eq[idx..].trim_start()),
+                        None => (after_eq, ""),
+                    };
+                    attrs.push((k.to_string(), v.to_string()));
+                    remaining = rest;
+                }
+            } else {
+                break;
+            }
+        }
+    }
+
+    Some((name, attrs))
 }
 
 struct Parser<'a> {
@@ -192,6 +237,14 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
+            if let Some(node) = self.try_parse_container_directive(&line, line_start) {
+                if !para_lines.is_empty() {
+                    blocks.push(self.flush_paragraph(&mut para_lines));
+                }
+                blocks.push(node);
+                continue;
+            }
+
             if para_lines.is_empty()
                 && let Some(node) = self.try_parse_indented_code(&line, line_start)
             {
@@ -321,6 +374,7 @@ impl<'a> Parser<'a> {
             depth: level as u8,
             children,
             slug: None,
+            extra_attrs: SmallMap::new(),
         }))
     }
 
@@ -358,6 +412,7 @@ impl<'a> Parser<'a> {
             depth,
             children,
             slug: None,
+            extra_attrs: SmallMap::new(),
         })
     }
 
@@ -456,6 +511,118 @@ impl<'a> Parser<'a> {
             lang,
             meta,
         }))
+    }
+
+    fn try_parse_container_directive(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
+        let trimmed = line.trim_start();
+        let indent = line.len() - trimmed.len();
+        if indent > 3 {
+            return None;
+        }
+
+        let colon_count = trimmed.bytes().take_while(|&b| b == b':').count();
+        if colon_count < 3 {
+            return None;
+        }
+
+        let rest = trimmed[colon_count..].trim();
+        if rest.is_empty() {
+            return None;
+        }
+
+        let (name, attributes) = parse_container_directive_opener(rest)?;
+        self.advance_line();
+
+        let children = self.parse_directive_body(colon_count);
+
+        let span = Span::new(line_start as u32, self.pos as u32);
+        Some(MdNode::ContainerDirective(ContainerDirective {
+            id: self.id_gen.next_id(),
+            span,
+            name,
+            attributes,
+            children,
+        }))
+    }
+
+    fn parse_directive_body(&mut self, open_colon_count: usize) -> Vec<MdNode> {
+        let mut blocks: Vec<MdNode> = Vec::new();
+        let mut para_lines: Vec<(usize, usize)> = Vec::new();
+
+        while self.pos < self.source.len() {
+            let line_start = self.pos;
+            let line = match self.peek_line_raw() {
+                Some(l) => l.to_string(),
+                None => break,
+            };
+
+            let cl_trimmed = line.trim();
+            let closing_colons = cl_trimmed.bytes().take_while(|&b| b == b':').count();
+            if closing_colons >= open_colon_count && cl_trimmed.len() == closing_colons {
+                if !para_lines.is_empty() {
+                    blocks.push(self.flush_paragraph(&mut para_lines));
+                }
+                self.advance_line();
+                return blocks;
+            }
+
+            if Self::is_blank_line(&line) {
+                if !para_lines.is_empty() {
+                    blocks.push(self.flush_paragraph(&mut para_lines));
+                }
+                self.advance_line();
+                continue;
+            }
+
+            if let Some(node) = self.try_parse_container_directive(&line, line_start) {
+                if !para_lines.is_empty() {
+                    blocks.push(self.flush_paragraph(&mut para_lines));
+                }
+                blocks.push(node);
+                continue;
+            }
+
+            if let Some(node) = self.try_parse_atx_heading(&line, line_start) {
+                if !para_lines.is_empty() {
+                    blocks.push(self.flush_paragraph(&mut para_lines));
+                }
+                blocks.push(node);
+                continue;
+            }
+
+            if let Some(node) = self.try_parse_code_fence(&line, line_start) {
+                if !para_lines.is_empty() {
+                    blocks.push(self.flush_paragraph(&mut para_lines));
+                }
+                blocks.push(node);
+                continue;
+            }
+
+            if let Some(node) = self.try_parse_blockquote(&line, line_start) {
+                if !para_lines.is_empty() {
+                    blocks.push(self.flush_paragraph(&mut para_lines));
+                }
+                blocks.push(node);
+                continue;
+            }
+
+            if let Some(node) = self.try_parse_list(&line, line_start) {
+                if !para_lines.is_empty() {
+                    blocks.push(self.flush_paragraph(&mut para_lines));
+                }
+                blocks.push(node);
+                continue;
+            }
+
+            let line_end = self.pos + line.len();
+            para_lines.push((line_start, line_end));
+            self.advance_line();
+        }
+
+        if !para_lines.is_empty() {
+            blocks.push(self.flush_paragraph(&mut para_lines));
+        }
+        blocks
     }
 
     fn try_parse_indented_code(&mut self, line: &str, line_start: usize) -> Option<MdNode> {
@@ -1286,6 +1453,7 @@ impl<'a> Parser<'a> {
                             base_offset + i,
                         ));
                     }
+                    result.push(self.make_text("\n", base_offset + i, base_offset + i + 1));
                     i += 1;
                     text_start = i;
                     continue;
@@ -3189,6 +3357,106 @@ mod tests {
                 );
             }
             other => panic!("expected paragraph with link, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_container_directive_basic() {
+        let r = parse_markdown(":::note\nThis is a note.\n:::\n");
+        assert_eq!(
+            r.document.children.len(),
+            1,
+            "got: {:#?}",
+            r.document.children
+        );
+        match &r.document.children[0] {
+            MdNode::ContainerDirective(d) => {
+                assert_eq!(d.name, "note");
+                assert!(d.attributes.is_empty());
+                assert_eq!(d.children.len(), 1);
+                match &d.children[0] {
+                    MdNode::Paragraph(p) => match &p.children[0] {
+                        MdNode::Text(t) => assert_eq!(t.value, "This is a note."),
+                        other => panic!("expected text, got {other:?}"),
+                    },
+                    other => panic!("expected paragraph, got {other:?}"),
+                }
+            }
+            other => panic!("expected ContainerDirective, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_container_directive_with_attrs() {
+        let r = parse_markdown(":::warning title=\"Deprecation Notice\"\nOld API.\n:::\n");
+        assert_eq!(
+            r.document.children.len(),
+            1,
+            "got: {:#?}",
+            r.document.children
+        );
+        match &r.document.children[0] {
+            MdNode::ContainerDirective(d) => {
+                assert_eq!(d.name, "warning");
+                assert_eq!(d.attributes.len(), 1);
+                assert_eq!(d.attributes[0].0, "title");
+                assert_eq!(d.attributes[0].1, "Deprecation Notice");
+            }
+            other => panic!("expected ContainerDirective, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_container_directive_nested() {
+        let input = "::::warning\n:::note\nInner\n:::\nOuter\n::::\n";
+        let r = parse_markdown(input);
+        assert_eq!(
+            r.document.children.len(),
+            1,
+            "got: {:#?}",
+            r.document.children
+        );
+        match &r.document.children[0] {
+            MdNode::ContainerDirective(outer) => {
+                assert_eq!(outer.name, "warning");
+                assert_eq!(
+                    outer.children.len(),
+                    2,
+                    "outer children: {:#?}",
+                    outer.children
+                );
+                match &outer.children[0] {
+                    MdNode::ContainerDirective(inner) => {
+                        assert_eq!(inner.name, "note");
+                    }
+                    other => panic!("expected inner ContainerDirective, got {other:?}"),
+                }
+            }
+            other => panic!("expected ContainerDirective, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_container_directive_unclosed() {
+        let r = parse_markdown(":::note\nContent without closing\n");
+        assert_eq!(r.document.children.len(), 1);
+        match &r.document.children[0] {
+            MdNode::ContainerDirective(d) => {
+                assert_eq!(d.name, "note");
+                assert_eq!(d.children.len(), 1);
+            }
+            other => panic!("expected ContainerDirective, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_triple_colon_alone_is_not_directive() {
+        let r = parse_markdown(":::\nSome text\n");
+        for child in &r.document.children {
+            assert!(
+                !matches!(child, MdNode::ContainerDirective(_)),
+                "bare ::: should not create directive, got: {child:?}"
+            );
         }
     }
 }

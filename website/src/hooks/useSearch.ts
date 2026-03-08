@@ -23,7 +23,7 @@ export function useSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const search = useCallback((term: string) => {
     setQuery(term);

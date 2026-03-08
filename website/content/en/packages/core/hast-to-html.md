@@ -7,25 +7,26 @@ description: "Serialize a HAST root node into an HTML string."
 import { hastToHtml } from "@unifast/core";
 ```
 
-### Signature
+## Signature
 
 ```ts
 function hastToHtml(hast: HastRoot): string
 ```
 
-### Parameters
+## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `hast` | `HastRoot` | A HAST root node to serialize |
+### hast
 
-### Returns
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `type` | `"root"` | — | Node type identifier |
+| `children` | `HastNode[]` | — | Child nodes of the tree |
 
-`string` - The serialized HTML string.
+## Returns
+
+`string` — The serialized HTML string.
 
 ## Usage
-
-### Basic serialization
 
 ```ts
 import { hastToHtml } from "@unifast/core";
@@ -37,17 +38,29 @@ const hast: HastRoot = {
     {
       type: "element",
       tagName: "h1",
-      properties: { id: "hello" },
-      children: [{ type: "text", value: "Hello" }],
+      properties: { id: "hello", className: ["title", "main"] },
+      children: [
+        { type: "text", value: "Hello " },
+        {
+          type: "element",
+          tagName: "strong",
+          properties: {},
+          children: [{ type: "text", value: "world" }],
+        },
+      ],
     },
   ],
 };
 
 const html = hastToHtml(hast);
-// <h1 id="hello">Hello</h1>
+
+console.log(html);
+// <h1 class="title main" id="hello">Hello <strong>world</strong></h1>
 ```
 
-### With nested elements
+## Examples
+
+### Basic serialization
 
 ```ts
 import { hastToHtml } from "@unifast/core";
@@ -68,39 +81,14 @@ const hast: HastRoot = {
           properties: {},
           children: [{ type: "text", value: "bold" }],
         },
-        { type: "text", value: " and " },
-        {
-          type: "element",
-          tagName: "em",
-          properties: {},
-          children: [{ type: "text", value: "italic" }],
-        },
+        { type: "text", value: " text." },
       ],
     },
   ],
 };
 
-const html = hastToHtml(hast);
-// <p>This is <strong>bold</strong> and <em>italic</em></p>
-```
-
-### With className arrays
-
-```ts
-const hast: HastRoot = {
-  type: "root",
-  children: [
-    {
-      type: "element",
-      tagName: "div",
-      properties: { className: ["container", "main"] },
-      children: [{ type: "text", value: "Content" }],
-    },
-  ],
-};
-
-const html = hastToHtml(hast);
-// <div class="container main">Content</div>
+console.log(hastToHtml(hast));
+// <p>This is <strong>bold</strong> text.</p>
 ```
 
 ### Void elements
@@ -108,6 +96,9 @@ const html = hastToHtml(hast);
 Void elements (`<br>`, `<img>`, `<hr>`, etc.) are self-closed automatically:
 
 ```ts
+import { hastToHtml } from "@unifast/core";
+import type { HastRoot } from "@unifast/core";
+
 const hast: HastRoot = {
   type: "root",
   children: [
@@ -120,7 +111,7 @@ const hast: HastRoot = {
   ],
 };
 
-const html = hastToHtml(hast);
+console.log(hastToHtml(hast));
 // <img alt="A photo" src="photo.jpg" />
 ```
 
@@ -133,13 +124,17 @@ import type { HastRoot } from "@unifast/core";
 
 const result = compile("**bold text**", { outputKind: "hast" });
 const hast: HastRoot = JSON.parse(result.output as string);
-const html = hastToHtml(hast);
+
+console.log(hastToHtml(hast));
 // <p><strong>bold text</strong></p>
 ```
 
 ### Raw HTML passthrough
 
 ```ts
+import { hastToHtml } from "@unifast/core";
+import type { HastRoot } from "@unifast/core";
+
 const hast: HastRoot = {
   type: "root",
   children: [
@@ -147,7 +142,7 @@ const hast: HastRoot = {
   ],
 };
 
-const html = hastToHtml(hast);
+console.log(hastToHtml(hast));
 // <div class="custom">Raw HTML</div>
 ```
 

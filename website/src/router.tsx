@@ -7,6 +7,7 @@ export function createRouter() {
   return createTanStackRouter({
     routeTree,
     basepath: base || "/",
+    trailingSlash: "always",
     context: { head: "" },
     defaultPreload: "intent",
   });

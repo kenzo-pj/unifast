@@ -21,10 +21,18 @@ pub struct CompileStats {
     pub emit_ms: f64,
 }
 
+#[derive(Debug, Clone)]
+pub struct ReadingTime {
+    pub words: u32,
+    pub minutes: f64,
+}
+
 pub struct CompileResult {
     pub output: Output,
     pub frontmatter: FrontmatterData,
     pub diagnostics: Vec<Diagnostic>,
     pub stats: CompileStats,
     pub toc: Vec<TocEntry>,
+    pub reading_time: Option<ReadingTime>,
+    pub excerpt: Option<String>,
 }

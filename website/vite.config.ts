@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import unifastPlugin from "@unifast/vite";
-import { compile, treeSitter, externalLinks, autolinkHeadings, githubAlert, emoji, smartypants, breaks, cjk, directive, definitionList, rubyAnnotation, wikiLink, sectionize } from "@unifast/node";
+import { compile, treeSitter, externalLinks, autolinkHeadings, githubAlert, emoji, smartypants, breaks, cjk, directive, definitionList, rubyAnnotation, wikiLink, sectionize, math, gfm } from "@unifast/node";
 import translationStatusPlugin from "./plugins/vite-plugin-translation-status";
 import notFoundPlugin from "./plugins/vite-plugin-not-found";
 import metaPlugin from "./plugins/vite-plugin-meta";
@@ -52,6 +52,8 @@ const exampleCompileOptions = {
     rubyAnnotation(),
     wikiLink(),
     sectionize(),
+    math(),
+    gfm(),
   ],
 };
 

@@ -6,7 +6,8 @@ import { loadNativeBinding } from "./native";
 
 export type { CompileOptions, CompileResult, UnifastPlugin, TocEntry } from "@unifast/core";
 export type { HastRoot, HastElement, HastText, HastNode } from "@unifast/core";
-export { hastToHtml } from "@unifast/core";
+export { hastToHtml, escapeHtml } from "@unifast/core";
+export { extractLang, extractText, findCodeChild, visitHast } from "@unifast/core";
 export { UnifastError, ParseError, CompileError } from "@unifast/core";
 export {
   gfm,
@@ -29,6 +30,17 @@ export {
   definitionList,
   rubyAnnotation,
   cjk,
+  codeMeta,
+  figure,
+  customHeadingId,
+  readingTime,
+  excerpt,
+  abbr,
+  commentRemoval,
+  imgLazyLoading,
+  accessibleEmoji,
+  addClasses,
+  minify,
 } from "@unifast/core";
 export type {
   GfmPluginOptions,
@@ -42,6 +54,11 @@ export type {
   SmartypantsPluginOptions,
   WikiLinkPluginOptions,
   CodeImportPluginOptions,
+  GithubAlertPluginOptions,
+  GithubAlertIconDef,
+  ReadingTimePluginOptions,
+  ExcerptPluginOptions,
+  ImgLazyLoadingPluginOptions,
 } from "@unifast/core";
 
 function applyDataLineAttributes(node: HastNode): void {

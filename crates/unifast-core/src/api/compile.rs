@@ -11,11 +11,12 @@ use crate::transform::passes::highlight;
 #[cfg(feature = "highlight")]
 use crate::transform::passes::highlight::HighlightEngine as _;
 use crate::transform::passes::{
-    autolink_headings, breaks, cjk, code_import, definition_list, directive, emoji, external_links,
+    abbr, accessible_emoji, add_classes, autolink_headings, breaks, cjk, code_import, code_meta,
+    comment_removal, custom_heading_id, definition_list, emoji, excerpt, external_links,
     github_alert,
     html_cleanup::{self, CleanupOptions},
-    line_number, math, mdast_to_hast, normalize, resolve_defs, ruby_annotation, sanitize,
-    sectionize, slug, smartypants, toc, wiki_link,
+    img_lazy_loading, line_number, math, mdast_to_hast, minify, normalize, reading_time,
+    resolve_defs, ruby_annotation, sanitize, sectionize, slug, smartypants, toc, wiki_link,
 };
 use crate::transform::registry::PassRegistry;
 use std::time::Instant;
@@ -99,15 +100,7 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         Ok(())
     });
 
-    registry.register_fn("directive", Phase::Transform, |ctx, ast| {
-        if !ctx.options.directive.enabled {
-            return Ok(());
-        }
-        if let Some(doc) = ast.mdast_mut() {
-            directive::apply_directives(&mut doc.children, ctx.id_gen);
-        }
-        Ok(())
-    });
+    registry.register_fn("directive", Phase::Transform, |_ctx, _ast| Ok(()));
 
     registry.register_fn("wiki_link", Phase::Transform, |ctx, ast| {
         if !ctx.options.wiki_link.enabled {
@@ -139,6 +132,16 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         Ok(())
     });
 
+    registry.register_fn("abbr", Phase::Transform, |ctx, ast| {
+        if !ctx.options.abbr.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            abbr::apply_abbr(doc, ctx.id_gen);
+        }
+        Ok(())
+    });
+
     registry.register_fn("github_alert", Phase::Transform, |ctx, ast| {
         if !ctx.options.github_alert.enabled {
             return Ok(());
@@ -156,6 +159,16 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         let root_dir = ctx.options.code_import.root_dir.as_deref();
         if let Some(doc) = ast.mdast_mut() {
             code_import::apply_code_import(&mut doc.children, root_dir);
+        }
+        Ok(())
+    });
+
+    registry.register_fn("custom_heading_id", Phase::Transform, |ctx, ast| {
+        if !ctx.options.custom_heading_id.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            custom_heading_id::apply_custom_heading_ids(doc);
         }
         Ok(())
     });
@@ -182,6 +195,45 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         Ok(())
     });
 
+    registry.register_fn("reading_time", Phase::Transform, |ctx, ast| {
+        if !ctx.options.reading_time_opts.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            ctx.reading_time = Some(reading_time::calculate(
+                doc,
+                ctx.options.reading_time_opts.words_per_minute,
+                ctx.options.reading_time_opts.cjk_chars_per_minute,
+            ));
+        }
+        Ok(())
+    });
+
+    registry.register_fn("excerpt", Phase::Transform, |ctx, ast| {
+        if !ctx.options.excerpt_opts.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            ctx.excerpt = excerpt::extract_excerpt(
+                doc,
+                &ctx.options.excerpt_opts.separator,
+                ctx.options.excerpt_opts.fallback_paragraphs,
+                ctx.options.excerpt_opts.fallback_characters,
+            );
+        }
+        Ok(())
+    });
+
+    registry.register_fn("comment_removal", Phase::Transform, |ctx, ast| {
+        if !ctx.options.comment_removal.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            comment_removal::remove_comments(&mut doc.children);
+        }
+        Ok(())
+    });
+
     registry.register_fn("resolve_defs", Phase::Transform, |ctx, ast| {
         if let Some(doc) = ast.mdast_mut() {
             let defs = std::collections::HashMap::new();
@@ -197,8 +249,14 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
                 AstPayload::Both { mdast, .. } => mdast,
                 AstPayload::Hast(_) => return Ok(()),
             };
-            let hast_node =
-                mdast_to_hast::lower(doc, ctx.id_gen, ctx.options.raw_html, ctx.diagnostics);
+            let hast_node = mdast_to_hast::lower_with_icons(
+                doc,
+                ctx.id_gen,
+                ctx.options.raw_html,
+                ctx.diagnostics,
+                &ctx.options.github_alert.icons,
+                ctx.options.figure.enabled,
+            );
             let hast_root = match hast_node {
                 HNode::Root(root) => root,
                 other => HRoot {
@@ -254,6 +312,39 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             });
         }
 
+        registry.register_fn("code_meta", Phase::Optimize, |ctx, ast| {
+            if !ctx.options.code_meta.enabled {
+                return Ok(());
+            }
+            if let Some(root) = ast.hast_mut() {
+                code_meta::apply_code_meta(root, ctx.id_gen);
+            }
+            Ok(())
+        });
+
+        registry.register_fn("img_lazy_loading", Phase::Optimize, |ctx, ast| {
+            if !ctx.options.img_lazy_loading.enabled {
+                return Ok(());
+            }
+            if let Some(root) = ast.hast_mut() {
+                img_lazy_loading::apply_img_lazy_loading(
+                    root,
+                    ctx.options.img_lazy_loading.skip_first,
+                );
+            }
+            Ok(())
+        });
+
+        registry.register_fn("accessible_emoji", Phase::Optimize, |ctx, ast| {
+            if !ctx.options.accessible_emoji.enabled {
+                return Ok(());
+            }
+            if let Some(root) = ast.hast_mut() {
+                accessible_emoji::apply_accessible_emoji(root, ctx.id_gen);
+            }
+            Ok(())
+        });
+
         registry.register_fn("external_links", Phase::Optimize, |ctx, ast| {
             if !ctx.options.external_links.enabled {
                 return Ok(());
@@ -292,9 +383,29 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             Ok(())
         });
 
+        registry.register_fn("add_classes", Phase::Optimize, |ctx, ast| {
+            if !ctx.options.add_classes.enabled {
+                return Ok(());
+            }
+            if let Some(root) = ast.hast_mut() {
+                add_classes::apply_add_classes(root, &ctx.options.add_classes.rules);
+            }
+            Ok(())
+        });
+
         registry.register_fn("html_cleanup", Phase::Optimize, |_ctx, ast| {
             if let Some(root) = ast.hast_mut() {
                 html_cleanup::cleanup(root, &CleanupOptions::default());
+            }
+            Ok(())
+        });
+
+        registry.register_fn("minify", Phase::Optimize, |ctx, ast| {
+            if !ctx.options.minify.enabled {
+                return Ok(());
+            }
+            if let Some(root) = ast.hast_mut() {
+                minify::minify_hast(root);
             }
             Ok(())
         });
@@ -308,6 +419,8 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
     let mut payload = AstPayload::Mdast(document);
 
     let toc;
+    let reading_time;
+    let excerpt;
     {
         let mut ctx = PassContext {
             source: input,
@@ -315,6 +428,8 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             options: opts,
             id_gen: &mut id_gen,
             toc: Vec::new(),
+            reading_time: None,
+            excerpt: None,
         };
 
         for pass in registry.ordered_passes() {
@@ -323,6 +438,8 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             }
         }
         toc = std::mem::take(&mut ctx.toc);
+        reading_time = ctx.reading_time.take();
+        excerpt = ctx.excerpt.take();
     }
 
     let transform_ms = transform_start.elapsed().as_secs_f64() * 1000.0;
@@ -331,8 +448,20 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
     let output = match opts.output_kind {
         OutputKind::Html => {
             let html = match &payload {
-                AstPayload::Hast(root) => stringify::stringify(root),
-                AstPayload::Both { hast, .. } => stringify::stringify(hast),
+                AstPayload::Hast(root) => {
+                    if opts.minify.enabled {
+                        stringify::stringify_minified(root)
+                    } else {
+                        stringify::stringify(root)
+                    }
+                }
+                AstPayload::Both { hast, .. } => {
+                    if opts.minify.enabled {
+                        stringify::stringify_minified(hast)
+                    } else {
+                        stringify::stringify(hast)
+                    }
+                }
                 _ => String::new(),
             };
             Output::Html(html)
@@ -363,6 +492,10 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             };
             crate::transform::passes::slug::apply_slugs(&mut mdx_doc, slug_mode);
 
+            if opts.github_alert.enabled {
+                github_alert::apply_github_alerts(&mut mdx_doc, &mut id_gen);
+            }
+
             #[cfg(feature = "highlight")]
             let highlight_fn: Option<Box<crate::emit::mdx_js::printer::HighlightFn>> =
                 if opts.highlight.enabled {
@@ -387,8 +520,12 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             #[cfg(not(feature = "highlight"))]
             let highlight_fn: Option<Box<crate::emit::mdx_js::printer::HighlightFn>> = None;
 
-            let mdx_output =
-                crate::emit::mdx_js::printer::print_mdx_js(&mdx_doc, highlight_fn.as_deref());
+            let mdx_output = crate::emit::mdx_js::printer::print_mdx_js_with_options(
+                &mdx_doc,
+                highlight_fn.as_deref(),
+                &opts.github_alert.icons,
+                opts.line_numbers.enabled,
+            );
             let map = Some(crate::emit::mdx_js::sourcemap::generate_sourcemap(
                 "output.js",
                 input,
@@ -414,6 +551,8 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             emit_ms,
         },
         toc,
+        reading_time,
+        excerpt,
     }
 }
 
@@ -462,7 +601,7 @@ mod tests {
     #[test]
     fn e2e_code_fence() {
         let html = compile_html("```rust\nfn main() {}\n```\n");
-        assert!(html.contains("<pre>"));
+        assert!(html.contains("<pre"), "missing <pre: {html}");
         assert!(html.contains("language-rust"));
         assert!(html.contains("fn main() {}"));
     }
@@ -870,5 +1009,793 @@ mod tests {
             }
             _ => panic!("expected HTML output"),
         }
+    }
+
+    #[test]
+    fn e2e_github_alert_with_octicon_icons() {
+        let result = compile(
+            "> [!NOTE]\n> This is a note.\n",
+            &CompileOptions {
+                github_alert: GithubAlertOptions {
+                    enabled: true,
+                    icons: crate::api::options::GithubAlertIconMode::Octicon,
+                },
+                raw_html: RawHtmlPolicy::AllowDangerous,
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(
+                    html.contains("alert alert-note"),
+                    "missing alert class: {html}"
+                );
+                assert!(html.contains("alert-title"), "missing alert-title: {html}");
+                assert!(
+                    html.contains("alert-icon"),
+                    "missing alert-icon svg: {html}"
+                );
+                assert!(html.contains("<svg"), "missing svg element: {html}");
+                assert!(html.contains("This is a note"), "missing content: {html}");
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_github_alert_no_icons() {
+        let result = compile(
+            "> [!WARNING]\n> Be careful.\n",
+            &CompileOptions {
+                github_alert: GithubAlertOptions {
+                    enabled: true,
+                    icons: crate::api::options::GithubAlertIconMode::None,
+                },
+                raw_html: RawHtmlPolicy::AllowDangerous,
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(
+                    html.contains("alert alert-warning"),
+                    "missing alert class: {html}"
+                );
+                assert!(!html.contains("<svg"), "should not contain svg: {html}");
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_github_alert_custom_svg_icon() {
+        use std::collections::HashMap;
+        let mut custom = HashMap::new();
+        custom.insert(
+            "note".to_string(),
+            crate::api::options::AlertIconDef {
+                svg: Some("<svg class=\"custom-icon\"><circle r=\"5\"/></svg>".to_string()),
+                import_source: None,
+                import_name: None,
+            },
+        );
+        let result = compile(
+            "> [!NOTE]\n> Custom icon test.\n",
+            &CompileOptions {
+                github_alert: GithubAlertOptions {
+                    enabled: true,
+                    icons: crate::api::options::GithubAlertIconMode::Custom(custom),
+                },
+                raw_html: RawHtmlPolicy::AllowDangerous,
+                sanitize: SanitizeOptions {
+                    enabled: false,
+                    schema: None,
+                },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(html.contains("custom-icon"), "missing custom icon: {html}");
+                assert!(
+                    html.contains("<circle"),
+                    "missing custom svg content: {html}"
+                );
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_github_alert_mdx_js_output() {
+        let result = compile(
+            "> [!TIP]\n> A helpful tip.\n",
+            &CompileOptions {
+                input_kind: InputKind::Mdx,
+                output_kind: OutputKind::MdxJs,
+                github_alert: GithubAlertOptions {
+                    enabled: true,
+                    icons: crate::api::options::GithubAlertIconMode::Octicon,
+                },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::MdxJs { code, .. } => {
+                assert!(
+                    code.contains("alert alert-tip"),
+                    "missing alert class: {code}"
+                );
+                assert!(code.contains("alert-title"), "missing alert-title: {code}");
+                assert!(code.contains("alert-icon"), "missing alert-icon: {code}");
+            }
+            _ => panic!("expected MdxJs output"),
+        }
+    }
+
+    #[test]
+    fn e2e_container_directive() {
+        let result = compile(
+            ":::note\nThis is a note.\n:::\n",
+            &CompileOptions {
+                directive: DirectiveOptions { enabled: true },
+                sanitize: SanitizeOptions {
+                    enabled: false,
+                    schema: None,
+                },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(
+                    html.contains("directive directive-note"),
+                    "missing class: {html}"
+                );
+                assert!(
+                    html.contains("data-directive=\"note\""),
+                    "missing data attr: {html}"
+                );
+                assert!(html.contains("This is a note."), "missing content: {html}");
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_container_directive_with_title() {
+        let result = compile(
+            ":::warning title=\"Deprecation Notice\"\nThis API is deprecated.\n:::\n",
+            &CompileOptions {
+                directive: DirectiveOptions { enabled: true },
+                sanitize: SanitizeOptions {
+                    enabled: false,
+                    schema: None,
+                },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::Html(html) => {
+                assert!(html.contains("directive-warning"), "missing class: {html}");
+                assert!(
+                    html.contains("directive-title"),
+                    "missing title class: {html}"
+                );
+                assert!(
+                    html.contains("Deprecation Notice"),
+                    "missing title text: {html}"
+                );
+                assert!(
+                    html.contains("This API is deprecated."),
+                    "missing content: {html}"
+                );
+            }
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    #[test]
+    fn e2e_github_alert_mdx_js_npm_import() {
+        use std::collections::HashMap;
+        let mut custom = HashMap::new();
+        custom.insert(
+            "note".to_string(),
+            crate::api::options::AlertIconDef {
+                svg: None,
+                import_source: Some("lucide-react".to_string()),
+                import_name: Some("Info".to_string()),
+            },
+        );
+        let result = compile(
+            "> [!NOTE]\n> Import test.\n",
+            &CompileOptions {
+                input_kind: InputKind::Mdx,
+                output_kind: OutputKind::MdxJs,
+                github_alert: GithubAlertOptions {
+                    enabled: true,
+                    icons: crate::api::options::GithubAlertIconMode::Custom(custom),
+                },
+                ..Default::default()
+            },
+        );
+        match result.output {
+            Output::MdxJs { code, .. } => {
+                assert!(
+                    code.contains("import { Info as _AlertIcon_note } from 'lucide-react'"),
+                    "missing import statement: {code}"
+                );
+                assert!(
+                    code.contains("_AlertIcon_note"),
+                    "missing icon component reference: {code}"
+                );
+            }
+            _ => panic!("expected MdxJs output"),
+        }
+    }
+
+    #[test]
+    fn e2e_code_meta_title() {
+        let mut opts = CompileOptions::default();
+        opts.code_meta.enabled = true;
+        let result = compile("```js title=\"app.ts\"\nconsole.log('hi')\n```\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("data-title=\"app.ts\""),
+            "missing data-title: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_code_meta_word_wrap() {
+        let mut opts = CompileOptions::default();
+        opts.code_meta.enabled = true;
+        let result = compile("```js wordWrap\nconsole.log('hi')\n```\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("data-word-wrap"),
+            "missing data-word-wrap: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_code_meta_removes_data_meta() {
+        let mut opts = CompileOptions::default();
+        opts.code_meta.enabled = true;
+        let result = compile("```js title=\"test\"\nhello\n```\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("data-meta"),
+            "data-meta should be removed: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_code_meta_disabled_by_default() {
+        let result = compile(
+            "```js title=\"app.ts\"\nconsole.log('hi')\n```\n",
+            &CompileOptions::default(),
+        );
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("data-title"),
+            "data-title should not be present when code_meta is disabled: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_code_meta_data_lang() {
+        let mut opts = CompileOptions::default();
+        opts.code_meta.enabled = true;
+        let result = compile("```rust title=\"main.rs\"\nfn main() {}\n```\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("data-lang=\"rust\""),
+            "missing data-lang: {html}"
+        );
+        assert!(
+            html.contains("data-title=\"main.rs\""),
+            "missing data-title: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_custom_heading_id() {
+        let mut opts = CompileOptions::default();
+        opts.custom_heading_id.enabled = true;
+        let result = compile("## My Heading {#custom-id}\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("id=\"custom-id\""),
+            "missing custom id: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_custom_heading_class() {
+        let mut opts = CompileOptions::default();
+        opts.custom_heading_id.enabled = true;
+        let result = compile("## Heading {.note}\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(html.contains("class=\"note\""), "missing class: {html}");
+    }
+
+    #[test]
+    fn e2e_custom_heading_id_with_attrs() {
+        let mut opts = CompileOptions::default();
+        opts.custom_heading_id.enabled = true;
+        opts.sanitize = SanitizeOptions {
+            enabled: false,
+            schema: None,
+        };
+        let result = compile("## Title {#my-id .warning data-level=2}\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(html.contains("id=\"my-id\""), "missing custom id: {html}");
+        assert!(html.contains("class=\"warning\""), "missing class: {html}");
+        assert!(
+            html.contains("data-level=\"2\""),
+            "missing data attr: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_custom_heading_id_disabled_by_default() {
+        let result = compile("## My Heading {#custom-id}\n", &CompileOptions::default());
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("id=\"custom-id\""),
+            "custom id should not be set when disabled: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_custom_heading_id_preserves_text() {
+        let mut opts = CompileOptions::default();
+        opts.custom_heading_id.enabled = true;
+        let result = compile("## My Heading {#custom-id}\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("My Heading"),
+            "heading text should be preserved: {html}"
+        );
+        assert!(
+            !html.contains("{#custom-id}"),
+            "brace block should be stripped: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_figure_with_alt() {
+        let mut opts = CompileOptions::default();
+        opts.figure.enabled = true;
+        let result = compile("![sunset](sunset.jpg)\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!(),
+        };
+        assert!(html.contains("<figure>"), "missing figure: {html}");
+        assert!(
+            html.contains("<figcaption>sunset</figcaption>"),
+            "missing figcaption: {html}"
+        );
+        assert!(html.contains("</figure>"), "missing closing figure: {html}");
+    }
+
+    #[test]
+    fn e2e_figure_without_alt() {
+        let mut opts = CompileOptions::default();
+        opts.figure.enabled = true;
+        let result = compile("![](logo.png)\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!(),
+        };
+        assert!(html.contains("<figure>"), "missing figure: {html}");
+        assert!(
+            !html.contains("<figcaption>"),
+            "should not have figcaption: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_figure_disabled_by_default() {
+        let result = compile("![sunset](sunset.jpg)\n", &CompileOptions::default());
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!(),
+        };
+        assert!(
+            !html.contains("<figure>"),
+            "figure should not appear by default: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_reading_time() {
+        let mut opts = CompileOptions::default();
+        opts.reading_time_opts.enabled = true;
+        let result = compile("Hello world this is a test with some words.\n", &opts);
+        assert!(result.reading_time.is_some());
+        let rt = result.reading_time.unwrap();
+        assert!(rt.words > 0);
+        assert!(rt.minutes >= 1.0);
+    }
+
+    #[test]
+    fn e2e_reading_time_disabled_by_default() {
+        let result = compile("Hello world\n", &CompileOptions::default());
+        assert!(result.reading_time.is_none());
+    }
+
+    #[test]
+    fn e2e_excerpt_with_marker() {
+        let mut opts = CompileOptions::default();
+        opts.excerpt_opts.enabled = true;
+        let result = compile(
+            "This is the intro.\n\n<!-- more -->\n\nThis is the rest.\n",
+            &opts,
+        );
+        assert_eq!(result.excerpt.as_deref(), Some("This is the intro."));
+    }
+
+    #[test]
+    fn e2e_excerpt_fallback() {
+        let mut opts = CompileOptions::default();
+        opts.excerpt_opts.enabled = true;
+        let result = compile("First paragraph.\n\nSecond paragraph.\n", &opts);
+        assert_eq!(result.excerpt.as_deref(), Some("First paragraph."));
+    }
+
+    #[test]
+    fn e2e_excerpt_disabled_by_default() {
+        let result = compile(
+            "This is the intro.\n\n<!-- more -->\n\nThis is the rest.\n",
+            &CompileOptions::default(),
+        );
+        assert!(result.excerpt.is_none());
+    }
+
+    #[test]
+    fn e2e_excerpt_fallback_characters() {
+        let mut opts = CompileOptions::default();
+        opts.excerpt_opts.enabled = true;
+        opts.excerpt_opts.fallback_paragraphs = None;
+        opts.excerpt_opts.fallback_characters = Some(20);
+        let result = compile("Hello world this is a long text without marker.\n", &opts);
+        let excerpt = result.excerpt.unwrap();
+        assert!(excerpt.len() <= 20, "excerpt too long: {excerpt}");
+        assert_eq!(excerpt, "Hello world this is");
+    }
+
+    #[test]
+    fn e2e_abbr() {
+        let mut opts = CompileOptions::default();
+        opts.abbr.enabled = true;
+        let input = "*[HTML]: Hyper Text Markup Language\n\nHTML is great.\n";
+        let result = compile(input, &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("<abbr title=\"Hyper Text Markup Language\">HTML</abbr>"),
+            "missing abbr: {html}"
+        );
+        assert!(
+            !html.contains("*[HTML]"),
+            "definition should be removed: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_abbr_disabled_by_default() {
+        let input = "*[HTML]: Hyper Text Markup Language\n\nHTML is great.\n";
+        let result = compile(input, &CompileOptions::default());
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("<abbr"),
+            "abbr should not appear when disabled: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_comment_removal() {
+        let mut opts = CompileOptions::default();
+        opts.comment_removal.enabled = true;
+        let result = compile("Hello\n\n<!-- this is a comment -->\n\nWorld\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("comment"),
+            "comment should be removed: {html}"
+        );
+        assert!(html.contains("Hello"));
+        assert!(html.contains("World"));
+    }
+
+    #[test]
+    fn e2e_comment_removal_disabled_by_default() {
+        let result = compile(
+            "Hello\n\n<!-- this is a comment -->\n\nWorld\n",
+            &CompileOptions::default(),
+        );
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(html.contains("Hello"));
+        assert!(html.contains("World"));
+    }
+
+    #[test]
+    fn e2e_comment_removal_preserves_non_comment_html() {
+        let mut opts = CompileOptions::default();
+        opts.comment_removal.enabled = true;
+        opts.raw_html = crate::api::options::RawHtmlPolicy::AllowDangerous;
+        let result = compile(
+            "Hello\n\n<div>keep me</div>\n\n<!-- remove me -->\n\nWorld\n",
+            &opts,
+        );
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("remove me"),
+            "comment should be removed: {html}"
+        );
+        assert!(
+            html.contains("keep me"),
+            "non-comment HTML should remain: {html}"
+        );
+        assert!(html.contains("Hello"));
+        assert!(html.contains("World"));
+    }
+
+    #[test]
+    fn e2e_abbr_multiple_terms() {
+        let mut opts = CompileOptions::default();
+        opts.abbr.enabled = true;
+        let input = "*[HTML]: Hyper Text Markup Language\n\n*[CSS]: Cascading Style Sheets\n\nHTML and CSS are great.\n";
+        let result = compile(input, &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("<abbr title=\"Hyper Text Markup Language\">HTML</abbr>"),
+            "missing HTML abbr: {html}"
+        );
+        assert!(
+            html.contains("<abbr title=\"Cascading Style Sheets\">CSS</abbr>"),
+            "missing CSS abbr: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_img_lazy_loading() {
+        let mut opts = CompileOptions::default();
+        opts.img_lazy_loading.enabled = true;
+        let result = compile("![alt](test.jpg)\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(html.contains("loading=\"lazy\""), "missing lazy: {html}");
+        assert!(html.contains("decoding=\"async\""), "missing async: {html}");
+    }
+
+    #[test]
+    fn e2e_img_lazy_loading_skip_first() {
+        let mut opts = CompileOptions::default();
+        opts.img_lazy_loading.enabled = true;
+        opts.img_lazy_loading.skip_first = 1;
+        let result = compile("![first](a.jpg)\n\n![second](b.jpg)\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert_eq!(
+            html.matches("loading=\"lazy\"").count(),
+            1,
+            "should have exactly one lazy: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_img_lazy_loading_disabled_by_default() {
+        let opts = CompileOptions::default();
+        let result = compile("![alt](test.jpg)\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("loading=\"lazy\""),
+            "lazy loading should not be present when disabled: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_accessible_emoji() {
+        let mut opts = CompileOptions::default();
+        opts.accessible_emoji.enabled = true;
+        let result = compile("Hello \u{1F680} world\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(html.contains("role=\"img\""), "missing role=img: {html}");
+        assert!(
+            html.contains("aria-label=\"rocket\""),
+            "missing aria-label: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_accessible_emoji_disabled_by_default() {
+        let opts = CompileOptions::default();
+        let result = compile("Hello \u{1F680} world\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("role=\"img\""),
+            "accessible emoji should not be present when disabled: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_add_classes_tag() {
+        let mut opts = CompileOptions::default();
+        opts.add_classes.enabled = true;
+        opts.add_classes.rules = vec![("h1".to_string(), "text-3xl font-bold".to_string())];
+        let result = compile("# Hello\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("text-3xl font-bold"),
+            "missing classes: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_add_classes_disabled_by_default() {
+        let opts = CompileOptions::default();
+        let result = compile("# Hello\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            !html.contains("text-3xl"),
+            "add_classes should not be active when disabled: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_add_classes_multiple_selectors() {
+        let mut opts = CompileOptions::default();
+        opts.add_classes.enabled = true;
+        opts.add_classes.rules = vec![
+            ("h1, h2".to_string(), "heading".to_string()),
+            ("p".to_string(), "prose".to_string()),
+        ];
+        let result = compile("# Title\n\n## Subtitle\n\nParagraph\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(html.contains("heading"), "missing heading class: {html}");
+        assert!(html.contains("prose"), "missing prose class: {html}");
+    }
+
+    #[test]
+    fn e2e_minify() {
+        let mut opts = CompileOptions::default();
+        opts.minify.enabled = true;
+        let result = compile("# Hello\n\nWorld\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(!html.contains("</p>"), "should omit </p>: {html}");
+        assert!(html.contains("Hello"), "missing content: {html}");
+        assert!(html.contains("World"), "missing content: {html}");
+    }
+
+    #[test]
+    fn e2e_minify_boolean_attr() {
+        let mut opts = CompileOptions::default();
+        opts.minify.enabled = true;
+        let result = compile("- [x] Done\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(html.contains("checked"), "missing checked: {html}");
+        assert!(
+            !html.contains("checked=\""),
+            "should not have checked= with value: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_minify_preserves_pre_content() {
+        let mut opts = CompileOptions::default();
+        opts.minify.enabled = true;
+        let result = compile("```\n  indented\n    more\n```\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("  indented"),
+            "pre whitespace should be preserved: {html}"
+        );
+    }
+
+    #[test]
+    fn e2e_minify_omits_comments() {
+        let mut opts = CompileOptions::default();
+        opts.minify.enabled = true;
+        opts.raw_html = RawHtmlPolicy::AllowDangerous;
+        let result = compile("Hello\n\n<!-- comment -->\n\nWorld\n", &opts);
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(!html.contains("<!--"), "comments should be removed: {html}");
+    }
+
+    #[test]
+    fn e2e_minify_disabled_by_default() {
+        let result = compile("# Hello\n\nWorld\n", &CompileOptions::default());
+        let html = match result.output {
+            Output::Html(h) => h,
+            _ => panic!("expected HTML output"),
+        };
+        assert!(
+            html.contains("</p>"),
+            "non-minified should have </p>: {html}"
+        );
     }
 }

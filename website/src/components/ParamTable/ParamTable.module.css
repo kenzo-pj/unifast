@@ -1,0 +1,52 @@
+.wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: var(--gap-xl) 0;
+}
+
+.paramCell {
+  vertical-align: top;
+}
+
+.info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: var(--color-text-muted);
+  cursor: help;
+  vertical-align: middle;
+}
+
+.info:hover {
+  color: var(--color-text);
+}
+
+.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  max-width: 280px;
+  width: max-content;
+  white-space: normal;
+  font-weight: normal;
+  transition:
+    opacity 0.15s,
+    visibility 0.15s;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.infoOpen .tooltip {
+  visibility: visible;
+  opacity: 1;
+}

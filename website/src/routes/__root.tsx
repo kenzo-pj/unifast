@@ -1,4 +1,5 @@
 import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router";
+import { useMemo } from "react";
 
 import { Layout } from "~/components/Layout";
 import { NotFound } from "~/components/NotFound";
@@ -19,17 +20,18 @@ function isHomePage(pathname: string): boolean {
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { locale } = parseLocaleFromPath(pathname);
+  const i18nValue = useMemo(() => ({ locale }), [locale]);
 
   if (isHomePage(pathname)) {
     return (
-      <I18nContext.Provider value={{ locale }}>
+      <I18nContext.Provider value={i18nValue}>
         <Outlet />
       </I18nContext.Provider>
     );
   }
 
   return (
-    <I18nContext.Provider value={{ locale }}>
+    <I18nContext.Provider value={i18nValue}>
       <Layout>
         <Outlet />
       </Layout>

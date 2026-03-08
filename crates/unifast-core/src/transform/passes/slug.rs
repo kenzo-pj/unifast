@@ -97,7 +97,9 @@ pub fn apply_slugs(doc: &mut Document, mode: SlugMode) {
 
 fn apply_slugs_recursive(children: &mut [MdNode], slug_gen: &mut SlugGenerator) {
     for child in children.iter_mut() {
-        if let MdNode::Heading(h) = child {
+        if let MdNode::Heading(h) = child
+            && h.slug.is_none()
+        {
             let text = extract_text(&h.children);
             h.slug = Some(slug_gen.generate(&text));
         }
@@ -111,6 +113,7 @@ fn apply_slugs_recursive(children: &mut [MdNode], slug_gen: &mut SlugGenerator) 
 mod tests {
     use super::*;
     use crate::ast::common::{NodeIdGen, Span};
+    use crate::util::small_map::SmallMap;
 
     #[test]
     fn slug_github_basic() {
@@ -242,6 +245,7 @@ mod tests {
             depth: 1,
             children: vec![text1],
             slug: None,
+            extra_attrs: SmallMap::new(),
         });
         let text2 = MdNode::Text(Text {
             id: id_gen.next_id(),
@@ -254,6 +258,7 @@ mod tests {
             depth: 2,
             children: vec![text2],
             slug: None,
+            extra_attrs: SmallMap::new(),
         });
         let mut doc = Document {
             id: id_gen.next_id(),
@@ -291,6 +296,7 @@ mod tests {
                 depth: 1,
                 children: vec![text],
                 slug: None,
+                extra_attrs: SmallMap::new(),
             }));
         }
         let mut doc = Document {

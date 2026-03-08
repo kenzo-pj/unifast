@@ -85,50 +85,199 @@ export function buildSitemapXsl(): string {
     <html lang="en">
       <head>
         <title>Sitemap — unifast</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
         <style>
           *{margin:0;padding:0;box-sizing:border-box}
-          body{font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;background:#fff;padding:2rem}
-          h1{font-size:1.5rem;font-weight:600;margin-bottom:.25rem}
-          p.desc{color:#666;font-size:.875rem;margin-bottom:1.5rem}
-          table{width:100%;border-collapse:collapse;font-size:.875rem}
-          th{text-align:left;padding:.5rem .75rem;border-bottom:2px solid #e5e5e5;color:#666;font-weight:500}
-          td{padding:.5rem .75rem;border-bottom:1px solid #f0f0f0}
-          tr:hover td{background:#fafafa}
-          a{color:#2563eb;text-decoration:none}
-          a:hover{text-decoration:underline}
-          .lang{display:inline-block;padding:.125rem .375rem;border-radius:.25rem;background:#f0f0f0;color:#666;font-size:.75rem;margin-right:.25rem}
+
+          /* ── Base ── */
+          body{
+            font-family:system-ui,-apple-system,sans-serif;
+            color:oklch(0.145 0 0);
+            background:oklch(1 0 0);
+            line-height:1.6;
+            min-height:100vh;
+          }
+
+          /* ── Header (glassmorphism) ── */
+          header{
+            position:sticky;top:0;z-index:10;
+            padding:0 2rem;
+            height:56px;
+            display:flex;align-items:center;gap:1rem;
+            background:oklch(1 0 0 / 0.7);
+            backdrop-filter:blur(12px);
+            -webkit-backdrop-filter:blur(12px);
+            border-bottom:1px solid oklch(0 0 0 / 0.06);
+            box-shadow:0 1px 3px oklch(0 0 0 / 0.04);
+          }
+          .logo{
+            font-size:0.9375rem;font-weight:700;
+            color:oklch(0.145 0 0);text-decoration:none;
+            letter-spacing:-0.01em;
+          }
+          header nav{margin-left:auto;display:flex;align-items:center;gap:0.5rem}
+          header nav a{
+            font-size:0.8125rem;font-weight:500;
+            color:oklch(0.556 0 0);text-decoration:none;
+            padding:0.25rem 0.625rem;border-radius:9999px;
+            transition:background 0.15s,color 0.15s;
+          }
+          header nav a:hover{background:oklch(0 0 0 / 0.04);color:oklch(0.145 0 0)}
+
+          /* ── Content ── */
+          main{max-width:72rem;margin:0 auto;padding:2rem}
+
+          .title-section{margin-bottom:1.5rem}
+          h1{
+            font-size:2rem;font-weight:700;line-height:1.2;
+            margin-bottom:0.5rem;
+          }
+          .subtitle{
+            color:oklch(0.556 0 0);font-size:0.9375rem;
+            display:flex;align-items:center;gap:0.5rem;
+          }
+          .count{
+            display:inline-flex;align-items:center;justify-content:center;
+            background:oklch(0 0 0 / 0.06);
+            color:oklch(0.4 0 0);
+            font-weight:600;font-size:0.75rem;
+            padding:0.125rem 0.5rem;border-radius:9999px;
+          }
+
+          /* ── Table ── */
+          .table-wrapper{
+            overflow-x:auto;-webkit-overflow-scrolling:touch;
+            border:1px solid oklch(0.922 0 0);
+            border-radius:0.75rem;
+            overflow:hidden;
+          }
+          table{
+            width:100%;border-collapse:separate;border-spacing:0;
+            font-size:0.875rem;
+          }
+          th{
+            text-align:left;
+            padding:0.625rem 1rem;
+            background:oklch(0.967 0.001 286);
+            font-weight:500;font-size:0.8125rem;
+            letter-spacing:0.02em;
+            color:oklch(0.556 0 0);
+            border-bottom:1px solid oklch(0.922 0 0);
+          }
+          td{
+            padding:0.625rem 1rem;
+            border-bottom:1px solid oklch(0.922 0 0);
+            vertical-align:middle;
+          }
+          tbody tr:last-child td{border-bottom:none}
+          tbody tr{transition:background 0.1s}
+          tbody tr:hover td{background:oklch(0 0 0 / 0.02)}
+
+          td a{
+            color:oklch(0.145 0 0);
+            text-decoration:none;font-weight:500;
+            word-break:break-all;
+          }
+          td a:hover{text-decoration:underline}
+
+          .lang{
+            display:inline-block;
+            padding:0.125rem 0.5rem;
+            border-radius:9999px;
+            background:oklch(0 0 0 / 0.06);
+            color:oklch(0.4 0 0);
+            font-size:0.6875rem;font-weight:600;
+            letter-spacing:0.03em;text-transform:uppercase;
+            margin-right:0.25rem;
+          }
+
+          .date{color:oklch(0.556 0 0);font-variant-numeric:tabular-nums}
+
+          /* ── Dark mode ── */
           @media(prefers-color-scheme:dark){
-            body{background:#171717;color:#e5e5e5}
-            th{border-bottom-color:#333;color:#999}
-            td{border-bottom-color:#262626}
-            tr:hover td{background:#1e1e1e}
-            a{color:#60a5fa}
-            .lang{background:#262626;color:#999}
-            p.desc{color:#999}
+            body{background:oklch(0.141 0.005 286);color:oklch(0.985 0 0)}
+
+            header{
+              background:oklch(0.141 0.005 286 / 0.7);
+              border-bottom-color:oklch(1 0 0 / 0.08);
+              box-shadow:0 1px 3px oklch(0 0 0 / 0.2);
+            }
+            .logo{color:oklch(0.985 0 0)}
+            header nav a{color:oklch(0.705 0.015 286)}
+            header nav a:hover{background:oklch(1 0 0 / 0.04);color:oklch(0.985 0 0)}
+
+            .subtitle{color:oklch(0.705 0.015 286)}
+            .count{
+              background:oklch(1 0 0 / 0.08);
+              color:oklch(0.705 0.015 286);
+            }
+
+            .table-wrapper{border-color:oklch(0.25 0.006 286)}
+            th{
+              background:oklch(0.21 0.006 286);
+              color:oklch(0.705 0.015 286);
+              border-bottom-color:oklch(0.25 0.006 286);
+            }
+            td{border-bottom-color:oklch(0.25 0.006 286)}
+            tbody tr:hover td{background:oklch(1 0 0 / 0.02)}
+
+            td a{color:oklch(0.985 0 0)}
+            .lang{
+              background:oklch(1 0 0 / 0.08);
+              color:oklch(0.705 0.015 286);
+            }
+            .date{color:oklch(0.705 0.015 286)}
+          }
+
+          /* ── Responsive ── */
+          @media(max-width:640px){
+            header{padding:0 1rem}
+            main{padding:1.5rem 1rem}
+            h1{font-size:1.5rem}
+            th,td{padding:0.5rem 0.75rem}
           }
         </style>
       </head>
       <body>
-        <h1>Sitemap</h1>
-        <p class="desc"><xsl:value-of select="count(sitemap:urlset/sitemap:url)"/> URLs</p>
-        <table>
-          <thead>
-            <tr><th>URL</th><th>Languages</th><th>Last Modified</th></tr>
-          </thead>
-          <tbody>
-            <xsl:for-each select="sitemap:urlset/sitemap:url">
-              <tr>
-                <td><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc"/></a></td>
-                <td>
-                  <xsl:for-each select="xhtml:link[@rel='alternate' and @hreflang!='x-default']">
-                    <span class="lang"><xsl:value-of select="@hreflang"/></span>
-                  </xsl:for-each>
-                </td>
-                <td><xsl:value-of select="sitemap:lastmod"/></td>
-              </tr>
-            </xsl:for-each>
-          </tbody>
-        </table>
+        <header>
+          <a class="logo" href="https://unifast.dev/">unifast</a>
+          <nav>
+            <a href="https://unifast.dev/docs/introduction/what-is-unifast/">Docs</a>
+            <a href="https://github.com/kenzo-pj/unifast">GitHub</a>
+          </nav>
+        </header>
+
+        <main>
+          <div class="title-section">
+            <h1>Sitemap</h1>
+            <p class="subtitle">
+              <span class="count"><xsl:value-of select="count(sitemap:urlset/sitemap:url)"/> URLs</span>
+              All pages indexed for search engines
+            </p>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>URL</th><th>Languages</th><th>Last Modified</th></tr>
+              </thead>
+              <tbody>
+                <xsl:for-each select="sitemap:urlset/sitemap:url">
+                  <tr>
+                    <td><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc"/></a></td>
+                    <td>
+                      <xsl:for-each select="xhtml:link[@rel='alternate' and @hreflang!='x-default']">
+                        <span class="lang"><xsl:value-of select="@hreflang"/></span>
+                      </xsl:for-each>
+                    </td>
+                    <td class="date"><xsl:value-of select="sitemap:lastmod"/></td>
+                  </tr>
+                </xsl:for-each>
+              </tbody>
+            </table>
+          </div>
+        </main>
+
       </body>
     </html>
   </xsl:template>

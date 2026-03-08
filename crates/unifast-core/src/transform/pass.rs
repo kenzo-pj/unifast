@@ -1,4 +1,5 @@
 use crate::api::options::CompileOptions;
+use crate::api::result::ReadingTime;
 use crate::ast::common::NodeIdGen;
 use crate::ast::hast::nodes::HRoot;
 use crate::ast::mdast::nodes::Document;
@@ -42,6 +43,8 @@ pub struct PassContext<'a> {
     pub options: &'a CompileOptions,
     pub id_gen: &'a mut NodeIdGen,
     pub toc: Vec<TocEntry>,
+    pub reading_time: Option<ReadingTime>,
+    pub excerpt: Option<String>,
 }
 
 pub type PassResult = Result<(), PassError>;
@@ -123,6 +126,8 @@ mod tests {
             options: &opts,
             id_gen: &mut id_gen,
             toc: Vec::new(),
+            reading_time: None,
+            excerpt: None,
         };
         assert_eq!(ctx.source, "# Hello");
     }

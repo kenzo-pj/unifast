@@ -374,7 +374,10 @@ impl HighlightEngine for TreeSitterHighlighter {
     }
 
     fn highlight(&self, code: &str, language: &str) -> Option<String> {
-        let config = find_ts_config(language)?;
+        let config = match find_ts_config(language) {
+            Some(c) => c,
+            None => return SyntectHighlighter::new().highlight(code, language),
+        };
         TS_HIGHLIGHTER.with(|cell| {
             let mut highlighter = cell.borrow_mut();
             let events = highlighter
@@ -580,6 +583,25 @@ mod tests {
         assert_eq!(engine.name(), "syntect");
         assert!(engine.highlight("fn main(){}", "rust").is_some());
         assert!(engine.highlight("code", "zzz_nonexistent_lang").is_none());
+    }
+
+    #[test]
+    fn syntect_recognizes_markdown() {
+        let engine = SyntectHighlighter::new();
+        let result = engine.highlight("# Hello\n**bold**", "md");
+        eprintln!("syntect md result: {result:?}");
+        assert!(result.is_some(), "Syntect should recognize 'md' language");
+    }
+
+    #[test]
+    fn tree_sitter_fallback_to_syntect_for_markdown() {
+        let engine = TreeSitterHighlighter;
+        let result = engine.highlight("# Hello\n**bold**", "md");
+        eprintln!("tree-sitter md fallback result: {result:?}");
+        assert!(
+            result.is_some(),
+            "TreeSitter should fall back to Syntect for 'md'"
+        );
     }
 
     #[test]

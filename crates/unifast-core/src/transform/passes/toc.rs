@@ -42,6 +42,7 @@ mod tests {
     use super::*;
     use crate::ast::common::{NodeIdGen, Span};
     use crate::transform::passes::slug::{SlugMode, apply_slugs};
+    use crate::util::small_map::SmallMap;
 
     fn make_heading_node(
         id_gen: &mut NodeIdGen,
@@ -60,6 +61,7 @@ mod tests {
             depth,
             children: vec![text_node],
             slug: slug.map(|s| s.to_string()),
+            extra_attrs: SmallMap::new(),
         })
     }
 
@@ -154,6 +156,7 @@ mod tests {
             depth: 1,
             children: vec![text_node],
             slug: None,
+            extra_attrs: SmallMap::new(),
         });
         let mut doc = Document {
             id: id_gen.next_id(),

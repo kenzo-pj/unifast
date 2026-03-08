@@ -22,7 +22,7 @@ Peer dependency: `@unifast/node` is required for `compileToReact`.
 
 ## Type Definitions
 
-### `CompileToReactOptions`
+### CompileToReactOptions
 
 Extends `CompileOptions` with React-specific fields.
 
@@ -33,7 +33,7 @@ Extends `CompileOptions` with React-specific fields.
 | `components?` | `ComponentMap` | Map of HTML tag names to React components |
 | *(all CompileOptions)* | - | Inherited from `CompileOptions` |
 
-### `CompileToReactResult`
+### CompileToReactResult
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -43,7 +43,7 @@ Extends `CompileOptions` with React-specific fields.
 | `stats` | `{ parseMs, transformMs, emitMs }` | Timing breakdown (ms) |
 | `toc` | `TocEntry[]` | Extracted table of contents |
 
-### `HastToReactOptions`
+### HastToReactOptions
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -51,13 +51,13 @@ Extends `CompileOptions` with React-specific fields.
 | `Fragment` | `unknown` | React's `Fragment` component |
 | `components?` | `ComponentMap` | Map of HTML tag names to custom React components |
 
-### `CreateElement`
+### CreateElement
 
 ```ts
 type CreateElement = (type: any, props: any, ...children: any[]) => any;
 ```
 
-### `ComponentMap`
+### ComponentMap
 
 ```ts
 type ComponentMap = Record<string, unknown>;
