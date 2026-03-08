@@ -40,7 +40,9 @@ pub fn convert_result(result: CompileResult) -> JsCompileResult {
         Output::Hast(root) => {
             serde_json::to_string(root).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}"))
         }
-        Output::Mdast(doc) => format!("{doc:#?}"),
+        Output::Mdast(doc) => {
+            serde_json::to_string(doc).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}"))
+        }
     };
 
     JsCompileResult {

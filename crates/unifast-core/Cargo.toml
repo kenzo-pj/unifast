@@ -83,6 +83,9 @@ tree-sitter-make = { workspace = true, optional = true }
 tree-sitter-nix = { workspace = true, optional = true }
 tree-sitter-regex = { workspace = true, optional = true }
 tree-sitter-erlang = { workspace = true, optional = true }
+html5ever = { workspace = true }
+markup5ever = { workspace = true }
+markup5ever_rcdom = { workspace = true }
 url = { workspace = true }
 lasso = { workspace = true }
 sourcemap = { workspace = true }

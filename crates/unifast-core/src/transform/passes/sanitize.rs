@@ -1,6 +1,7 @@
 use crate::ast::hast::nodes::*;
 use crate::diagnostics::sink::DiagnosticSink;
 use std::collections::{HashMap, HashSet};
+use std::sync::LazyLock;
 
 pub struct SanitizeSchema {
     pub allowed_tags: HashSet<String>,
@@ -8,8 +9,14 @@ pub struct SanitizeSchema {
     pub allowed_protocols: HashMap<String, HashSet<String>>,
 }
 
+static DEFAULT_SCHEMA: LazyLock<SanitizeSchema> = LazyLock::new(build_default_safe_schema);
+
 #[must_use]
-pub fn default_safe_schema() -> SanitizeSchema {
+pub fn default_safe_schema() -> &'static SanitizeSchema {
+    &DEFAULT_SCHEMA
+}
+
+fn build_default_safe_schema() -> SanitizeSchema {
     SanitizeSchema {
         allowed_tags: [
             "h1",
@@ -345,7 +352,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         assert_eq!(root.children.len(), 1);
         if let HNode::Text(t) = &root.children[0] {
@@ -365,7 +372,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         assert_eq!(root.children.len(), 1);
         if let HNode::Element(elem) = &root.children[0] {
@@ -388,7 +395,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(elem.attributes.len(), 2);
@@ -412,7 +419,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(elem.attributes.len(), 1);
@@ -435,7 +442,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
             assert!(!elem.attributes.contains_key(&"href".to_string()));
@@ -455,7 +462,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
             assert!(elem.attributes.contains_key(&"href".to_string()));
@@ -475,7 +482,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
             assert!(elem.attributes.contains_key(&"href".to_string()));
@@ -495,7 +502,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
             assert!(elem.attributes.contains_key(&"href".to_string()));
@@ -517,7 +524,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         assert_eq!(root.children.len(), 1);
         if let HNode::Text(t) = &root.children[0] {
@@ -540,7 +547,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(div_elem) = &root.children[0] {
             assert_eq!(div_elem.tag, "div");
@@ -602,7 +609,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
             assert!(elem.attributes.contains_key(&"id".to_string()));
@@ -619,7 +626,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         assert!(root.children.is_empty());
         assert!(diag.is_empty());
@@ -636,7 +643,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
             assert!(!elem.attributes.contains_key(&"src".to_string()));
@@ -658,7 +665,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         assert_eq!(root.children.len(), 1);
         assert!(matches!(root.children[0], HNode::Comment(_)));
@@ -676,7 +683,7 @@ mod tests {
         let schema = default_safe_schema();
         let mut diag = DiagnosticSink::new();
 
-        sanitize(&mut root, &schema, &mut diag);
+        sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(div_elem) = &root.children[0] {
             assert_eq!(div_elem.tag, "div");

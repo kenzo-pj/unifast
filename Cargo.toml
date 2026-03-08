@@ -123,4 +123,7 @@ phf = { version = "0.11", features = ["macros"] }
 selectors = "0.25"
 cssparser = "0.31"
 fxhash = "0.2"
+html5ever = "0.38"
+markup5ever = "0.38"
+markup5ever_rcdom = "0.38"
 precomputed-hash = "0.1"

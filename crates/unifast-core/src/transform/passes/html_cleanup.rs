@@ -7,27 +7,36 @@ pub struct CleanupOptions {
 }
 
 pub fn cleanup(root: &mut HRoot, options: &CleanupOptions) {
-    cleanup_children(&mut root.children, options);
+    cleanup_children(&mut root.children, options, false);
 }
 
-fn cleanup_children(children: &mut Vec<HNode>, options: &CleanupOptions) {
+fn cleanup_children(
+    children: &mut Vec<HNode>,
+    options: &CleanupOptions,
+    preserve_whitespace: bool,
+) {
     if options.remove_empty_nodes {
         children.retain(|node| !is_empty_element(node));
     }
 
     for child in children.iter_mut() {
+        let child_preserves = preserve_whitespace || is_preformatted(child);
         if let Some(kids) = child.children_mut() {
-            cleanup_children(kids, options);
+            cleanup_children(kids, options, child_preserves);
         }
     }
 
-    if options.minify_whitespace {
+    if options.minify_whitespace && !preserve_whitespace {
         for child in children.iter_mut() {
             if let HNode::Text(t) = child {
                 t.value = t.value.split_whitespace().collect::<Vec<_>>().join(" ");
             }
         }
     }
+}
+
+fn is_preformatted(node: &HNode) -> bool {
+    matches!(node, HNode::Element(e) if matches!(e.tag.as_str(), "pre" | "code" | "textarea" | "script" | "style"))
 }
 
 fn is_empty_element(node: &HNode) -> bool {
@@ -284,6 +293,49 @@ mod tests {
 
         assert_eq!(root.children.len(), 1);
         if let HNode::Element(ref p_elem) = root.children[0] {
+            if let HNode::Text(ref t) = p_elem.children[0] {
+                assert_eq!(t.value, "Hello world");
+            } else {
+                panic!("expected text node");
+            }
+        } else {
+            panic!("expected p element");
+        }
+    }
+
+    #[test]
+    fn minify_preserves_pre_whitespace() {
+        let mut id_gen = NodeIdGen::new();
+        let code_text = make_text(&mut id_gen, "  fn main() {\n    println!();\n  }");
+        let code = make_element(&mut id_gen, "code", SmallMap::new(), vec![code_text]);
+        let pre = make_element(&mut id_gen, "pre", SmallMap::new(), vec![code]);
+        let para_text = make_text(&mut id_gen, "  Hello   world  ");
+        let p = make_element(&mut id_gen, "p", SmallMap::new(), vec![para_text]);
+        let mut root = make_root(&mut id_gen, vec![pre, p]);
+
+        cleanup(
+            &mut root,
+            &CleanupOptions {
+                remove_empty_nodes: false,
+                minify_whitespace: true,
+            },
+        );
+
+        if let HNode::Element(ref pre_elem) = root.children[0] {
+            if let HNode::Element(ref code_elem) = pre_elem.children[0] {
+                if let HNode::Text(ref t) = code_elem.children[0] {
+                    assert_eq!(t.value, "  fn main() {\n    println!();\n  }");
+                } else {
+                    panic!("expected text node");
+                }
+            } else {
+                panic!("expected code element");
+            }
+        } else {
+            panic!("expected pre element");
+        }
+
+        if let HNode::Element(ref p_elem) = root.children[1] {
             if let HNode::Text(ref t) = p_elem.children[0] {
                 assert_eq!(t.value, "Hello world");
             } else {

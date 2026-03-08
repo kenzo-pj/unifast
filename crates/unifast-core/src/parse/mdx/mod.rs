@@ -2,6 +2,7 @@ pub mod esm;
 pub mod expr;
 pub mod jsx;
 
+use crate::api::options::{FrontmatterOptions, GfmOptions};
 use crate::ast::common::{NodeIdGen, Span};
 use crate::ast::mdast::nodes::{Document, MdNode, MdxjsEsm};
 use crate::diagnostics::sink::DiagnosticSink;
@@ -11,19 +12,29 @@ pub struct MdxParseResult {
     pub document: Document,
     pub diagnostics: DiagnosticSink,
     pub frontmatter: FrontmatterData,
+    pub id_gen: NodeIdGen,
 }
 
 #[must_use]
-pub fn parse_mdx(input: &str) -> MdxParseResult {
+pub fn parse_mdx(
+    input: &str,
+    gfm: &GfmOptions,
+    frontmatter_opts: &FrontmatterOptions,
+) -> MdxParseResult {
     let mut id_gen = NodeIdGen::new();
     let mut diagnostics = DiagnosticSink::new();
 
-    let (frontmatter_data, parse_offset) =
-        if let Some(fm) = crate::parse::frontmatter::extract_frontmatter(input) {
+    let (frontmatter_data, parse_offset) = if frontmatter_opts.any_enabled() {
+        if let Some(fm) =
+            crate::parse::frontmatter::extract_frontmatter_filtered(input, frontmatter_opts)
+        {
             (fm.data, fm.end_offset)
         } else {
             (FrontmatterData::new(), 0)
-        };
+        }
+    } else {
+        (FrontmatterData::new(), 0)
+    };
 
     let content = &input[parse_offset..];
 
@@ -34,11 +45,12 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
     let mut fence_marker: String = String::new();
 
     let lines: Vec<&str> = content.lines().collect();
+    let line_offsets = compute_line_offsets(content);
     let mut line_idx = 0;
 
     while line_idx < lines.len() {
         let line = lines[line_idx];
-        let line_offset = calculate_line_offset(content, line_idx) + parse_offset;
+        let line_offset = line_offsets[line_idx] + parse_offset;
 
         let trimmed = line.trim_start();
         if in_fenced_code {
@@ -68,6 +80,7 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
                 &mut children,
                 &mut id_gen,
                 &mut diagnostics,
+                gfm,
             );
 
             let esm_start = line_offset;
@@ -102,6 +115,7 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
                 &mut children,
                 &mut id_gen,
                 &mut diagnostics,
+                gfm,
             );
             children.push(jsx_result.node);
             line_idx += jsx_result.lines_consumed;
@@ -116,6 +130,7 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
                 &mut children,
                 &mut id_gen,
                 &mut diagnostics,
+                gfm,
             );
             children.push(expr_node);
             line_idx += 1;
@@ -133,6 +148,7 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
         &mut children,
         &mut id_gen,
         &mut diagnostics,
+        gfm,
     );
 
     let doc = Document {
@@ -145,6 +161,7 @@ pub fn parse_mdx(input: &str) -> MdxParseResult {
         document: doc,
         diagnostics,
         frontmatter: frontmatter_data,
+        id_gen,
     }
 }
 
@@ -154,34 +171,53 @@ fn flush_markdown(
     children: &mut Vec<MdNode>,
     id_gen: &mut NodeIdGen,
     diagnostics: &mut DiagnosticSink,
+    gfm: &GfmOptions,
 ) {
     if lines.is_empty() {
         return;
     }
     let md_text = lines.join("\n") + "\n";
-    let md_nodes = parse_markdown_fragment(&md_text, start_offset, id_gen, diagnostics);
+    let md_nodes = parse_markdown_fragment(&md_text, start_offset, id_gen, diagnostics, gfm);
     children.extend(md_nodes);
     lines.clear();
 }
 
 fn parse_markdown_fragment(
     text: &str,
-    _offset: usize,
+    offset: usize,
     id_gen: &mut NodeIdGen,
     diagnostics: &mut DiagnosticSink,
+    gfm: &GfmOptions,
 ) -> Vec<MdNode> {
     use crate::parse::markdown::parser;
-    let doc = parser::parse(text, id_gen, diagnostics);
-    doc.children
+    let doc = parser::parse(text, id_gen, diagnostics, gfm);
+    let mut children = doc.children;
+    if offset > 0 {
+        let off = offset as u32;
+        for child in &mut children {
+            child.offset_spans(off);
+        }
+    }
+    children
 }
 
-fn calculate_line_offset(content: &str, line_idx: usize) -> usize {
-    content.lines().take(line_idx).map(|l| l.len() + 1).sum()
+fn compute_line_offsets(content: &str) -> Vec<usize> {
+    let mut offsets = vec![0];
+    for (i, b) in content.bytes().enumerate() {
+        if b == b'\n' {
+            offsets.push(i + 1);
+        }
+    }
+    offsets
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn parse_mdx(input: &str) -> MdxParseResult {
+        super::parse_mdx(input, &GfmOptions::default(), &FrontmatterOptions::all())
+    }
 
     #[test]
     fn mdx_plain_markdown() {

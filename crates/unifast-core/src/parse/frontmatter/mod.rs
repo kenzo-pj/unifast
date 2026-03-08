@@ -18,15 +18,31 @@ pub struct FrontmatterResult {
     pub end_offset: usize,
 }
 
+use crate::api::options::FrontmatterOptions;
+
 #[must_use]
 pub fn extract_frontmatter(input: &str) -> Option<FrontmatterResult> {
-    if let Some(r) = yaml::extract(input) {
+    extract_frontmatter_filtered(input, &FrontmatterOptions::all())
+}
+
+#[must_use]
+pub fn extract_frontmatter_filtered(
+    input: &str,
+    opts: &FrontmatterOptions,
+) -> Option<FrontmatterResult> {
+    if opts.yaml
+        && let Some(r) = yaml::extract(input)
+    {
         return Some(r);
     }
-    if let Some(r) = toml::extract(input) {
+    if opts.toml
+        && let Some(r) = toml::extract(input)
+    {
         return Some(r);
     }
-    if let Some(r) = json::extract(input) {
+    if opts.json
+        && let Some(r) = json::extract(input)
+    {
         return Some(r);
     }
     None

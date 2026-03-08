@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { createRequire } from "node:module";
 
 import { escapeHtml } from "@unifast/core";
@@ -47,10 +46,10 @@ export default function unifastPlugin(options: UnifastPluginOptions = {}): Plugi
     name: "vite-plugin-unifast",
     enforce: "pre",
 
-    transform(_code, id) {
+    transform(code, id) {
       if (!/\.(md|mdx)$/.test(id)) return null;
 
-      const source = fs.readFileSync(id, "utf8");
+      const source = code;
       const isMdx = id.endsWith(".mdx");
       const compile = getCompile();
 

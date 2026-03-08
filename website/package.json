@@ -26,7 +26,7 @@
     "@unifast/node": "workspace:*",
     "@unifast/vite": "workspace:*",
     "hugeicons-react": "^0.4.0",
-    "katex": "^0.16.35",
+    "katex": "^0.16.37",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

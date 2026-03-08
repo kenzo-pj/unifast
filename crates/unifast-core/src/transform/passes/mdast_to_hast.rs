@@ -20,6 +20,7 @@ pub fn lower(
         diagnostics,
         &GithubAlertIconMode::default(),
         false,
+        "/wiki/{slug}",
     )
 }
 
@@ -30,6 +31,7 @@ pub fn lower_with_icons(
     diagnostics: &mut DiagnosticSink,
     icon_mode: &GithubAlertIconMode,
     figure_enabled: bool,
+    wiki_link_template: &str,
 ) -> HNode {
     let mut builder = HBuilder::new(id_gen);
     let children = lower_children(
@@ -39,6 +41,7 @@ pub fn lower_with_icons(
         diagnostics,
         icon_mode,
         figure_enabled,
+        wiki_link_template,
     );
     builder.root(doc.span, children)
 }
@@ -50,6 +53,7 @@ fn lower_children(
     diagnostics: &mut DiagnosticSink,
     icon_mode: &GithubAlertIconMode,
     figure_enabled: bool,
+    wiki_link_template: &str,
 ) -> Vec<HNode> {
     children
         .iter()
@@ -61,6 +65,7 @@ fn lower_children(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             )
         })
         .collect()
@@ -73,6 +78,7 @@ fn lower_node(
     diagnostics: &mut DiagnosticSink,
     icon_mode: &GithubAlertIconMode,
     figure_enabled: bool,
+    wiki_link_template: &str,
 ) -> Option<HNode> {
     match node {
         MdNode::Document(_) => None,
@@ -86,6 +92,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             let mut attrs = SmallMap::new();
             if let Some(ref slug) = h.slug {
@@ -105,6 +112,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.elem(p.span, "p", children))
         }
@@ -122,6 +130,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.elem(e.span, "em", children))
         }
@@ -134,6 +143,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.elem(s.span, "strong", children))
         }
@@ -168,6 +178,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             if let Some(ref alert_kind) = bq.alert_type {
                 lower_alert(bq.span, alert_kind, children, builder, icon_mode)
@@ -185,6 +196,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             let mut attrs = SmallMap::new();
             if l.ordered
@@ -215,6 +227,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             ));
             Some(builder.elem(li.span, "li", children))
         }
@@ -236,6 +249,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.element(l.span, "a", attrs, children, false))
         }
@@ -281,6 +295,7 @@ fn lower_node(
                     &t.align,
                     icon_mode,
                     figure_enabled,
+                    wiki_link_template,
                 )
             {
                 let thead = builder.elem(first.span(), "thead", vec![row]);
@@ -300,6 +315,7 @@ fn lower_node(
                             &t.align,
                             icon_mode,
                             figure_enabled,
+                            wiki_link_template,
                         )
                     })
                     .collect();
@@ -326,6 +342,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.elem(d.span, "del", children))
         }
@@ -338,6 +355,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             let mut attrs = SmallMap::new();
             attrs.insert("id".to_string(), format!("fn-{}", fd.identifier));
@@ -425,6 +443,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             ));
             Some(builder.element(d.span, "div", attrs, children, false))
         }
@@ -460,7 +479,11 @@ fn lower_node(
         MdNode::WikiLink(w) => {
             let slug = w.target.to_lowercase().replace(' ', "-");
             let mut attrs = SmallMap::new();
-            attrs.insert("href".to_string(), format!("/wiki/{slug}"));
+            attrs.insert(
+                "href".to_string(),
+                #[allow(clippy::literal_string_with_formatting_args)]
+                wiki_link_template.replace("{slug}", &slug),
+            );
             attrs.insert("class".to_string(), "wiki-link".to_string());
             let children = lower_children(
                 &w.children,
@@ -469,6 +492,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.element(w.span, "a", attrs, children, false))
         }
@@ -481,6 +505,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.elem(dl.span, "dl", children))
         }
@@ -493,6 +518,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.elem(dt.span, "dt", children))
         }
@@ -505,6 +531,7 @@ fn lower_node(
                 diagnostics,
                 icon_mode,
                 figure_enabled,
+                wiki_link_template,
             );
             Some(builder.elem(dd.span, "dd", children))
         }
@@ -539,6 +566,7 @@ fn lower_table_row(
     align: &[AlignKind],
     icon_mode: &GithubAlertIconMode,
     figure_enabled: bool,
+    wiki_link_template: &str,
 ) -> Option<HNode> {
     if let MdNode::TableRow(row) = node {
         let cell_tag = if is_header { "th" } else { "td" };
@@ -555,6 +583,7 @@ fn lower_table_row(
                         diagnostics,
                         icon_mode,
                         figure_enabled,
+                        wiki_link_template,
                     );
                     let mut attrs = SmallMap::new();
                     if let Some(a) = align.get(i) {

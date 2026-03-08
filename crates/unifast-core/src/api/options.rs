@@ -39,7 +39,7 @@ pub enum DiagnosticsFormat {
     Verbose,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct GfmOptions {
     pub tables: bool,
     pub task_list: bool,
@@ -60,7 +60,7 @@ impl Default for GfmOptions {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct FrontmatterOptions {
     pub yaml: bool,
     pub toml: bool,
@@ -84,6 +84,11 @@ impl FrontmatterOptions {
             toml: true,
             json: true,
         }
+    }
+
+    #[must_use]
+    pub const fn any_enabled(&self) -> bool {
+        self.yaml || self.toml || self.json
     }
 }
 
@@ -403,6 +408,12 @@ pub struct AddClassesOptions {
 }
 
 #[derive(Debug, Clone, Default)]
+pub struct HtmlCleanupOptions {
+    pub remove_empty_nodes: bool,
+    pub minify_whitespace: bool,
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct MinifyOptions {
     pub enabled: bool,
 }
@@ -447,6 +458,7 @@ pub struct CompileOptions {
     pub img_lazy_loading: ImgLazyLoadingOptions,
     pub accessible_emoji: AccessibleEmojiOptions,
     pub add_classes: AddClassesOptions,
+    pub html_cleanup: HtmlCleanupOptions,
     pub minify: MinifyOptions,
 }
 
@@ -491,6 +503,7 @@ impl std::fmt::Debug for CompileOptions {
             .field("img_lazy_loading", &self.img_lazy_loading)
             .field("accessible_emoji", &self.accessible_emoji)
             .field("add_classes", &self.add_classes)
+            .field("html_cleanup", &self.html_cleanup)
             .field("minify", &self.minify)
             .finish()
     }

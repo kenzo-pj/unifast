@@ -121,7 +121,8 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
   if (
     hasHastTransforms &&
     userRequestedOutputKind !== "hast" &&
-    userRequestedOutputKind !== "mdxJs"
+    userRequestedOutputKind !== "mdxJs" &&
+    userRequestedOutputKind !== "mdast"
   ) {
     mergedOpts.outputKind = "hast";
   }

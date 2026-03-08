@@ -8,8 +8,8 @@ use unifast_core::api::options::{
     FrontmatterOptions, GfmOptions, GithubAlertIconMode, GithubAlertOptions, HighlightEngine,
     HighlightOptions, ImgLazyLoadingOptions, InputKind, LineNumberOptions, MathOptions,
     MinifyOptions, OutputKind, RawHtmlPolicy, ReadingTimeOptions, RubyAnnotationOptions,
-    SanitizeOptions, SectionizeOptions, SlugMode, SlugOptions, SmartypantsOptions, TocOptions,
-    WikiLinkOptions,
+    SanitizeOptions, SanitizeSchema, SectionizeOptions, SlugMode, SlugOptions, SmartypantsOptions,
+    TocOptions, WikiLinkOptions,
 };
 
 #[napi(object)]
@@ -29,8 +29,16 @@ pub struct JsFrontmatterOptions {
 }
 
 #[napi(object)]
+pub struct JsSanitizeSchemaOptions {
+    pub allowed_tags: Option<Vec<String>>,
+    pub allowed_attributes: Option<HashMap<String, Vec<String>>>,
+    pub allowed_protocols: Option<HashMap<String, Vec<String>>>,
+}
+
+#[napi(object)]
 pub struct JsSanitizeOptions {
     pub enabled: Option<bool>,
+    pub schema: Option<JsSanitizeSchemaOptions>,
 }
 
 #[napi(object)]
@@ -237,7 +245,11 @@ pub fn convert_options(js_opts: Option<JsCompileOptions>) -> CompileOptions {
         sanitize: if let Some(s) = js.sanitize {
             SanitizeOptions {
                 enabled: s.enabled.unwrap_or(true),
-                schema: None,
+                schema: s.schema.map(|sc| SanitizeSchema {
+                    allowed_tags: sc.allowed_tags.unwrap_or_default(),
+                    allowed_attributes: sc.allowed_attributes.unwrap_or_default(),
+                    allowed_protocols: sc.allowed_protocols.unwrap_or_default(),
+                }),
             }
         } else {
             SanitizeOptions::default()

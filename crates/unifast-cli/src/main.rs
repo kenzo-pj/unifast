@@ -32,11 +32,15 @@ fn main() {
             "mdx" => InputKind::Mdx,
             _ => InputKind::Markdown,
         },
-        output_kind: match cli.format.as_str() {
-            "hast" => OutputKind::Hast,
-            "mdast" => OutputKind::Mdast,
-            "mdxJs" | "mdx-js" => OutputKind::MdxJs,
-            _ => OutputKind::Html,
+        output_kind: if cli.ast {
+            OutputKind::Mdast
+        } else {
+            match cli.format.as_str() {
+                "hast" => OutputKind::Hast,
+                "mdast" => OutputKind::Mdast,
+                "mdxJs" | "mdx-js" => OutputKind::MdxJs,
+                _ => OutputKind::Html,
+            }
         },
         gfm: if cli.gfm {
             GfmOptions::default()
@@ -74,8 +78,12 @@ fn main() {
     let output_str = match &result.output {
         Output::Html(html) => html.clone(),
         Output::MdxJs { code, .. } => code.clone(),
-        Output::Hast(root) => format!("{root:#?}"),
-        Output::Mdast(doc) => format!("{doc:#?}"),
+        Output::Hast(root) => {
+            serde_json::to_string_pretty(root).unwrap_or_else(|_| format!("{root:#?}"))
+        }
+        Output::Mdast(doc) => {
+            serde_json::to_string_pretty(doc).unwrap_or_else(|_| format!("{doc:#?}"))
+        }
     };
 
     if let Some(ref path) = cli.output {

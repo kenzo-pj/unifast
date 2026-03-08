@@ -16,6 +16,7 @@ import {
 
 const fixturesDir = join(import.meta.dirname, "fixtures");
 const readme = readFileSync(join(fixturesDir, "readme.md"), "utf-8");
+const allFeatures = readFileSync(join(fixturesDir, "all-features.md"), "utf-8");
 
 const unifiedExtLinks = createExternalLinksProcessor();
 const unifiedAutolink = createAutolinkHeadingsProcessor();
@@ -52,9 +53,9 @@ describe("Smartypants (readme)", () => {
   bench("unified", () => { unifiedSmartypants.processSync(readme); });
 });
 
-describe("Emoji (readme)", () => {
-  bench("unifast", () => { compile(readme, emojiOpts); });
-  bench("unified", () => { unifiedEmoji.processSync(readme); });
+describe("Emoji (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, emojiOpts); });
+  bench("unified", () => { unifiedEmoji.processSync(allFeatures); });
 });
 
 describe("Breaks (readme)", () => {
@@ -62,22 +63,22 @@ describe("Breaks (readme)", () => {
   bench("unified", () => { unifiedBreaks.processSync(readme); });
 });
 
-describe("Math (readme)", () => {
-  bench("unifast", () => { compile(readme, mathOpts); });
-  bench("unified", () => { unifiedMath.processSync(readme); });
+describe("Math (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, mathOpts); });
+  bench("unified", () => { unifiedMath.processSync(allFeatures); });
 });
 
-describe("GitHub Alerts (readme)", () => {
-  bench("unifast", () => { compile(readme, githubAlertOpts); });
-  bench("unified", () => { unifiedGithubAlert.processSync(readme); });
+describe("GitHub Alerts (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, githubAlertOpts); });
+  bench("unified", () => { unifiedGithubAlert.processSync(allFeatures); });
 });
 
-describe("Directive (readme)", () => {
-  bench("unifast", () => { compile(readme, directiveOpts); });
-  bench("unified", () => { unifiedDirective.processSync(readme); });
+describe("Directive (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, directiveOpts); });
+  bench("unified", () => { unifiedDirective.processSync(allFeatures); });
 });
 
-describe("Wiki Link (readme)", () => {
-  bench("unifast", () => { compile(readme, wikiLinkOpts); });
-  bench("unified", () => { unifiedWikiLink.processSync(readme); });
+describe("Wiki Link (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, wikiLinkOpts); });
+  bench("unified", () => { unifiedWikiLink.processSync(allFeatures); });
 });

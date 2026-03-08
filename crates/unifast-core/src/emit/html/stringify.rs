@@ -1,6 +1,6 @@
 use crate::ast::hast::nodes::*;
 
-use super::escape::escape_html;
+use super::escape::escape_html_into;
 use super::void_elements::is_void_element;
 
 #[must_use]
@@ -29,7 +29,7 @@ fn stringify_node(node: &HNode, output: &mut String) {
                 output.push_str(key);
                 if !value.is_empty() {
                     output.push_str("=\"");
-                    output.push_str(&escape_html(value));
+                    escape_html_into(output, value);
                     output.push('"');
                 }
             }
@@ -46,7 +46,7 @@ fn stringify_node(node: &HNode, output: &mut String) {
         }
 
         HNode::Text(text) => {
-            output.push_str(&escape_html(&text.value));
+            escape_html_into(output, &text.value);
         }
 
         HNode::Comment(comment) => {
@@ -136,7 +136,7 @@ fn stringify_node_minified(node: &HNode, output: &mut String) {
                     output.push('=');
                     if needs_quotes(value) {
                         output.push('"');
-                        output.push_str(&escape_html(value));
+                        escape_html_into(output, value);
                         output.push('"');
                     } else {
                         output.push_str(value);
@@ -156,7 +156,7 @@ fn stringify_node_minified(node: &HNode, output: &mut String) {
             }
         }
         HNode::Text(text) => {
-            output.push_str(&escape_html(&text.value));
+            escape_html_into(output, &text.value);
         }
         HNode::Comment(_) => {}
         HNode::Doctype(_) => {

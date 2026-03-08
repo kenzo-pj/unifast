@@ -83,7 +83,7 @@ export type CompileOptions = {
   commentRemoval?: { enabled?: boolean };
   imgLazyLoading?: { enabled?: boolean; skipFirst?: number };
   accessibleEmoji?: { enabled?: boolean };
-  addClass?: { enabled?: boolean; rules?: Record<string, string> };
+  addClasses?: { enabled?: boolean; rules?: { selector: string; classes: string }[] };
   minify?: { enabled?: boolean };
 
   diagnostics?: { format?: "compact" | "verbose" };

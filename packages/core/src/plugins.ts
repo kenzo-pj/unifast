@@ -119,7 +119,7 @@ export function externalLinks(options?: ExternalLinksPluginOptions): UnifastPlug
     options: {
       externalLinks: {
         enabled: true,
-        rel: options?.rel ?? "nofollow noopener noreferrer",
+        rel: options?.rel ?? "noopener noreferrer",
         target: options?.target,
       },
     },
@@ -172,7 +172,7 @@ export function wikiLink(options?: WikiLinkPluginOptions): UnifastPlugin {
     options: {
       wikiLink: {
         enabled: true,
-        hrefTemplate: options?.hrefTemplate ?? "/wiki/${slug}",
+        hrefTemplate: options?.hrefTemplate ?? "/wiki/{slug}",
       },
     },
   };
@@ -313,6 +313,7 @@ export function excerpt(options?: ExcerptPluginOptions): UnifastPlugin {
         enabled: true,
         separator: options?.separator ?? "<!-- more -->",
         fallbackParagraphs: options?.fallbackParagraphs ?? 1,
+        fallbackCharacters: options?.fallbackCharacters,
       },
     },
   };
@@ -350,9 +351,9 @@ export function addClasses(rules: Record<string, string>): UnifastPlugin {
   return {
     name: "add-classes",
     options: {
-      addClass: {
+      addClasses: {
         enabled: true,
-        rules,
+        rules: Object.entries(rules).map(([selector, classes]) => ({ selector, classes })),
       },
     },
   };

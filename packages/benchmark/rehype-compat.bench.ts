@@ -16,6 +16,7 @@ import {
 
 const fixturesDir = join(import.meta.dirname, "fixtures");
 const readme = readFileSync(join(fixturesDir, "readme.md"), "utf-8");
+const allFeatures = readFileSync(join(fixturesDir, "all-features.md"), "utf-8");
 
 const unifiedAbbr = createAbbrProcessor();
 const unifiedCommentRemoval = createCommentRemovalProcessor();
@@ -39,14 +40,14 @@ const codeMetaOpts = { codeMeta: { enabled: true } };
 const excerptOpts = { excerpt: { enabled: true } };
 const customHeadingIdOpts = { customHeadingId: { enabled: true } };
 
-describe("Abbreviation (readme)", () => {
-  bench("unifast", () => { compile(readme, abbrOpts); });
-  bench("unified (remark-abbr)", () => { unifiedAbbr.processSync(readme); });
+describe("Abbreviation (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, abbrOpts); });
+  bench("unified (remark-abbr)", () => { unifiedAbbr.processSync(allFeatures); });
 });
 
-describe("Comment Removal (readme)", () => {
-  bench("unifast", () => { compile(readme, commentRemovalOpts); });
-  bench("unified (rehype-remove-comments)", () => { unifiedCommentRemoval.processSync(readme); });
+describe("Comment Removal (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, commentRemovalOpts); });
+  bench("unified (rehype-remove-comments)", () => { unifiedCommentRemoval.processSync(allFeatures); });
 });
 
 describe("Add Classes (readme)", () => {
@@ -64,9 +65,9 @@ describe("Reading Time (readme)", () => {
   bench("unified + reading-time", () => { unifiedReadingTime.processSync(readme); });
 });
 
-describe("Accessible Emoji (readme)", () => {
-  bench("unifast", () => { compile(readme, accessibleEmojiOpts); });
-  bench("unified (rehype-accessible-emojis)", () => { unifiedAccessibleEmoji.processSync(readme); });
+describe("Accessible Emoji (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, accessibleEmojiOpts); });
+  bench("unified (rehype-accessible-emojis)", () => { unifiedAccessibleEmoji.processSync(allFeatures); });
 });
 
 describe("Image Lazy Loading (readme)", () => {
@@ -79,17 +80,17 @@ describe("Figure (readme)", () => {
   bench("unified (rehype-figure)", () => { unifiedFigure.processSync(readme); });
 });
 
-describe("Code Meta (readme)", () => {
-  bench("unifast", () => { compile(readme, codeMetaOpts); });
-  bench("unified (baseline)", () => { baseline.processSync(readme); });
+describe("Code Meta (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, codeMetaOpts); });
+  bench("unified (baseline)", () => { baseline.processSync(allFeatures); });
 });
 
-describe("Excerpt (readme)", () => {
-  bench("unifast", () => { compile(readme, excerptOpts); });
-  bench("unified (baseline)", () => { baseline.processSync(readme); });
+describe("Excerpt (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, excerptOpts); });
+  bench("unified (baseline)", () => { baseline.processSync(allFeatures); });
 });
 
-describe("Custom Heading ID (readme)", () => {
-  bench("unifast", () => { compile(readme, customHeadingIdOpts); });
-  bench("unified (baseline)", () => { baseline.processSync(readme); });
+describe("Custom Heading ID (all-features)", () => {
+  bench("unifast", () => { compile(allFeatures, customHeadingIdOpts); });
+  bench("unified (baseline)", () => { baseline.processSync(allFeatures); });
 });

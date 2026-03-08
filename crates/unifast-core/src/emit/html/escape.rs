@@ -1,16 +1,21 @@
+pub fn escape_html_into(output: &mut String, text: &str) {
+    output.reserve(text.len());
+    for ch in text.chars() {
+        match ch {
+            '&' => output.push_str("&amp;"),
+            '<' => output.push_str("&lt;"),
+            '>' => output.push_str("&gt;"),
+            '"' => output.push_str("&quot;"),
+            '\'' => output.push_str("&#x27;"),
+            _ => output.push(ch),
+        }
+    }
+}
+
 #[must_use]
 pub fn escape_html(text: &str) -> String {
     let mut result = String::with_capacity(text.len());
-    for ch in text.chars() {
-        match ch {
-            '&' => result.push_str("&amp;"),
-            '<' => result.push_str("&lt;"),
-            '>' => result.push_str("&gt;"),
-            '"' => result.push_str("&quot;"),
-            '\'' => result.push_str("&#x27;"),
-            _ => result.push(ch),
-        }
-    }
+    escape_html_into(&mut result, text);
     result
 }
 

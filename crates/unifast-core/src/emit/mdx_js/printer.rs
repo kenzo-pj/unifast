@@ -26,7 +26,19 @@ pub fn print_mdx_js_with_options(
     icon_mode: &GithubAlertIconMode,
     line_numbers: bool,
 ) -> MdxJsOutput {
-    let mut printer = MdxJsPrinter::new(highlight_code, icon_mode, line_numbers);
+    print_mdx_js_full(doc, highlight_code, icon_mode, line_numbers, "/wiki/{slug}")
+}
+
+#[must_use]
+pub fn print_mdx_js_full(
+    doc: &Document,
+    highlight_code: Option<&HighlightFn>,
+    icon_mode: &GithubAlertIconMode,
+    line_numbers: bool,
+    wiki_link_template: &str,
+) -> MdxJsOutput {
+    let mut printer =
+        MdxJsPrinter::new(highlight_code, icon_mode, line_numbers, wiki_link_template);
     printer.print_document(doc);
     MdxJsOutput {
         code: printer.output,
@@ -53,6 +65,7 @@ struct MdxJsPrinter<'a> {
     highlight_code: Option<&'a HighlightFn>,
     icon_mode: &'a GithubAlertIconMode,
     line_numbers: bool,
+    wiki_link_template: &'a str,
     icon_imports: Vec<(String, String, String)>,
 }
 
@@ -61,6 +74,7 @@ impl<'a> MdxJsPrinter<'a> {
         highlight_code: Option<&'a HighlightFn>,
         icon_mode: &'a GithubAlertIconMode,
         line_numbers: bool,
+        wiki_link_template: &'a str,
     ) -> Self {
         Self {
             output: String::new(),
@@ -70,6 +84,7 @@ impl<'a> MdxJsPrinter<'a> {
             highlight_code,
             icon_mode,
             line_numbers,
+            wiki_link_template,
             icon_imports: Vec::new(),
         }
     }
@@ -316,9 +331,11 @@ impl<'a> MdxJsPrinter<'a> {
             }
             MdNode::WikiLink(w) => {
                 let slug = w.target.to_lowercase().replace(' ', "-");
+                #[allow(clippy::literal_string_with_formatting_args)]
+                let href = self.wiki_link_template.replace("{slug}", &slug);
                 self.emit(&format!(
-                    "{pad}_jsx(_c(\"a\"), {{ href: \"/wiki/{}\", className: \"wiki-link\", children: ",
-                    escape_js_string(&slug),
+                    "{pad}_jsx(_c(\"a\"), {{ href: \"{}\", className: \"wiki-link\", children: ",
+                    escape_js_string(&href),
                 ));
                 self.print_inline_children(&w.children);
                 self.emit(" })");
@@ -650,7 +667,11 @@ fn wrap_plain_text_with_line_numbers(text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parse::mdx::parse_mdx;
+    use crate::api::options::{FrontmatterOptions, GfmOptions};
+
+    fn parse_mdx(input: &str) -> crate::parse::mdx::MdxParseResult {
+        crate::parse::mdx::parse_mdx(input, &GfmOptions::default(), &FrontmatterOptions::all())
+    }
 
     #[test]
     fn mdx_js_emit_heading() {

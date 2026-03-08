@@ -107,12 +107,18 @@ pub fn try_parse_jsx_flow(
         if inner_trimmed.is_empty() {
             vec![]
         } else {
+            use crate::api::options::GfmOptions;
             use crate::diagnostics::sink::DiagnosticSink;
             use crate::parse::markdown::parser;
 
             let mut diagnostics = DiagnosticSink::new();
             let inner_with_newline = format!("{inner_trimmed}\n");
-            let doc = parser::parse(&inner_with_newline, id_gen, &mut diagnostics);
+            let doc = parser::parse(
+                &inner_with_newline,
+                id_gen,
+                &mut diagnostics,
+                &GfmOptions::default(),
+            );
             doc.children
         }
     };

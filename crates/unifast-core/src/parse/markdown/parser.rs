@@ -1,5 +1,7 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 
+use crate::api::options::GfmOptions;
 use crate::ast::common::{NodeIdGen, Span};
 use crate::ast::mdast::nodes::{
     AlignKind, Blockquote, Break, Code, ContainerDirective, Delete, Document, Emphasis,
@@ -10,8 +12,13 @@ use crate::diagnostics::sink::DiagnosticSink;
 use crate::parse::gfm;
 use crate::util::small_map::SmallMap;
 
-pub fn parse(source: &str, id_gen: &mut NodeIdGen, diagnostics: &mut DiagnosticSink) -> Document {
-    let mut parser = Parser::new(source, id_gen, diagnostics);
+pub fn parse(
+    source: &str,
+    id_gen: &mut NodeIdGen,
+    diagnostics: &mut DiagnosticSink,
+    gfm_opts: &GfmOptions,
+) -> Document {
+    let mut parser = Parser::new(source, id_gen, diagnostics, *gfm_opts);
     parser.parse_document()
 }
 
@@ -20,11 +27,12 @@ pub fn parse_from_offset(
     offset: usize,
     id_gen: &mut NodeIdGen,
     diagnostics: &mut DiagnosticSink,
+    gfm_opts: &GfmOptions,
 ) -> Document {
     if offset == 0 {
-        return parse(source, id_gen, diagnostics);
+        return parse(source, id_gen, diagnostics, gfm_opts);
     }
-    let mut parser = Parser::new(source, id_gen, diagnostics);
+    let mut parser = Parser::new(source, id_gen, diagnostics, *gfm_opts);
     parser.parse_document_from(offset)
 }
 
@@ -83,7 +91,8 @@ struct Parser<'a> {
     pos: usize,
     id_gen: &'a mut NodeIdGen,
     diagnostics: &'a mut DiagnosticSink,
-    definitions: HashMap<String, (String, Option<String>)>,
+    definitions: Cow<'a, HashMap<String, (String, Option<String>)>>,
+    gfm: GfmOptions,
 }
 
 impl<'a> Parser<'a> {
@@ -91,13 +100,15 @@ impl<'a> Parser<'a> {
         source: &'a str,
         id_gen: &'a mut NodeIdGen,
         diagnostics: &'a mut DiagnosticSink,
+        gfm: GfmOptions,
     ) -> Self {
         Self {
             source,
             pos: 0,
             id_gen,
             diagnostics,
-            definitions: HashMap::new(),
+            definitions: Cow::Owned(HashMap::new()),
+            gfm,
         }
     }
 
@@ -118,11 +129,11 @@ impl<'a> Parser<'a> {
         self.pos = offset;
         while self.pos < self.source.len() {
             let line_start = self.pos;
-            let line = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
-                None => break,
+            let Some(line_end) = self.peek_line_end() else {
+                break;
             };
-            if self.try_collect_definition(&line, line_start) {
+            let line = &self.source[line_start..line_end];
+            if self.try_collect_definition(line, line_start) {
             } else {
                 self.advance_line();
             }
@@ -143,11 +154,11 @@ impl<'a> Parser<'a> {
         self.pos = 0;
         while self.pos < self.source.len() {
             let line_start = self.pos;
-            let line = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
-                None => break,
+            let Some(line_end) = self.peek_line_end() else {
+                break;
             };
-            if self.try_collect_definition(&line, line_start) {
+            let line = &self.source[line_start..line_end];
+            if self.try_collect_definition(line, line_start) {
             } else {
                 self.advance_line();
             }
@@ -166,7 +177,7 @@ impl<'a> Parser<'a> {
         let src = &self.source[line_start + indent..];
         if let Some((label, url, title, consumed)) = parse_link_reference_definition(src) {
             let key = normalize_label(&label);
-            self.definitions.entry(key).or_insert((url, title));
+            self.definitions.to_mut().entry(key).or_insert((url, title));
             self.pos = line_start + indent + consumed;
             if self.pos < self.source.len() && self.source.as_bytes()[self.pos] == b'\n' {
                 self.pos += 1;
@@ -275,21 +286,26 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if para_lines.is_empty()
+            if self.gfm.footnotes
+                && para_lines.is_empty()
                 && let Some(node) = self.try_parse_footnote_definition(&line, line_start)
             {
                 blocks.push(node);
                 continue;
             }
 
-            if para_lines.is_empty()
+            if self.gfm.tables
+                && para_lines.is_empty()
                 && gfm::tables::could_be_table_row(&line)
                 && let Some(node) = self.try_parse_table(&line, line_start)
             {
                 blocks.push(node);
                 continue;
             }
-            if para_lines.len() == 1 && gfm::tables::is_table_separator(&line).is_some() {
+            if self.gfm.tables
+                && para_lines.len() == 1
+                && gfm::tables::is_table_separator(&line).is_some()
+            {
                 let header_range = para_lines[0];
                 let header_line = self.source[header_range.0..header_range.1]
                     .trim_end_matches('\n')
@@ -676,7 +692,9 @@ impl<'a> Parser<'a> {
         }
 
         let mut inner_lines = String::new();
+        let mut offset_map: Vec<OffsetMapping> = Vec::new();
         while self.pos < self.source.len() {
+            let cur_line_start = self.pos;
             let cl = match self.peek_line_raw() {
                 Some(l) => l.to_string(),
                 None => break,
@@ -684,6 +702,12 @@ impl<'a> Parser<'a> {
             let ct = cl.trim_start();
             if let Some(after) = ct.strip_prefix('>') {
                 let stripped = after.strip_prefix(' ').unwrap_or(after);
+                let prefix_len = cl.len() - stripped.len();
+                offset_map.push(OffsetMapping {
+                    inner_start: inner_lines.len(),
+                    original_start: cur_line_start + prefix_len,
+                    len: stripped.len(),
+                });
                 inner_lines.push_str(stripped);
                 inner_lines.push('\n');
                 self.advance_line();
@@ -693,7 +717,7 @@ impl<'a> Parser<'a> {
         }
 
         let span = Span::new(line_start as u32, self.pos as u32);
-        let children = self.parse_sub_blocks(&inner_lines);
+        let children = self.parse_sub_blocks_mapped(&inner_lines, &offset_map);
 
         Some(MdNode::Blockquote(Blockquote {
             id: self.id_gen.next_id(),
@@ -736,13 +760,20 @@ impl<'a> Parser<'a> {
             }
 
             let mut item_lines = String::new();
+            let mut item_offset_map: Vec<OffsetMapping> = Vec::new();
             let first_content = &current_line[content_indent..];
+            item_offset_map.push(OffsetMapping {
+                inner_start: 0,
+                original_start: item_start + content_indent,
+                len: first_content.len(),
+            });
             item_lines.push_str(first_content);
             item_lines.push('\n');
             self.advance_line();
 
             let mut item_has_blank = false;
             while self.pos < self.source.len() {
+                let cont_line_start = self.pos;
                 let cl = match self.peek_line_raw() {
                     Some(l) => l.to_string(),
                     None => break,
@@ -755,7 +786,13 @@ impl<'a> Parser<'a> {
                 }
                 let cl_indent = cl.len() - cl.trim_start().len();
                 if cl_indent >= content_indent {
-                    item_lines.push_str(&cl[content_indent..]);
+                    let content = &cl[content_indent..];
+                    item_offset_map.push(OffsetMapping {
+                        inner_start: item_lines.len(),
+                        original_start: cont_line_start + content_indent,
+                        len: content.len(),
+                    });
+                    item_lines.push_str(content);
                     item_lines.push('\n');
                     self.advance_line();
                 } else {
@@ -767,16 +804,26 @@ impl<'a> Parser<'a> {
                 had_blank_between = true;
             }
 
-            let checked = if let Some((is_checked, consumed)) =
-                gfm::task_list::parse_task_marker(&item_lines)
+            let checked = if self.gfm.task_list
+                && let Some((is_checked, consumed)) = gfm::task_list::parse_task_marker(&item_lines)
             {
                 item_lines = item_lines[consumed..].to_string();
+                for m in &mut item_offset_map {
+                    if m.inner_start >= consumed {
+                        m.inner_start -= consumed;
+                    } else {
+                        let skip = consumed - m.inner_start;
+                        m.inner_start = 0;
+                        m.original_start += skip;
+                        m.len = m.len.saturating_sub(skip);
+                    }
+                }
                 Some(is_checked)
             } else {
                 None
             };
 
-            let children = self.parse_sub_blocks(&item_lines);
+            let children = self.parse_sub_blocks_mapped(&item_lines, &item_offset_map);
 
             let item_span = Span::new(item_start as u32, self.pos as u32);
             items.push(MdNode::ListItem(ListItem {
@@ -1299,7 +1346,9 @@ impl<'a> Parser<'a> {
                     i += 1;
                 }
                 b'[' => {
-                    if let Some((fn_id, consumed)) = gfm::footnotes::is_footnote_reference(text, i)
+                    if self.gfm.footnotes
+                        && let Some((fn_id, consumed)) =
+                            gfm::footnotes::is_footnote_reference(text, i)
                     {
                         if i > text_start {
                             result.push(self.make_text(
@@ -1459,8 +1508,9 @@ impl<'a> Parser<'a> {
                     continue;
                 }
                 b'~' => {
-                    if let Some((content_start, end_pos)) =
-                        gfm::strikethrough::find_strikethrough(text, i)
+                    if self.gfm.strikethrough
+                        && let Some((content_start, end_pos)) =
+                            gfm::strikethrough::find_strikethrough(text, i)
                     {
                         if i > text_start {
                             result.push(self.make_text(
@@ -1486,7 +1536,9 @@ impl<'a> Parser<'a> {
                     i += 1;
                 }
                 _ => {
-                    if let Some((url, consumed)) = self.try_gfm_autolink(text, i) {
+                    if self.gfm.autolink
+                        && let Some((url, consumed)) = self.try_gfm_autolink(text, i)
+                    {
                         if i > text_start {
                             result.push(self.make_text(
                                 &text[text_start..i],
@@ -1624,16 +1676,35 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_sub_blocks(&mut self, inner: &str) -> Vec<MdNode> {
+        self.parse_sub_blocks_mapped(inner, &[])
+    }
+
+    fn parse_sub_blocks_mapped(
+        &mut self,
+        inner: &str,
+        offset_map: &[OffsetMapping],
+    ) -> Vec<MdNode> {
         let mut sub_diag = DiagnosticSink::new();
+        let defs = &*self.definitions;
         let mut sub_parser = Parser {
             source: inner,
             pos: 0,
             id_gen: self.id_gen,
             diagnostics: &mut sub_diag,
-            definitions: self.definitions.clone(),
+            definitions: Cow::Borrowed(defs),
+            gfm: self.gfm,
         };
-        let children = sub_parser.parse_blocks();
-        for d in sub_diag.into_diagnostics() {
+        let mut children = sub_parser.parse_blocks();
+        if !offset_map.is_empty() {
+            for child in &mut children {
+                remap_spans(child, offset_map);
+            }
+        }
+        for mut d in sub_diag.into_diagnostics() {
+            if !offset_map.is_empty() {
+                d.span.start = map_offset(offset_map, d.span.start);
+                d.span.end = map_offset(offset_map, d.span.end);
+            }
             self.diagnostics.push(d);
         }
         children
@@ -1661,6 +1732,15 @@ impl<'a> Parser<'a> {
         let rest = &self.source[self.pos..];
         let end = rest.find('\n').unwrap_or(rest.len());
         Some(&rest[..end])
+    }
+
+    fn peek_line_end(&self) -> Option<usize> {
+        if self.pos >= self.source.len() {
+            return None;
+        }
+        let rest = &self.source[self.pos..];
+        let end = rest.find('\n').unwrap_or(rest.len());
+        Some(self.pos + end)
     }
 
     fn advance_line(&mut self) {
@@ -1973,6 +2053,34 @@ fn parse_link_reference_definition(s: &str) -> Option<(String, String, Option<St
     Some((label, url, title, i))
 }
 
+struct OffsetMapping {
+    inner_start: usize,
+    original_start: usize,
+    len: usize,
+}
+
+fn map_offset(mappings: &[OffsetMapping], inner_pos: u32) -> u32 {
+    let pos = inner_pos as usize;
+    for m in mappings.iter().rev() {
+        if pos >= m.inner_start {
+            let delta = pos.saturating_sub(m.inner_start).min(m.len);
+            return (m.original_start + delta) as u32;
+        }
+    }
+    inner_pos
+}
+
+fn remap_spans(node: &mut MdNode, mappings: &[OffsetMapping]) {
+    let s = node.span_mut();
+    s.start = map_offset(mappings, s.start);
+    s.end = map_offset(mappings, s.end);
+    if let Some(children) = node.children_mut() {
+        for child in children {
+            remap_spans(child, mappings);
+        }
+    }
+}
+
 fn normalize_label(label: &str) -> String {
     label
         .split_whitespace()
@@ -2044,7 +2152,11 @@ fn try_parse_entity(s: &str) -> Option<(String, usize)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parse::parse_markdown;
+    use crate::api::options::FrontmatterOptions;
+
+    fn parse_markdown(input: &str) -> crate::parse::ParseResult {
+        crate::parse::parse_markdown(input, &GfmOptions::default(), &FrontmatterOptions::all())
+    }
 
     #[test]
     fn test_atx_heading_h1() {
@@ -3458,5 +3570,94 @@ mod tests {
                 "bare ::: should not create directive, got: {child:?}"
             );
         }
+    }
+
+    #[test]
+    fn blockquote_child_spans_point_into_original_source() {
+        let input = "> Hello world\n";
+        //           0123456789012 3
+        // '>' at 0, ' ' at 1, 'H' at 2, content "Hello world" at 2..13
+        let r = parse_markdown(input);
+        let bq = match &r.document.children[0] {
+            MdNode::Blockquote(b) => b,
+            other => panic!("expected blockquote, got {other:?}"),
+        };
+        let para = match &bq.children[0] {
+            MdNode::Paragraph(p) => p,
+            other => panic!("expected paragraph, got {other:?}"),
+        };
+        let text = match &para.children[0] {
+            MdNode::Text(t) => t,
+            other => panic!("expected text, got {other:?}"),
+        };
+        assert_eq!(text.value, "Hello world");
+        assert!(
+            text.span.start >= 2,
+            "text span start should be >= 2 (after '> '), got {}",
+            text.span.start
+        );
+        assert!(
+            (text.span.start as usize) < input.len(),
+            "text span start should be within source"
+        );
+    }
+
+    #[test]
+    fn list_item_child_spans_point_into_original_source() {
+        let input = "- item one\n";
+        //           01234567890
+        // '-' at 0, ' ' at 1, 'i' at 2, content "item one" at 2..10
+        let r = parse_markdown(input);
+        let list = match &r.document.children[0] {
+            MdNode::List(l) => l,
+            other => panic!("expected list, got {other:?}"),
+        };
+        let item = match &list.children[0] {
+            MdNode::ListItem(li) => li,
+            other => panic!("expected list item, got {other:?}"),
+        };
+        let para = match &item.children[0] {
+            MdNode::Paragraph(p) => p,
+            other => panic!("expected paragraph, got {other:?}"),
+        };
+        let text = match &para.children[0] {
+            MdNode::Text(t) => t,
+            other => panic!("expected text, got {other:?}"),
+        };
+        assert_eq!(text.value, "item one");
+        assert!(
+            text.span.start >= 2,
+            "text span start should be >= 2 (after '- '), got {}",
+            text.span.start
+        );
+        assert!(
+            (text.span.start as usize) < input.len(),
+            "text span start should be within source"
+        );
+    }
+
+    #[test]
+    fn map_offset_unit_tests() {
+        let mappings = vec![
+            OffsetMapping {
+                inner_start: 0,
+                original_start: 5,
+                len: 10,
+            },
+            OffsetMapping {
+                inner_start: 11,
+                original_start: 20,
+                len: 8,
+            },
+        ];
+        // Within first mapping
+        assert_eq!(map_offset(&mappings, 0), 5);
+        assert_eq!(map_offset(&mappings, 3), 8);
+        assert_eq!(map_offset(&mappings, 10), 15); // clamped to len
+        // Within second mapping
+        assert_eq!(map_offset(&mappings, 11), 20);
+        assert_eq!(map_offset(&mappings, 15), 24);
+        // Empty mappings = passthrough
+        assert_eq!(map_offset(&[], 42), 42);
     }
 }

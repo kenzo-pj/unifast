@@ -8,6 +8,7 @@ const fixturesDir = join(import.meta.dirname, "fixtures");
 const simple = readFileSync(join(fixturesDir, "simple.md"), "utf-8");
 const readme = readFileSync(join(fixturesDir, "readme.md"), "utf-8");
 const large = readFileSync(join(fixturesDir, "large.md"), "utf-8");
+const allFeatures = readFileSync(join(fixturesDir, "all-features.md"), "utf-8");
 
 const processor = createGfmProcessor();
 
@@ -44,5 +45,24 @@ describe("GFM (large)", () => {
   });
   bench("unified", () => {
     processor.processSync(large);
+  });
+});
+
+const gfmFootnotesOptions = {
+  gfm: {
+    tables: true,
+    taskList: true,
+    strikethrough: true,
+    autolink: true,
+    footnotes: true,
+  },
+};
+
+describe("GFM + Footnotes (all-features)", () => {
+  bench("unifast", () => {
+    compile(allFeatures, gfmFootnotesOptions);
+  });
+  bench("unified", () => {
+    processor.processSync(allFeatures);
   });
 });

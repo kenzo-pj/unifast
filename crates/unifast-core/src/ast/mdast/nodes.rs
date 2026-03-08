@@ -1,7 +1,9 @@
 use crate::ast::common::{NodeId, Span};
 use crate::util::small_map::SmallMap;
+use serde::Serialize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "type")]
 pub enum MdNode {
     Document(Document),
     Heading(Heading),
@@ -238,16 +240,74 @@ impl MdNode {
             | Self::Abbr(_) => None,
         }
     }
+
+    pub const fn span_mut(&mut self) -> &mut Span {
+        match self {
+            Self::Document(n) => &mut n.span,
+            Self::Heading(n) => &mut n.span,
+            Self::Paragraph(n) => &mut n.span,
+            Self::Text(n) => &mut n.span,
+            Self::Emphasis(n) => &mut n.span,
+            Self::Strong(n) => &mut n.span,
+            Self::InlineCode(n) => &mut n.span,
+            Self::Code(n) => &mut n.span,
+            Self::Blockquote(n) => &mut n.span,
+            Self::List(n) => &mut n.span,
+            Self::ListItem(n) => &mut n.span,
+            Self::ThematicBreak(n) => &mut n.span,
+            Self::Link(n) => &mut n.span,
+            Self::Image(n) => &mut n.span,
+            Self::Definition(n) => &mut n.span,
+            Self::Html(n) => &mut n.span,
+            Self::Break(n) => &mut n.span,
+            Self::Table(n) => &mut n.span,
+            Self::TableRow(n) => &mut n.span,
+            Self::TableCell(n) => &mut n.span,
+            Self::Delete(n) => &mut n.span,
+            Self::FootnoteDefinition(n) => &mut n.span,
+            Self::FootnoteReference(n) => &mut n.span,
+            Self::Yaml(n) => &mut n.span,
+            Self::Toml(n) => &mut n.span,
+            Self::Json(n) => &mut n.span,
+            Self::MdxJsxFlowElement(n) => &mut n.span,
+            Self::MdxJsxTextElement(n) => &mut n.span,
+            Self::MdxjsEsm(n) => &mut n.span,
+            Self::MdxFlowExpression(n) => &mut n.span,
+            Self::MdxTextExpression(n) => &mut n.span,
+            Self::Math(n) => &mut n.span,
+            Self::InlineMath(n) => &mut n.span,
+            Self::ContainerDirective(n) => &mut n.span,
+            Self::LeafDirective(n) => &mut n.span,
+            Self::TextDirective(n) => &mut n.span,
+            Self::WikiLink(n) => &mut n.span,
+            Self::DefinitionList(n) => &mut n.span,
+            Self::DefinitionTerm(n) => &mut n.span,
+            Self::DefinitionDescription(n) => &mut n.span,
+            Self::RubyAnnotation(n) => &mut n.span,
+            Self::Abbr(n) => &mut n.span,
+        }
+    }
+
+    pub fn offset_spans(&mut self, offset: u32) {
+        let s = self.span_mut();
+        s.start += offset;
+        s.end += offset;
+        if let Some(children) = self.children_mut() {
+            for child in children {
+                child.offset_spans(offset);
+            }
+        }
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Document {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Heading {
     pub id: NodeId,
     pub span: Span,
@@ -257,42 +317,42 @@ pub struct Heading {
     pub extra_attrs: SmallMap<String, String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Paragraph {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Text {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Emphasis {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Strong {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct InlineCode {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Code {
     pub id: NodeId,
     pub span: Span,
@@ -301,7 +361,7 @@ pub struct Code {
     pub meta: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Blockquote {
     pub id: NodeId,
     pub span: Span,
@@ -309,7 +369,7 @@ pub struct Blockquote {
     pub alert_type: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct List {
     pub id: NodeId,
     pub span: Span,
@@ -319,7 +379,7 @@ pub struct List {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ListItem {
     pub id: NodeId,
     pub span: Span,
@@ -328,13 +388,13 @@ pub struct ListItem {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ThematicBreak {
     pub id: NodeId,
     pub span: Span,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Link {
     pub id: NodeId,
     pub span: Span,
@@ -343,7 +403,7 @@ pub struct Link {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Image {
     pub id: NodeId,
     pub span: Span,
@@ -352,7 +412,7 @@ pub struct Image {
     pub alt: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Definition {
     pub id: NodeId,
     pub span: Span,
@@ -362,20 +422,20 @@ pub struct Definition {
     pub title: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Html {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Break {
     pub id: NodeId,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum AlignKind {
     Left,
     Center,
@@ -383,7 +443,7 @@ pub enum AlignKind {
     None,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Table {
     pub id: NodeId,
     pub span: Span,
@@ -391,7 +451,7 @@ pub struct Table {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TableRow {
     pub id: NodeId,
     pub span: Span,
@@ -399,21 +459,21 @@ pub struct TableRow {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TableCell {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Delete {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FootnoteDefinition {
     pub id: NodeId,
     pub span: Span,
@@ -422,7 +482,7 @@ pub struct FootnoteDefinition {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FootnoteReference {
     pub id: NodeId,
     pub span: Span,
@@ -430,34 +490,34 @@ pub struct FootnoteReference {
     pub label: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Yaml {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Toml {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Json {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MdxJsxAttribute {
     pub name: String,
     pub value: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MdxJsxElement {
     pub id: NodeId,
     pub span: Span,
@@ -466,21 +526,21 @@ pub struct MdxJsxElement {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MdxjsEsm {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct MdxExpression {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Math {
     pub id: NodeId,
     pub span: Span,
@@ -488,14 +548,14 @@ pub struct Math {
     pub meta: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct InlineMath {
     pub id: NodeId,
     pub span: Span,
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ContainerDirective {
     pub id: NodeId,
     pub span: Span,
@@ -504,7 +564,7 @@ pub struct ContainerDirective {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct LeafDirective {
     pub id: NodeId,
     pub span: Span,
@@ -513,7 +573,7 @@ pub struct LeafDirective {
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TextDirective {
     pub id: NodeId,
     pub span: Span,
@@ -522,7 +582,7 @@ pub struct TextDirective {
     pub value: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct WikiLink {
     pub id: NodeId,
     pub span: Span,
@@ -531,28 +591,28 @@ pub struct WikiLink {
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DefinitionList {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DefinitionTerm {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DefinitionDescription {
     pub id: NodeId,
     pub span: Span,
     pub children: Vec<MdNode>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RubyAnnotation {
     pub id: NodeId,
     pub span: Span,
@@ -560,7 +620,7 @@ pub struct RubyAnnotation {
     pub annotation: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Abbr {
     pub id: NodeId,
     pub span: Span,

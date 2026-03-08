@@ -1,6 +1,5 @@
 use super::options::{CompileOptions, InputKind, OutputKind};
 use super::result::{CompileResult, CompileStats, Output};
-use crate::ast::common::NodeIdGen;
 use crate::ast::common::Span;
 use crate::ast::hast::nodes::{HNode, HRoot};
 use crate::emit::html::stringify;
@@ -15,7 +14,7 @@ use crate::transform::passes::{
     comment_removal, custom_heading_id, definition_list, emoji, excerpt, external_links,
     github_alert,
     html_cleanup::{self, CleanupOptions},
-    img_lazy_loading, line_number, math, mdast_to_hast, minify, normalize, reading_time,
+    img_lazy_loading, line_number, math, mdast_to_hast, minify, normalize, raw_html, reading_time,
     resolve_defs, ruby_annotation, sanitize, sectionize, slug, smartypants, toc, wiki_link,
 };
 use crate::transform::registry::PassRegistry;
@@ -27,17 +26,165 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
 
     let parse_start = Instant::now();
     let parse_result = match opts.input_kind {
-        InputKind::Markdown => parse::parse_markdown(input),
-        InputKind::Mdx => parse::parse_mdx_input(input),
+        InputKind::Markdown => parse::parse_markdown(input, &opts.gfm, &opts.frontmatter),
+        InputKind::Mdx => parse::parse_mdx_input(input, &opts.gfm, &opts.frontmatter),
     };
     let document = parse_result.document;
     let mut diagnostics = parse_result.diagnostics;
     let frontmatter = parse_result.frontmatter;
+    let mut id_gen = parse_result.id_gen;
     let parse_ms = parse_start.elapsed().as_secs_f64() * 1000.0;
 
     let transform_start = Instant::now();
     let mut registry = PassRegistry::new();
 
+    register_builtin_passes(&mut registry, opts);
+
+    let mut payload = AstPayload::Mdast(document);
+
+    let toc;
+    let reading_time;
+    let excerpt;
+    let mut pass_failed = false;
+    {
+        let mut ctx = PassContext {
+            source: input,
+            diagnostics: &mut diagnostics,
+            options: opts,
+            id_gen: &mut id_gen,
+            toc: Vec::new(),
+            reading_time: None,
+            excerpt: None,
+        };
+
+        for pass in registry.ordered_passes() {
+            if let Err(e) = pass.run(&mut ctx, &mut payload) {
+                ctx.diagnostics.error(
+                    format!("pass '{}' failed: {e}", pass.name()),
+                    Span::new(0, 0),
+                );
+                pass_failed = true;
+                break;
+            }
+        }
+        toc = std::mem::take(&mut ctx.toc);
+        reading_time = ctx.reading_time.take();
+        excerpt = ctx.excerpt.take();
+    }
+
+    let transform_ms = transform_start.elapsed().as_secs_f64() * 1000.0;
+
+    let emit_start = Instant::now();
+    let output = if pass_failed {
+        Output::Html(String::new())
+    } else {
+        match opts.output_kind {
+            OutputKind::Html => {
+                let html = match &payload {
+                    AstPayload::Hast(root) => {
+                        if opts.minify.enabled {
+                            stringify::stringify_minified(root)
+                        } else {
+                            stringify::stringify(root)
+                        }
+                    }
+                    AstPayload::Both { hast, .. } => {
+                        if opts.minify.enabled {
+                            stringify::stringify_minified(hast)
+                        } else {
+                            stringify::stringify(hast)
+                        }
+                    }
+                    _ => String::new(),
+                };
+                Output::Html(html)
+            }
+            OutputKind::Hast => match payload {
+                AstPayload::Hast(root) => Output::Hast(root),
+                AstPayload::Both { hast, .. } => Output::Hast(hast),
+                _ => Output::Html(String::new()),
+            },
+            OutputKind::Mdast => match payload {
+                AstPayload::Mdast(doc) => Output::Mdast(doc),
+                _ => Output::Mdast(crate::ast::mdast::nodes::Document {
+                    id: crate::ast::common::NodeId(0),
+                    span: crate::ast::common::Span::empty(),
+                    children: vec![],
+                }),
+            },
+            OutputKind::MdxJs => {
+                let mdx_doc = match payload {
+                    AstPayload::Mdast(doc) => doc,
+                    AstPayload::Both { mdast, .. } => mdast,
+                    _ => parse::parse_mdx_input(input, &opts.gfm, &opts.frontmatter).document,
+                };
+
+                #[cfg(feature = "highlight")]
+                let highlight_fn: Option<
+                    Box<crate::emit::mdx_js::printer::HighlightFn>,
+                > = if opts.highlight.enabled {
+                    match opts.highlight.engine {
+                        crate::api::options::HighlightEngine::Syntect => {
+                            let engine = highlight::SyntectHighlighter::new();
+                            Some(Box::new(move |code: &str, lang: &str| {
+                                engine.highlight(code, lang)
+                            }))
+                        }
+                        crate::api::options::HighlightEngine::TreeSitter => {
+                            let engine = highlight::TreeSitterHighlighter;
+                            Some(Box::new(move |code: &str, lang: &str| {
+                                engine.highlight(code, lang)
+                            }))
+                        }
+                        crate::api::options::HighlightEngine::None => None,
+                    }
+                } else {
+                    None
+                };
+                #[cfg(not(feature = "highlight"))]
+                let highlight_fn: Option<
+                    Box<crate::emit::mdx_js::printer::HighlightFn>,
+                > = None;
+
+                let mdx_output = crate::emit::mdx_js::printer::print_mdx_js_full(
+                    &mdx_doc,
+                    highlight_fn.as_deref(),
+                    &opts.github_alert.icons,
+                    opts.line_numbers.enabled,
+                    &opts.wiki_link.href_template,
+                );
+                let map = Some(crate::emit::mdx_js::sourcemap::generate_sourcemap(
+                    "output.js",
+                    input,
+                    &mdx_output.source_mappings,
+                ));
+                Output::MdxJs {
+                    code: mdx_output.code,
+                    map,
+                }
+            }
+        }
+    };
+    let emit_ms = emit_start.elapsed().as_secs_f64() * 1000.0;
+
+    let _ = start;
+
+    CompileResult {
+        output,
+        frontmatter,
+        diagnostics: diagnostics.into_diagnostics(),
+        stats: CompileStats {
+            parse_ms,
+            transform_ms,
+            emit_ms,
+        },
+        toc,
+        reading_time,
+        excerpt,
+    }
+}
+
+fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
     registry.register_fn("normalize", Phase::Transform, |_ctx, ast| {
         if let Some(doc) = ast.mdast_mut() {
             normalize::normalize(doc);
@@ -100,7 +247,15 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         Ok(())
     });
 
-    registry.register_fn("directive", Phase::Transform, |_ctx, _ast| Ok(()));
+    registry.register_fn("directive", Phase::Transform, |ctx, ast| {
+        if ctx.options.directive.enabled {
+            return Ok(());
+        }
+        if let Some(doc) = ast.mdast_mut() {
+            strip_directives(&mut doc.children);
+        }
+        Ok(())
+    });
 
     registry.register_fn("wiki_link", Phase::Transform, |ctx, ast| {
         if !ctx.options.wiki_link.enabled {
@@ -158,7 +313,7 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         }
         let root_dir = ctx.options.code_import.root_dir.as_deref();
         if let Some(doc) = ast.mdast_mut() {
-            code_import::apply_code_import(&mut doc.children, root_dir);
+            code_import::apply_code_import(&mut doc.children, root_dir, ctx.diagnostics);
         }
         Ok(())
     });
@@ -242,7 +397,7 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
         Ok(())
     });
 
-    if opts.output_kind != OutputKind::Mdast {
+    if opts.output_kind != OutputKind::Mdast && opts.output_kind != OutputKind::MdxJs {
         registry.register_fn("mdast_to_hast", Phase::Lower, |ctx, ast| {
             let doc = match ast {
                 AstPayload::Mdast(doc) => doc,
@@ -256,6 +411,7 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
                 ctx.diagnostics,
                 &ctx.options.github_alert.icons,
                 ctx.options.figure.enabled,
+                &ctx.options.wiki_link.href_template,
             );
             let hast_root = match hast_node {
                 HNode::Root(root) => root,
@@ -269,15 +425,24 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             Ok(())
         });
 
+        registry.register_fn("raw_html", Phase::Optimize, |ctx, ast| {
+            if let Some(root) = ast.hast_mut() {
+                raw_html::process_raw_html(root, ctx.options.raw_html, ctx.id_gen, ctx.diagnostics);
+            }
+            Ok(())
+        });
+
         if opts.sanitize.enabled {
             registry.register_fn("sanitize", Phase::Optimize, |ctx, ast| {
+                let custom_schema;
                 let schema = if let Some(ref api_schema) = ctx.options.sanitize.schema {
-                    sanitize::from_api_schema(api_schema)
+                    custom_schema = sanitize::from_api_schema(api_schema);
+                    &custom_schema
                 } else {
                     sanitize::default_safe_schema()
                 };
                 if let Some(root) = ast.hast_mut() {
-                    sanitize::sanitize(root, &schema, ctx.diagnostics);
+                    sanitize::sanitize(root, schema, ctx.diagnostics);
                 }
                 Ok(())
             });
@@ -393,9 +558,19 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             Ok(())
         });
 
-        registry.register_fn("html_cleanup", Phase::Optimize, |_ctx, ast| {
+        registry.register_fn("html_cleanup", Phase::Optimize, |ctx, ast| {
+            let cleanup_opts = &ctx.options.html_cleanup;
+            if !cleanup_opts.remove_empty_nodes && !cleanup_opts.minify_whitespace {
+                return Ok(());
+            }
             if let Some(root) = ast.hast_mut() {
-                html_cleanup::cleanup(root, &CleanupOptions::default());
+                html_cleanup::cleanup(
+                    root,
+                    &CleanupOptions {
+                        remove_empty_nodes: cleanup_opts.remove_empty_nodes,
+                        minify_whitespace: cleanup_opts.minify_whitespace,
+                    },
+                );
             }
             Ok(())
         });
@@ -412,147 +587,22 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
     }
 
     for plugin in &opts.plugins {
-        plugin.apply(&mut registry);
+        plugin.apply(registry);
     }
+}
 
-    let mut id_gen = NodeIdGen::new();
-    let mut payload = AstPayload::Mdast(document);
-
-    let toc;
-    let reading_time;
-    let excerpt;
-    {
-        let mut ctx = PassContext {
-            source: input,
-            diagnostics: &mut diagnostics,
-            options: opts,
-            id_gen: &mut id_gen,
-            toc: Vec::new(),
-            reading_time: None,
-            excerpt: None,
-        };
-
-        for pass in registry.ordered_passes() {
-            if let Err(_e) = pass.run(&mut ctx, &mut payload) {
-                break;
-            }
+fn strip_directives(children: &mut Vec<crate::ast::mdast::nodes::MdNode>) {
+    use crate::ast::mdast::nodes::MdNode;
+    children.retain(|node| {
+        !matches!(
+            node,
+            MdNode::ContainerDirective(_) | MdNode::LeafDirective(_) | MdNode::TextDirective(_)
+        )
+    });
+    for child in children.iter_mut() {
+        if let Some(kids) = child.children_mut() {
+            strip_directives(kids);
         }
-        toc = std::mem::take(&mut ctx.toc);
-        reading_time = ctx.reading_time.take();
-        excerpt = ctx.excerpt.take();
-    }
-
-    let transform_ms = transform_start.elapsed().as_secs_f64() * 1000.0;
-
-    let emit_start = Instant::now();
-    let output = match opts.output_kind {
-        OutputKind::Html => {
-            let html = match &payload {
-                AstPayload::Hast(root) => {
-                    if opts.minify.enabled {
-                        stringify::stringify_minified(root)
-                    } else {
-                        stringify::stringify(root)
-                    }
-                }
-                AstPayload::Both { hast, .. } => {
-                    if opts.minify.enabled {
-                        stringify::stringify_minified(hast)
-                    } else {
-                        stringify::stringify(hast)
-                    }
-                }
-                _ => String::new(),
-            };
-            Output::Html(html)
-        }
-        OutputKind::Hast => match payload {
-            AstPayload::Hast(root) => Output::Hast(root),
-            AstPayload::Both { hast, .. } => Output::Hast(hast),
-            _ => Output::Html(String::new()),
-        },
-        OutputKind::Mdast => match payload {
-            AstPayload::Mdast(doc) => Output::Mdast(doc),
-            _ => Output::Mdast(crate::ast::mdast::nodes::Document {
-                id: crate::ast::common::NodeId(0),
-                span: crate::ast::common::Span::empty(),
-                children: vec![],
-            }),
-        },
-        OutputKind::MdxJs => {
-            let mdx_result = parse::parse_mdx_input(input);
-            let mut mdx_doc = mdx_result.document;
-            let slug_mode = match opts.slug.mode {
-                crate::api::options::SlugMode::GitHub => {
-                    crate::transform::passes::slug::SlugMode::GitHub
-                }
-                crate::api::options::SlugMode::Unicode => {
-                    crate::transform::passes::slug::SlugMode::Unicode
-                }
-            };
-            crate::transform::passes::slug::apply_slugs(&mut mdx_doc, slug_mode);
-
-            if opts.github_alert.enabled {
-                github_alert::apply_github_alerts(&mut mdx_doc, &mut id_gen);
-            }
-
-            #[cfg(feature = "highlight")]
-            let highlight_fn: Option<Box<crate::emit::mdx_js::printer::HighlightFn>> =
-                if opts.highlight.enabled {
-                    match opts.highlight.engine {
-                        crate::api::options::HighlightEngine::Syntect => {
-                            let engine = highlight::SyntectHighlighter::new();
-                            Some(Box::new(move |code: &str, lang: &str| {
-                                engine.highlight(code, lang)
-                            }))
-                        }
-                        crate::api::options::HighlightEngine::TreeSitter => {
-                            let engine = highlight::TreeSitterHighlighter;
-                            Some(Box::new(move |code: &str, lang: &str| {
-                                engine.highlight(code, lang)
-                            }))
-                        }
-                        crate::api::options::HighlightEngine::None => None,
-                    }
-                } else {
-                    None
-                };
-            #[cfg(not(feature = "highlight"))]
-            let highlight_fn: Option<Box<crate::emit::mdx_js::printer::HighlightFn>> = None;
-
-            let mdx_output = crate::emit::mdx_js::printer::print_mdx_js_with_options(
-                &mdx_doc,
-                highlight_fn.as_deref(),
-                &opts.github_alert.icons,
-                opts.line_numbers.enabled,
-            );
-            let map = Some(crate::emit::mdx_js::sourcemap::generate_sourcemap(
-                "output.js",
-                input,
-                &mdx_output.source_mappings,
-            ));
-            Output::MdxJs {
-                code: mdx_output.code,
-                map,
-            }
-        }
-    };
-    let emit_ms = emit_start.elapsed().as_secs_f64() * 1000.0;
-
-    let _ = start;
-
-    CompileResult {
-        output,
-        frontmatter,
-        diagnostics: diagnostics.into_diagnostics(),
-        stats: CompileStats {
-            parse_ms,
-            transform_ms,
-            emit_ms,
-        },
-        toc,
-        reading_time,
-        excerpt,
     }
 }
 
@@ -624,7 +674,10 @@ mod tests {
     fn e2e_frontmatter() {
         let result = compile(
             "---\ntitle: Hello\n---\n\n# Content\n",
-            &CompileOptions::default(),
+            &CompileOptions {
+                frontmatter: crate::api::options::FrontmatterOptions::yaml_only(),
+                ..CompileOptions::default()
+            },
         );
         assert_eq!(
             result.frontmatter.get("title").and_then(|v| v.as_str()),
@@ -1796,6 +1849,75 @@ mod tests {
         assert!(
             html.contains("</p>"),
             "non-minified should have </p>: {html}"
+        );
+    }
+
+    #[test]
+    fn pass_failure_emits_diagnostic_and_suppresses_output() {
+        let mut opts = CompileOptions::default();
+        opts.plugins.push(Box::new(FailingPlugin));
+        let result = compile("# Hello\n", &opts);
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|d| d.message.contains("failing_pass") && d.message.contains("boom")),
+            "should have diagnostic from failing pass: {:?}",
+            result.diagnostics
+        );
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|d| { d.level == crate::diagnostics::diagnostic::DiagLevel::Error }),
+            "diagnostic should be error level"
+        );
+        match &result.output {
+            Output::Html(html) => assert!(
+                html.is_empty(),
+                "should produce empty output on pass failure, got: {html}"
+            ),
+            _ => panic!("expected HTML output"),
+        }
+    }
+
+    struct FailingPlugin;
+    impl crate::transform::plugin::Plugin for FailingPlugin {
+        fn name(&self) -> &'static str {
+            "failing_plugin"
+        }
+        fn apply(&self, registry: &mut crate::transform::registry::PassRegistry) {
+            registry.register_fn(
+                "failing_pass",
+                crate::transform::pass::Phase::Transform,
+                |_ctx, _ast| Err(crate::transform::pass::PassError::new("boom")),
+            );
+        }
+    }
+
+    #[test]
+    fn frontmatter_yaml_only_rejects_toml() {
+        let input = "+++\ntitle = \"Hello\"\n+++\n\n# Content\n";
+        let result = compile(
+            input,
+            &CompileOptions {
+                frontmatter: crate::api::options::FrontmatterOptions::yaml_only(),
+                ..CompileOptions::default()
+            },
+        );
+        assert!(
+            result.frontmatter.is_empty(),
+            "TOML frontmatter should not be extracted when only yaml is enabled"
+        );
+    }
+
+    #[test]
+    fn frontmatter_disabled_extracts_nothing() {
+        let input = "---\ntitle: Hello\n---\n\n# Content\n";
+        let result = compile(input, &CompileOptions::default());
+        assert!(
+            result.frontmatter.is_empty(),
+            "frontmatter should not be extracted when all formats are disabled"
         );
     }
 }
