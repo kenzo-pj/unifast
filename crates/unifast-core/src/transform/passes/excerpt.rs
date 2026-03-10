@@ -46,10 +46,14 @@ pub fn extract_excerpt(
 }
 
 fn truncate_on_word_boundary(text: &str, max_chars: usize) -> String {
-    if text.len() <= max_chars {
+    if text.chars().count() <= max_chars {
         return text.to_string();
     }
-    let truncated = &text[..max_chars];
+    let byte_end = text
+        .char_indices()
+        .nth(max_chars)
+        .map_or(text.len(), |(i, _)| i);
+    let truncated = &text[..byte_end];
     if let Some(last_space) = truncated.rfind(' ') {
         truncated[..last_space].trim().to_string()
     } else {
@@ -265,5 +269,27 @@ mod tests {
         let doc = make_doc(vec![paragraph(vec![text_node("Hi")])]);
         let result = extract_excerpt(&doc, "<!-- more -->", None, Some(100));
         assert_eq!(result.as_deref(), Some("Hi"));
+    }
+
+    #[test]
+    fn character_truncation_multibyte_japanese() {
+        let doc = make_doc(vec![paragraph(vec![text_node("こんにちは 世界です")])]);
+        let result = extract_excerpt(&doc, "<!-- more -->", None, Some(6));
+        assert_eq!(result.as_deref(), Some("こんにちは"));
+    }
+
+    #[test]
+    fn character_truncation_emoji() {
+        let doc = make_doc(vec![paragraph(vec![text_node("Hello 👋🌍 world")])]);
+        let result = extract_excerpt(&doc, "<!-- more -->", None, Some(8));
+        assert_eq!(result.as_deref(), Some("Hello"));
+
+        let result2 = extract_excerpt(
+            &make_doc(vec![paragraph(vec![text_node("👋🌍🎉 test")])]),
+            "<!-- more -->",
+            None,
+            Some(3),
+        );
+        assert_eq!(result2.as_deref(), Some("👋🌍🎉"));
     }
 }

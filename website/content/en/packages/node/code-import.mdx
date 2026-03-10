@@ -21,7 +21,7 @@ Configuration for code import behavior
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `rootDir` | `string` | — | Root directory for resolving file paths. When omitted, paths are resolved relative to the Markdown file. |
+| `rootDir` | `string` | — | Root directory for resolving file paths. When omitted, paths are resolved relative to the current working directory. |
 
 ## Usage
 
@@ -81,5 +81,5 @@ const result = compile(md, {
 });
 
 console.log(result.output);
-// File paths are resolved relative to the Markdown file location
+// File paths are resolved relative to the current working directory
 ```

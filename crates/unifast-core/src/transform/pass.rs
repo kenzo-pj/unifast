@@ -18,20 +18,19 @@ pub enum Phase {
 pub enum AstPayload {
     Mdast(Document),
     Hast(HRoot),
-    Both { mdast: Document, hast: HRoot },
 }
 
 impl AstPayload {
     pub const fn mdast_mut(&mut self) -> Option<&mut Document> {
         match self {
-            Self::Mdast(doc) | Self::Both { mdast: doc, .. } => Some(doc),
+            Self::Mdast(doc) => Some(doc),
             Self::Hast(_) => None,
         }
     }
 
     pub const fn hast_mut(&mut self) -> Option<&mut HRoot> {
         match self {
-            Self::Hast(root) | Self::Both { hast: root, .. } => Some(root),
+            Self::Hast(root) => Some(root),
             Self::Mdast(_) => None,
         }
     }

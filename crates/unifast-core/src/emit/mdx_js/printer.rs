@@ -117,7 +117,9 @@ impl<'a> MdxJsPrinter<'a> {
             && let Some(rel_pos) = emitted.rfind(')')
         {
             let abs_pos = start_len + rel_pos;
-            self.output.insert_str(abs_pos, &format!(", \"{key}\""));
+            let key_str = format!(", \"{key}\"");
+            self.column += key_str.len() as u32;
+            self.output.insert_str(abs_pos, &key_str);
         }
     }
 
@@ -480,8 +482,8 @@ impl<'a> MdxJsPrinter<'a> {
 
     fn emit_icon_imports(&mut self) {
         let imports = self.icon_imports.clone();
-        let mut by_source: std::collections::HashMap<String, Vec<(String, String)>> =
-            std::collections::HashMap::new();
+        let mut by_source: std::collections::BTreeMap<String, Vec<(String, String)>> =
+            std::collections::BTreeMap::new();
         for (alias, name, source) in imports {
             by_source.entry(source).or_default().push((name, alias));
         }

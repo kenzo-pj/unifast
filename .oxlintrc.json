@@ -45,6 +45,7 @@
     "no-inline-comments": "off",
     "no-negated-condition": "off",
 
+    "import/no-nodejs-modules": "off",
     "import/no-cycle": "error",
     "import/no-self-import": "error",
     "import/no-duplicates": "error",

@@ -11,7 +11,9 @@ pub fn apply_ruby(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
         };
         if should_split && let MdNode::Text(text) = &children[i] {
             let new_nodes = split_ruby(&text.value, text.span, id_gen);
-            if new_nodes.len() > 1 {
+            if new_nodes.len() > 1
+                || (new_nodes.len() == 1 && !matches!(&new_nodes[0], MdNode::Text(_)))
+            {
                 let len = new_nodes.len();
                 children.splice(i..=i, new_nodes);
                 i += len;
@@ -118,6 +120,19 @@ mod tests {
             panic!("expected RubyAnnotation");
         }
         assert!(matches!(&nodes[2], MdNode::Text(t) if t.value == " world"));
+    }
+
+    #[test]
+    fn entire_text_is_ruby() {
+        let mut id_gen = NodeIdGen::new();
+        let nodes = split_ruby("{漢字|かんじ}", Span::new(0, 20), &mut id_gen);
+        assert_eq!(nodes.len(), 1);
+        if let MdNode::RubyAnnotation(r) = &nodes[0] {
+            assert_eq!(r.base, "漢字");
+            assert_eq!(r.annotation, "かんじ");
+        } else {
+            panic!("expected RubyAnnotation");
+        }
     }
 
     #[test]

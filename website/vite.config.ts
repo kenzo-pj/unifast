@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import unifastPlugin from "@unifast/vite";
-import { compile, treeSitter, externalLinks, autolinkHeadings, githubAlert, emoji, smartypants, breaks, cjk, directive, definitionList, rubyAnnotation, wikiLink, sectionize, math, gfm } from "@unifast/node";
+import { compile, frontmatter, treeSitter, externalLinks, autolinkHeadings, githubAlert, emoji, smartypants, breaks, cjk, directive, definitionList, rubyAnnotation, wikiLink, sectionize, math, gfm } from "@unifast/node";
 import translationStatusPlugin from "./plugins/vite-plugin-translation-status";
 import notFoundPlugin from "./plugins/vite-plugin-not-found";
 import metaPlugin from "./plugins/vite-plugin-meta";
@@ -32,6 +32,7 @@ const compileOptions = {
   toc: { enabled: true, maxDepth: 3 },
   lineNumbers: { enabled: true },
   plugins: [
+    frontmatter(),
     treeSitter(),
     externalLinks({ target: "_blank" }),
     autolinkHeadings({ behavior: "prepend" }),

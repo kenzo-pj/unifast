@@ -4,12 +4,12 @@ use unifast_core::api::options::{
     AbbrOptions, AccessibleEmojiOptions, AddClassesOptions, AlertIconDef, AutolinkHeadingsBehavior,
     AutolinkHeadingsOptions, BreaksOptions, CjkOptions, CodeImportOptions, CodeMetaOptions,
     CommentRemovalOptions, CompileOptions, CustomHeadingIdOptions, DefinitionListOptions,
-    DirectiveOptions, EmojiOptions, ExcerptOptions, ExternalLinksOptions, FigureOptions,
-    FrontmatterOptions, GfmOptions, GithubAlertIconMode, GithubAlertOptions, HighlightEngine,
-    HighlightOptions, ImgLazyLoadingOptions, InputKind, LineNumberOptions, MathOptions,
-    MinifyOptions, OutputKind, RawHtmlPolicy, ReadingTimeOptions, RubyAnnotationOptions,
-    SanitizeOptions, SanitizeSchema, SectionizeOptions, SlugMode, SlugOptions, SmartypantsOptions,
-    TocOptions, WikiLinkOptions,
+    DiagnosticsFormat, DiagnosticsOptions, DirectiveOptions, EmojiOptions, ExcerptOptions,
+    ExternalLinksOptions, FigureOptions, FrontmatterOptions, GfmOptions, GithubAlertIconMode,
+    GithubAlertOptions, HighlightEngine, HighlightOptions, HtmlCleanupOptions,
+    ImgLazyLoadingOptions, InputKind, LineNumberOptions, MathOptions, MinifyOptions, OutputKind,
+    RawHtmlPolicy, ReadingTimeOptions, RubyAnnotationOptions, SanitizeOptions, SanitizeSchema,
+    SectionizeOptions, SlugMode, SlugOptions, SmartypantsOptions, TocOptions, WikiLinkOptions,
 };
 
 #[napi(object)]
@@ -66,12 +66,6 @@ pub struct JsTocOptions {
 #[napi(object)]
 pub struct JsDiagnosticsOptions {
     pub format: Option<String>,
-}
-
-#[napi(object)]
-pub struct JsCacheOptions {
-    pub enabled: Option<bool>,
-    pub dir: Option<String>,
 }
 
 #[napi(object)]
@@ -160,6 +154,12 @@ pub struct JsAddClassesOptions {
 }
 
 #[napi(object)]
+pub struct JsHtmlCleanupOptions {
+    pub remove_empty_nodes: Option<bool>,
+    pub minify_whitespace: Option<bool>,
+}
+
+#[napi(object)]
 pub struct JsCompileOptions {
     pub input_kind: Option<String>,
     pub output_kind: Option<String>,
@@ -172,7 +172,6 @@ pub struct JsCompileOptions {
     pub slug: Option<JsSlugOptions>,
     pub toc: Option<JsTocOptions>,
     pub diagnostics: Option<JsDiagnosticsOptions>,
-    pub cache: Option<JsCacheOptions>,
     pub external_links: Option<JsExternalLinksOptions>,
     pub autolink_headings: Option<JsAutolinkHeadingsOptions>,
     pub sectionize: Option<JsFeatureToggle>,
@@ -197,6 +196,7 @@ pub struct JsCompileOptions {
     pub img_lazy_loading: Option<JsImgLazyLoadingOptions>,
     pub accessible_emoji: Option<JsFeatureToggle>,
     pub add_classes: Option<JsAddClassesOptions>,
+    pub html_cleanup: Option<JsHtmlCleanupOptions>,
     pub minify: Option<JsFeatureToggle>,
 }
 
@@ -459,8 +459,26 @@ pub fn convert_options(js_opts: Option<JsCompileOptions>) -> CompileOptions {
         } else {
             AddClassesOptions::default()
         },
+        html_cleanup: if let Some(hc) = js.html_cleanup {
+            HtmlCleanupOptions {
+                remove_empty_nodes: hc.remove_empty_nodes.unwrap_or(false),
+                minify_whitespace: hc.minify_whitespace.unwrap_or(false),
+            }
+        } else {
+            HtmlCleanupOptions::default()
+        },
         minify: MinifyOptions {
             enabled: js.minify.and_then(|m| m.enabled).unwrap_or(false),
+        },
+        diagnostics: if let Some(d) = js.diagnostics {
+            DiagnosticsOptions {
+                format: match d.format.as_deref() {
+                    Some("verbose") => DiagnosticsFormat::Verbose,
+                    _ => DiagnosticsFormat::Compact,
+                },
+            }
+        } else {
+            DiagnosticsOptions::default()
         },
         ..Default::default()
     }

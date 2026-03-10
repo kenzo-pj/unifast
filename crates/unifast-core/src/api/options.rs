@@ -176,9 +176,10 @@ pub struct LineNumberOptions {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct CacheOptions {
-    pub enabled: bool,
-    pub dir: Option<String>,
+#[allow(dead_code)]
+pub(crate) struct CacheOptions {
+    pub(crate) enabled: bool,
+    pub(crate) dir: Option<String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -431,7 +432,6 @@ pub struct CompileOptions {
     pub slug: SlugOptions,
     pub toc: TocOptions,
     pub diagnostics: DiagnosticsOptions,
-    pub cache: CacheOptions,
     pub extensions: Vec<Extension>,
     pub plugins: Vec<Box<dyn Plugin>>,
     pub external_links: ExternalLinksOptions,
@@ -476,7 +476,6 @@ impl std::fmt::Debug for CompileOptions {
             .field("slug", &self.slug)
             .field("toc", &self.toc)
             .field("diagnostics", &self.diagnostics)
-            .field("cache", &self.cache)
             .field("extensions", &self.extensions)
             .field("plugins", &format_args!("[{} plugins]", self.plugins.len()))
             .field("external_links", &self.external_links)
@@ -532,8 +531,6 @@ mod tests {
         assert!(!opts.toc.enabled);
         assert_eq!(opts.toc.max_depth, 6);
         assert_eq!(opts.diagnostics.format, DiagnosticsFormat::Compact);
-        assert!(!opts.cache.enabled);
-        assert!(opts.cache.dir.is_none());
         assert!(opts.extensions.is_empty());
         assert!(opts.plugins.is_empty());
     }

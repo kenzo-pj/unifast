@@ -97,3 +97,54 @@ describe(createShikiTransformer, () => {
     expect(result).toEqual(hast);
   });
 });
+
+describe("transformMdxJs", () => {
+  it("highlights code blocks in MDX JS output (children first)", async () => {
+    const transformer = await createShikiTransformer({
+      themes: ["github-dark"],
+      langs: ["rust"],
+    });
+
+    // Matches the MDX JS printer output format: children before className
+    const input = `_jsx("pre", { children: _jsx("code", { children: "fn main() {}", className: "language-rust" }) })`;
+    const result = transformer.transformMdxJs(input);
+    expect(result).toContain("__html");
+    expect(result).toContain("shiki");
+    expect(result).not.toContain("language-rust");
+  });
+
+  it("highlights code blocks in MDX JS output (className first)", async () => {
+    const transformer = await createShikiTransformer({
+      themes: ["github-dark"],
+      langs: ["rust"],
+    });
+
+    // Alternate prop ordering: className before children
+    const input = `_jsx("pre", { children: _jsx("code", { className: "language-rust", children: "fn main() {}" }) })`;
+    const result = transformer.transformMdxJs(input);
+    expect(result).toContain("__html");
+    expect(result).toContain("shiki");
+  });
+
+  it("leaves unknown languages unchanged in MDX JS", async () => {
+    const transformer = await createShikiTransformer({
+      themes: ["github-dark"],
+      langs: ["rust"],
+    });
+
+    const input = `_jsx("pre", { children: _jsx("code", { children: "some code", className: "language-unknownlang" }) })`;
+    const result = transformer.transformMdxJs(input);
+    expect(result).toBe(input);
+  });
+
+  it("leaves non-code JSX unchanged in MDX JS", async () => {
+    const transformer = await createShikiTransformer({
+      themes: ["github-dark"],
+      langs: ["rust"],
+    });
+
+    const input = `_jsx("p", { children: "hello" })`;
+    const result = transformer.transformMdxJs(input);
+    expect(result).toBe(input);
+  });
+});

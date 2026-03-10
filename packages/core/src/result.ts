@@ -13,4 +13,6 @@ export type CompileResult = {
   }>;
   stats: { parseMs: number; transformMs: number; emitMs: number };
   toc: TocEntry[];
+  readingTime?: { minutes: number; words: number };
+  excerpt?: string;
 };

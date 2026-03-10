@@ -76,7 +76,23 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
 
     let emit_start = Instant::now();
     let output = if pass_failed {
-        Output::Html(String::new())
+        match opts.output_kind {
+            OutputKind::Html => Output::Html(String::new()),
+            OutputKind::Hast => Output::Hast(HRoot {
+                id: crate::ast::common::NodeId(0),
+                span: Span::empty(),
+                children: vec![],
+            }),
+            OutputKind::Mdast => Output::Mdast(crate::ast::mdast::nodes::Document {
+                id: crate::ast::common::NodeId(0),
+                span: Span::empty(),
+                children: vec![],
+            }),
+            OutputKind::MdxJs => Output::MdxJs {
+                code: String::new(),
+                map: None,
+            },
+        }
     } else {
         match opts.output_kind {
             OutputKind::Html => {
@@ -88,35 +104,38 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
                             stringify::stringify(root)
                         }
                     }
-                    AstPayload::Both { hast, .. } => {
-                        if opts.minify.enabled {
-                            stringify::stringify_minified(hast)
-                        } else {
-                            stringify::stringify(hast)
-                        }
+                    AstPayload::Mdast(_) => {
+                        panic!(
+                            "BUG: Html output requested but payload is Mdast after transform pipeline — missing mdast_to_hast pass?"
+                        );
                     }
-                    _ => String::new(),
                 };
                 Output::Html(html)
             }
             OutputKind::Hast => match payload {
                 AstPayload::Hast(root) => Output::Hast(root),
-                AstPayload::Both { hast, .. } => Output::Hast(hast),
-                _ => Output::Html(String::new()),
+                AstPayload::Mdast(_) => {
+                    panic!(
+                        "BUG: Hast output requested but payload is Mdast after transform pipeline — missing mdast_to_hast pass?"
+                    );
+                }
             },
             OutputKind::Mdast => match payload {
                 AstPayload::Mdast(doc) => Output::Mdast(doc),
-                _ => Output::Mdast(crate::ast::mdast::nodes::Document {
-                    id: crate::ast::common::NodeId(0),
-                    span: crate::ast::common::Span::empty(),
-                    children: vec![],
-                }),
+                AstPayload::Hast(_) => {
+                    panic!(
+                        "BUG: Mdast output requested but payload was converted to Hast — mdast_to_hast should not run for Mdast output"
+                    );
+                }
             },
             OutputKind::MdxJs => {
                 let mdx_doc = match payload {
                     AstPayload::Mdast(doc) => doc,
-                    AstPayload::Both { mdast, .. } => mdast,
-                    _ => parse::parse_mdx_input(input, &opts.gfm, &opts.frontmatter).document,
+                    AstPayload::Hast(_) => {
+                        panic!(
+                            "BUG: MdxJs output requested but payload was converted to Hast — mdast_to_hast should not run for MdxJs output"
+                        );
+                    }
                 };
 
                 #[cfg(feature = "highlight")]
@@ -389,10 +408,9 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("resolve_defs", Phase::Transform, |ctx, ast| {
+    registry.register_fn("resolve_defs", Phase::Transform, |_ctx, ast| {
         if let Some(doc) = ast.mdast_mut() {
-            let defs = std::collections::HashMap::new();
-            resolve_defs::resolve_definitions(doc, &defs, ctx.diagnostics);
+            resolve_defs::remove_definition_nodes(doc);
         }
         Ok(())
     });
@@ -401,7 +419,6 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         registry.register_fn("mdast_to_hast", Phase::Lower, |ctx, ast| {
             let doc = match ast {
                 AstPayload::Mdast(doc) => doc,
-                AstPayload::Both { mdast, .. } => mdast,
                 AstPayload::Hast(_) => return Ok(()),
             };
             let hast_node = mdast_to_hast::lower_with_icons(

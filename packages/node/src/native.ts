@@ -23,7 +23,13 @@ interface NativeBinding {
       text: string;
       slug: string;
     }>;
+    readingTime?: {
+      words: number;
+      minutes: number;
+    };
+    excerpt?: string;
   };
+  stringifyHast(json: string): string;
 }
 
 let nativeBinding: NativeBinding | null = null;

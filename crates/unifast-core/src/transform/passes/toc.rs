@@ -25,14 +25,10 @@ fn collect_headings(children: &[MdNode], max_depth: u8, entries: &mut Vec<TocEnt
                 slug: h.slug.clone().unwrap_or_default(),
             });
         }
-        match child {
-            MdNode::Blockquote(bq) => collect_headings(&bq.children, max_depth, entries),
-            MdNode::ListItem(li) => collect_headings(&li.children, max_depth, entries),
-            MdNode::List(l) => collect_headings(&l.children, max_depth, entries),
-            MdNode::FootnoteDefinition(fd) => {
-                collect_headings(&fd.children, max_depth, entries);
-            }
-            _ => {}
+        if !matches!(child, MdNode::Heading(_))
+            && let Some(kids) = child.children()
+        {
+            collect_headings(kids, max_depth, entries);
         }
     }
 }
@@ -207,5 +203,84 @@ mod tests {
         let toc = generate_toc(&doc, 6);
         assert_eq!(toc.len(), 1);
         assert_eq!(toc[0].text, "Quoted");
+    }
+
+    #[test]
+    fn toc_heading_inside_container_directive() {
+        let mut id_gen = NodeIdGen::new();
+        let h2 = make_heading_node(&mut id_gen, 2, "Inside Directive", Some("inside-directive"));
+        let dir = MdNode::ContainerDirective(ContainerDirective {
+            id: id_gen.next_id(),
+            span: Span::new(0, 30),
+            name: "note".to_string(),
+            attributes: vec![],
+            children: vec![h2],
+        });
+        let doc = Document {
+            id: id_gen.next_id(),
+            span: Span::new(0, 30),
+            children: vec![dir],
+        };
+
+        let toc = generate_toc(&doc, 6);
+        assert_eq!(toc.len(), 1);
+        assert_eq!(toc[0].text, "Inside Directive");
+    }
+
+    #[test]
+    fn toc_heading_inside_table_cell() {
+        let mut id_gen = NodeIdGen::new();
+        let h3 = make_heading_node(&mut id_gen, 3, "In Cell", Some("in-cell"));
+        let cell = MdNode::TableCell(TableCell {
+            id: id_gen.next_id(),
+            span: Span::new(0, 20),
+            children: vec![h3],
+        });
+        let row = MdNode::TableRow(TableRow {
+            id: id_gen.next_id(),
+            span: Span::new(0, 20),
+            is_header: false,
+            children: vec![cell],
+        });
+        let table = MdNode::Table(Table {
+            id: id_gen.next_id(),
+            span: Span::new(0, 20),
+            children: vec![row],
+            align: vec![],
+        });
+        let doc = Document {
+            id: id_gen.next_id(),
+            span: Span::new(0, 20),
+            children: vec![table],
+        };
+
+        let toc = generate_toc(&doc, 6);
+        assert_eq!(toc.len(), 1);
+        assert_eq!(toc[0].text, "In Cell");
+    }
+
+    #[test]
+    fn toc_heading_inside_definition_list() {
+        let mut id_gen = NodeIdGen::new();
+        let h2 = make_heading_node(&mut id_gen, 2, "In DL", Some("in-dl"));
+        let dd = MdNode::DefinitionDescription(DefinitionDescription {
+            id: id_gen.next_id(),
+            span: Span::new(0, 20),
+            children: vec![h2],
+        });
+        let dl = MdNode::DefinitionList(DefinitionList {
+            id: id_gen.next_id(),
+            span: Span::new(0, 20),
+            children: vec![dd],
+        });
+        let doc = Document {
+            id: id_gen.next_id(),
+            span: Span::new(0, 20),
+            children: vec![dl],
+        };
+
+        let toc = generate_toc(&doc, 6);
+        assert_eq!(toc.len(), 1);
+        assert_eq!(toc[0].text, "In DL");
     }
 }

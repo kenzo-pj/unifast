@@ -32,30 +32,23 @@ const MobileMenu = lazy(() =>
 
 const BENCH_TABS = [
   {
-    id: "compile",
+    id: "basic",
     label: "Basic",
     rows: [
-      { label: "120 lines", unifast: 0.19, unified: 6.33 },
-      { label: "560 lines", unifast: 0.47, unified: 26.08 },
-      { label: "2,000 lines", unifast: 1.53, unified: 48.78 },
+      { label: "120 lines", unifast: 0.18, unified: 4.78 },
+      { label: "560 lines", unifast: 0.41, unified: 11.22 },
+      { label: "2,000 lines", unifast: 1.2, unified: 31.51 },
     ],
   },
   {
-    id: "gfm",
-    label: "GFM",
+    id: "plugins",
+    label: "Plugins",
     rows: [
-      { label: "120 lines", unifast: 0.17, unified: 9.64 },
-      { label: "560 lines", unifast: 0.43, unified: 22.06 },
-      { label: "2,000 lines", unifast: 1.23, unified: 68.63 },
-    ],
-  },
-  {
-    id: "highlight",
-    label: "Highlighting",
-    rows: [
-      { label: "120 lines", unifast: 0.31, unified: 7.18 },
-      { label: "560 lines", unifast: 1.93, unified: 25.26 },
-      { label: "2,000 lines", unifast: 14.76, unified: 80.77 },
+      { label: "GFM", unifast: 0.42, unified: 16.82 },
+      { label: "Frontmatter", unifast: 0.46, unified: 11.53 },
+      { label: "Math", unifast: 0.43, unified: 11.46 },
+      { label: "Sanitize", unifast: 0.42, unified: 11.73 },
+      { label: "Highlighting", unifast: 2.28, unified: 18.49 },
     ],
   },
 ] as const;
@@ -218,7 +211,7 @@ const FEATURES = [
   {
     emoji: "\u{1F308}",
     title: "Dual Highlight Engines",
-    description: "Tree-sitter and syntect built in. Up to 26x faster than rehype-highlight.",
+    description: "Tree-sitter and syntect built in. Up to 8x faster than rehype-highlight.",
   },
   {
     emoji: "\u{269B}\u{FE0F}",
@@ -370,7 +363,7 @@ export function LandingPage() {
         <p className={styles.subtitle}>
           High-performance Markdown / MDX compiler built with Rust.
           <br />
-          Up to <strong>56x faster</strong> than unified.
+          Up to <strong>25x faster</strong> than unified.
         </p>
         <div className={styles.actions}>
           <Link
@@ -390,7 +383,7 @@ export function LandingPage() {
           </a>
         </div>
         <div className={styles.install}>
-          <PackageInstall package="@unifast/react" />
+          <PackageInstall package="@unifast/node" />
         </div>
       </section>
 

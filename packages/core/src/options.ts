@@ -84,11 +84,10 @@ export type CompileOptions = {
   imgLazyLoading?: { enabled?: boolean; skipFirst?: number };
   accessibleEmoji?: { enabled?: boolean };
   addClasses?: { enabled?: boolean; rules?: { selector: string; classes: string }[] };
+  htmlCleanup?: { removeEmptyNodes?: boolean; minifyWhitespace?: boolean };
   minify?: { enabled?: boolean };
 
   diagnostics?: { format?: "compact" | "verbose" };
-
-  cache?: { enabled?: boolean; dir?: string };
 
   plugins?: UnifastPlugin[];
 };

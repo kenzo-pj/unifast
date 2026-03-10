@@ -23,7 +23,7 @@ Configuration for frontmatter formats
 |----------|------|---------|-------------|
 | `yaml` | `boolean` | `true` | Enable YAML frontmatter (--- delimiters) |
 | `toml` | `boolean` | `false` | Enable TOML frontmatter (+++ delimiters) |
-| `json` | `boolean` | `false` | Enable JSON frontmatter (opening {) |
+| `json` | `boolean` | `false` | Enable JSON frontmatter (;;; delimiters) |
 
 ## Usage
 
@@ -90,10 +90,9 @@ console.log(result.frontmatter);
 ```ts
 import { compile, frontmatter } from "@unifast/node";
 
-const md = `{
-  "title": "My Page",
-  "draft": false
-}
+const md = `;;;
+{"title": "My Page", "draft": false}
+;;;
 
 # Hello`;
 

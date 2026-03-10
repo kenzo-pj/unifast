@@ -11,7 +11,9 @@ pub fn apply_wiki_links(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
         };
         if should_split && let MdNode::Text(text) = &children[i] {
             let new_nodes = split_wiki_links(&text.value, text.span, id_gen);
-            if new_nodes.len() > 1 {
+            if new_nodes.len() > 1
+                || (new_nodes.len() == 1 && !matches!(&new_nodes[0], MdNode::Text(_)))
+            {
                 let len = new_nodes.len();
                 children.splice(i..=i, new_nodes);
                 i += len;
@@ -147,6 +149,14 @@ mod tests {
         assert!(matches!(&nodes[0], MdNode::WikiLink(w) if w.target == "A"));
         assert!(matches!(&nodes[1], MdNode::Text(t) if t.value == " and "));
         assert!(matches!(&nodes[2], MdNode::WikiLink(w) if w.target == "B"));
+    }
+
+    #[test]
+    fn entire_text_is_wiki_link() {
+        let mut id_gen = NodeIdGen::new();
+        let nodes = split_wiki_links("[[Page Name]]", Span::new(0, 14), &mut id_gen);
+        assert_eq!(nodes.len(), 1);
+        assert!(matches!(&nodes[0], MdNode::WikiLink(w) if w.target == "Page Name"));
     }
 
     #[test]

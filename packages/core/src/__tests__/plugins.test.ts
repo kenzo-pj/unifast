@@ -104,7 +104,7 @@ describe(externalLinks, () => {
     const plugin = externalLinks();
     expect(plugin.options!.externalLinks).toStrictEqual({
       enabled: true,
-      rel: "nofollow noopener noreferrer",
+      rel: "noopener noreferrer",
       target: undefined,
     });
   });
@@ -151,7 +151,7 @@ describe(wikiLink, () => {
     const plugin = wikiLink();
     expect(plugin.options!.wikiLink).toStrictEqual({
       enabled: true,
-      hrefTemplate: "/wiki/${slug}",
+      hrefTemplate: "/wiki/{slug}",
     });
   });
 

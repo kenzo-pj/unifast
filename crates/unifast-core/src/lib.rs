@@ -1,6 +1,6 @@
 pub mod api;
 pub mod ast;
-pub mod cache;
+pub(crate) mod cache;
 pub mod diagnostics;
 pub mod emit;
 pub mod parse;

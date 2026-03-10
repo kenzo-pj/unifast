@@ -228,9 +228,7 @@ fn sanitize_children(
                     };
                     let mut promoted_children = elem_owned.children;
                     sanitize_children(&mut promoted_children, schema, diagnostics);
-                    for (j, child) in promoted_children.into_iter().enumerate() {
-                        children.insert(i + j, child);
-                    }
+                    children.splice(i..i, promoted_children);
                     continue;
                 }
                 if let HNode::Element(ref mut elem) = children[i] {

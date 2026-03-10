@@ -30,7 +30,9 @@ pub fn apply_math(children: &mut Vec<MdNode>, id_gen: &mut NodeIdGen) {
         };
         if should_split && let MdNode::Text(text) = &children[i] {
             let new_nodes = split_inline_math(&text.value, text.span, id_gen);
-            if new_nodes.len() > 1 {
+            if new_nodes.len() > 1
+                || (new_nodes.len() == 1 && !matches!(&new_nodes[0], MdNode::Text(_)))
+            {
                 let len = new_nodes.len();
                 children.splice(i..=i, new_nodes);
                 i += len;
@@ -156,6 +158,22 @@ mod tests {
         let nodes = split_inline_math("Before $$E=mc^2$$ after", Span::new(0, 30), &mut id_gen);
         assert_eq!(nodes.len(), 3);
         assert!(matches!(&nodes[1], MdNode::Math(m) if m.value == "E=mc^2"));
+    }
+
+    #[test]
+    fn entire_text_is_inline_math() {
+        let mut id_gen = NodeIdGen::new();
+        let nodes = split_inline_math("$E=mc^2$", Span::new(0, 8), &mut id_gen);
+        assert_eq!(nodes.len(), 1);
+        assert!(matches!(&nodes[0], MdNode::InlineMath(m) if m.value == "E=mc^2"));
+    }
+
+    #[test]
+    fn entire_text_is_display_math() {
+        let mut id_gen = NodeIdGen::new();
+        let nodes = split_inline_math("$$x^2$$", Span::new(0, 7), &mut id_gen);
+        assert_eq!(nodes.len(), 1);
+        assert!(matches!(&nodes[0], MdNode::Math(m) if m.value == "x^2"));
     }
 
     #[test]

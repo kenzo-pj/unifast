@@ -1,5 +1,3 @@
-import fs from "node:fs";
-
 import { describe, it, expect, expectTypeOf, vi, beforeEach } from "vitest";
 
 vi.mock(import("node:module"), () => ({
@@ -57,10 +55,9 @@ describe("unifastPlugin (fallback – no compiler)", () => {
   });
 
   it(".md transform returns code with all expected exports", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("Hello world");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "Hello world", "test.md");
 
     expect(result).not.toBeNull();
     expect(result.code).toContain("export const html =");
@@ -70,69 +67,62 @@ describe("unifastPlugin (fallback – no compiler)", () => {
   });
 
   it(".md transform returns map: null", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("Hello");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "Hello", "test.md");
 
     expect(result.map).toBeNull();
   });
 
   it("parses simple frontmatter key-value pairs", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("---\ntitle: Hello\n---\nBody text");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "---\ntitle: Hello\n---\nBody text", "test.md");
 
     const { code } = result;
     expect(code).toContain('"title":"Hello"');
   });
 
   it("returns empty frontmatter when none present", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("Just a body");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "Just a body", "test.md");
 
     const { code } = result;
     expect(code).toContain("export const frontmatter = {};");
   });
 
   it("handles Windows line endings in frontmatter", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("---\r\ntitle: Win\r\n---\r\nBody");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "---\r\ntitle: Win\r\n---\r\nBody", "test.md");
 
     const { code } = result;
     expect(code).toContain('"title":"Win"');
   });
 
   it("splits frontmatter only on the first colon", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("---\ntime: 12:30:45\n---\nBody");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "---\ntime: 12:30:45\n---\nBody", "test.md");
 
     const { code } = result;
     expect(code).toContain('"time":45045');
   });
 
   it("handles frontmatter key with empty value", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("---\ndraft:\n---\nBody");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "---\ndraft:\n---\nBody", "test.md");
 
     const { code } = result;
     expect(code).toContain('"draft":null');
   });
 
   it("escapes < to &lt; in fallback HTML", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("<script>alert(1)</script>");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "<script>alert(1)</script>", "test.md");
 
     const { code } = result;
     expect(code).toContain("&lt;");
@@ -140,30 +130,27 @@ describe("unifastPlugin (fallback – no compiler)", () => {
   });
 
   it("converts newlines to <br> in fallback HTML", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("line1\nline2\nline3");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "line1\nline2\nline3", "test.md");
 
     const { code } = result;
     expect(code).toContain("<br>");
   });
 
   it("handles empty body (frontmatter only)", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("---\ntitle: OnlyMeta\n---\n");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "test.md");
+    const result = transform.call({}, "---\ntitle: OnlyMeta\n---\n", "test.md");
 
     expect(result).not.toBeNull();
     expect(result.code).toContain("export const html =");
   });
 
   it(".mdx transform returns null when compiler is not available", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("# Hello MDX");
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "component.mdx");
+    const result = transform.call({}, "# Hello MDX", "component.mdx");
 
     expect(result).toBeNull();
   });
@@ -255,7 +242,6 @@ describe("unifastPlugin (with compiler)", () => {
   }
 
   it(".md transform uses compiler output when available", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("# Hello");
     mockCompile.mockReturnValue({
       output: "<h1>Hello</h1>",
       frontmatter: { title: "Hello" },
@@ -264,7 +250,7 @@ describe("unifastPlugin (with compiler)", () => {
 
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "page.md");
+    const result = transform.call({}, "# Hello", "page.md");
 
     expect(result).not.toBeNull();
     expect(result.code).toContain("<h1>Hello</h1>");
@@ -280,14 +266,13 @@ describe("unifastPlugin (with compiler)", () => {
   });
 
   it(".md transform wraps in <pre> when compiler throws", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("Bad <content>");
     mockCompile.mockImplementation(() => {
       throw new Error("compile error");
     });
 
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "broken.md");
+    const result = transform.call({}, "Bad <content>", "broken.md");
 
     expect(result).not.toBeNull();
     expect(result.code).toContain("<pre>");
@@ -295,7 +280,6 @@ describe("unifastPlugin (with compiler)", () => {
   });
 
   it(".mdx transform produces JSX imports and passes compiler output through", async () => {
-    vi.spyOn(fs, "readFileSync").mockReturnValue("# MDX Content");
     mockCompile.mockReturnValue({
       output: [
         "function MDXContent({ components: _components = {}, ...props }) {",
@@ -310,7 +294,7 @@ describe("unifastPlugin (with compiler)", () => {
 
     const plugin = await getPlugin();
     const transform = plugin.transform as Function;
-    const result = transform.call({}, "", "doc.mdx");
+    const result = transform.call({}, "# MDX Content", "doc.mdx");
 
     expect(result).not.toBeNull();
     expect(result.code).toContain(

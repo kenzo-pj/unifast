@@ -25,12 +25,20 @@ pub struct JsTocEntry {
 }
 
 #[napi(object)]
+pub struct JsReadingTime {
+    pub words: u32,
+    pub minutes: f64,
+}
+
+#[napi(object)]
 pub struct JsCompileResult {
     pub output: String,
     pub frontmatter: String,
     pub diagnostics: Vec<JsDiagnostic>,
     pub stats: JsCompileStats,
     pub toc: Vec<JsTocEntry>,
+    pub reading_time: Option<JsReadingTime>,
+    pub excerpt: Option<String>,
 }
 
 pub fn convert_result(result: CompileResult) -> JsCompileResult {
@@ -76,5 +84,10 @@ pub fn convert_result(result: CompileResult) -> JsCompileResult {
                 slug: e.slug.clone(),
             })
             .collect(),
+        reading_time: result.reading_time.map(|rt| JsReadingTime {
+            words: rt.words,
+            minutes: rt.minutes,
+        }),
+        excerpt: result.excerpt.clone(),
     }
 }

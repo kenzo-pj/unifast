@@ -1,12 +1,6 @@
 use crate::ast::mdast::nodes::*;
-use crate::diagnostics::sink::DiagnosticSink;
-use std::collections::HashMap;
 
-pub fn resolve_definitions(
-    doc: &mut Document,
-    _definitions: &HashMap<String, (String, Option<String>)>,
-    _diagnostics: &mut DiagnosticSink,
-) {
+pub fn remove_definition_nodes(doc: &mut Document) {
     resolve_in_children(&mut doc.children);
 }
 
@@ -57,11 +51,7 @@ mod tests {
         };
 
         assert_eq!(doc.children.len(), 2);
-
-        let defs = HashMap::new();
-        let mut diagnostics = DiagnosticSink::new();
-        resolve_definitions(&mut doc, &defs, &mut diagnostics);
-
+        remove_definition_nodes(&mut doc);
         assert_eq!(doc.children.len(), 1);
         assert!(matches!(doc.children[0], MdNode::Paragraph(_)));
     }
@@ -87,16 +77,13 @@ mod tests {
             children: vec![def1, para, def2],
         };
 
-        let defs = HashMap::new();
-        let mut diagnostics = DiagnosticSink::new();
-        resolve_definitions(&mut doc, &defs, &mut diagnostics);
-
+        remove_definition_nodes(&mut doc);
         assert_eq!(doc.children.len(), 1);
         assert!(matches!(doc.children[0], MdNode::Paragraph(_)));
     }
 
     #[test]
-    fn unused_definition_no_crash() {
+    fn removes_single_definition() {
         let mut id_gen = NodeIdGen::new();
         let def = make_definition(&mut id_gen, "unused", "https://unused.com");
         let mut doc = Document {
@@ -105,14 +92,7 @@ mod tests {
             children: vec![def],
         };
 
-        let mut defs = HashMap::new();
-        defs.insert(
-            "unused".to_string(),
-            ("https://unused.com".to_string(), None),
-        );
-        let mut diagnostics = DiagnosticSink::new();
-        resolve_definitions(&mut doc, &defs, &mut diagnostics);
-
+        remove_definition_nodes(&mut doc);
         assert!(doc.children.is_empty());
     }
 
@@ -125,10 +105,7 @@ mod tests {
             children: vec![],
         };
 
-        let defs = HashMap::new();
-        let mut diagnostics = DiagnosticSink::new();
-        resolve_definitions(&mut doc, &defs, &mut diagnostics);
-
+        remove_definition_nodes(&mut doc);
         assert!(doc.children.is_empty());
     }
 
@@ -169,10 +146,7 @@ mod tests {
             children: vec![para1, para2, heading],
         };
 
-        let defs = HashMap::new();
-        let mut diagnostics = DiagnosticSink::new();
-        resolve_definitions(&mut doc, &defs, &mut diagnostics);
-
+        remove_definition_nodes(&mut doc);
         assert_eq!(doc.children.len(), 3);
     }
 
@@ -192,10 +166,7 @@ mod tests {
             children: vec![bq],
         };
 
-        let defs = HashMap::new();
-        let mut diagnostics = DiagnosticSink::new();
-        resolve_definitions(&mut doc, &defs, &mut diagnostics);
-
+        remove_definition_nodes(&mut doc);
         assert_eq!(doc.children.len(), 1);
         if let MdNode::Blockquote(bq) = &doc.children[0] {
             assert!(bq.children.is_empty());

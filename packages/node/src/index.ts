@@ -1,5 +1,4 @@
 import type { CompileOptions, CompileResult, HastRoot, HastNode, HastElement } from "@unifast/core";
-import { hastToHtml } from "@unifast/core";
 import deepmerge from "deepmerge";
 
 import { loadNativeBinding } from "./native";
@@ -130,7 +129,11 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
   const rawResult = native.compile(input, mergedOpts);
 
   let { output } = rawResult;
-  if (hasHastTransforms && userRequestedOutputKind !== "mdxJs") {
+  if (
+    hasHastTransforms &&
+    userRequestedOutputKind !== "mdxJs" &&
+    userRequestedOutputKind !== "mdast"
+  ) {
     let hast: HastRoot;
     try {
       hast = JSON.parse(output) as HastRoot;
@@ -145,11 +148,10 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
         applyDataLineAttributes(child);
       }
     }
-    if (userRequestedOutputKind === "hast") {
-      output = JSON.stringify(hast);
-    } else {
-      output = hastToHtml(hast);
-    }
+    output =
+      userRequestedOutputKind === "hast"
+        ? JSON.stringify(hast)
+        : native.stringifyHast(JSON.stringify(hast));
   }
   if (
     mdxJsTransforms.length > 0 &&
@@ -178,5 +180,7 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
     })),
     stats: rawResult.stats,
     toc: rawResult.toc ?? [],
+    readingTime: rawResult.readingTime ?? undefined,
+    excerpt: rawResult.excerpt ?? undefined,
   };
 }

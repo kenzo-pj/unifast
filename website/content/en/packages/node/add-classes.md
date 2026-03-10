@@ -21,7 +21,7 @@ A `Record<string, string>` where keys are CSS selectors and values are space-sep
 
 ### Supported selectors
 
-Supports full CSS Selectors Level 4 including:
+Supports a wide subset of CSS Selectors Level 4 including:
 
 - **Tag selectors**: `h1`, `p`, `table`
 - **Class selectors**: `.info`, `.alert.warning`

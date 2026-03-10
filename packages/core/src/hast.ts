@@ -107,6 +107,9 @@ function serializeNode(node: HastNode): string {
   }
 }
 
+// Public utility for external consumers (shiki, user code).
+// The internal compile() path in @unifast/node uses native.stringifyHast()
+// which delegates to Rust's emit/html/stringify.rs instead.
 export function hastToHtml(hast: HastRoot): string {
   return hast.children.map(serializeNode).join("");
 }
