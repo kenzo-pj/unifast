@@ -270,12 +270,9 @@ mod tests {
 
         if let HNode::Element(elem) = &root.children[1] {
             assert_eq!(elem.tag, "span");
+            assert_eq!(elem.attributes.get("role"), Some(&"img".to_string()));
             assert_eq!(
-                elem.attributes.get(&"role".to_string()),
-                Some(&"img".to_string())
-            );
-            assert_eq!(
-                elem.attributes.get(&"aria-label".to_string()),
+                elem.attributes.get("aria-label"),
                 Some(&"rocket".to_string())
             );
             if let HNode::Text(t) = &elem.children[0] {
@@ -313,10 +310,7 @@ mod tests {
         assert_eq!(root.children.len(), 1);
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(elem.tag, "span");
-            assert_eq!(
-                elem.attributes.get(&"role".to_string()),
-                Some(&"img".to_string())
-            );
+            assert_eq!(elem.attributes.get("role"), Some(&"img".to_string()));
         } else {
             panic!("expected span element for consecutive emoji");
         }
@@ -343,10 +337,7 @@ mod tests {
             assert!(matches!(&p_elem.children[0], HNode::Text(t) if t.value == "hi "));
             if let HNode::Element(span) = &p_elem.children[1] {
                 assert_eq!(span.tag, "span");
-                assert_eq!(
-                    span.attributes.get(&"aria-label".to_string()),
-                    Some(&"star".to_string())
-                );
+                assert_eq!(span.attributes.get("aria-label"), Some(&"star".to_string()));
             } else {
                 panic!("expected span element");
             }
@@ -391,7 +382,7 @@ mod tests {
 
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(
-                elem.attributes.get(&"aria-label".to_string()),
+                elem.attributes.get("aria-label"),
                 Some(&"emoji".to_string())
             );
         } else {

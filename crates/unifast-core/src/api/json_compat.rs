@@ -505,6 +505,8 @@ impl CompileOptions {
 #[serde(rename_all = "camelCase")]
 pub struct JsonCompileResult {
     pub output: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sourcemap: Option<String>,
     pub frontmatter: serde_json::Value,
     pub diagnostics: Vec<JsonDiagnostic>,
     pub stats: JsonCompileStats,
@@ -551,15 +553,17 @@ impl super::result::CompileResult {
         use super::result::Output;
         use crate::diagnostics::diagnostic::DiagLevel;
 
-        let output = match &self.output {
-            Output::Html(html) => html.clone(),
-            Output::MdxJs { code, .. } => code.clone(),
-            Output::Hast(root) => {
-                serde_json::to_string(root).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}"))
-            }
-            Output::Mdast(doc) => {
-                serde_json::to_string(doc).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}"))
-            }
+        let (output, sourcemap) = match self.output {
+            Output::Html(html) => (html, None),
+            Output::MdxJs { code, map } => (code, map),
+            Output::Hast(ref root) => (
+                serde_json::to_string(root).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}")),
+                None,
+            ),
+            Output::Mdast(ref doc) => (
+                serde_json::to_string(doc).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}")),
+                None,
+            ),
         };
 
         let frontmatter = serde_json::to_value(&self.frontmatter)
@@ -567,18 +571,19 @@ impl super::result::CompileResult {
 
         JsonCompileResult {
             output,
+            sourcemap,
             frontmatter,
             diagnostics: self
                 .diagnostics
-                .iter()
+                .into_iter()
                 .map(|d| JsonDiagnostic {
                     level: match d.level {
                         DiagLevel::Error => "error".to_string(),
                         DiagLevel::Warning => "warn".to_string(),
                     },
-                    message: d.message.clone(),
                     start: d.span.start,
                     end: d.span.end,
+                    message: d.message,
                 })
                 .collect(),
             stats: JsonCompileStats {
@@ -588,18 +593,18 @@ impl super::result::CompileResult {
             },
             toc: self
                 .toc
-                .iter()
+                .into_iter()
                 .map(|e| JsonTocEntry {
                     depth: e.depth,
-                    text: e.text.clone(),
-                    slug: e.slug.clone(),
+                    text: e.text,
+                    slug: e.slug,
                 })
                 .collect(),
             reading_time: self.reading_time.map(|rt| JsonReadingTime {
                 words: rt.words,
                 minutes: rt.minutes,
             }),
-            excerpt: self.excerpt.clone(),
+            excerpt: self.excerpt,
         }
     }
 

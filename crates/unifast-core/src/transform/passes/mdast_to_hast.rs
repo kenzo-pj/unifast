@@ -847,10 +847,7 @@ mod tests {
 
         let el = expect_element(&root_children(&root)[0]);
         assert_eq!(el.tag, "h2");
-        assert_eq!(
-            el.attributes.get(&"id".to_string()),
-            Some(&"hello-world".to_string())
-        );
+        assert_eq!(el.attributes.get("id"), Some(&"hello-world".to_string()));
     }
 
     #[test]
@@ -973,7 +970,7 @@ mod tests {
         let code_el = expect_element(&pre.children[0]);
         assert_eq!(code_el.tag, "code");
         assert_eq!(
-            code_el.attributes.get(&"class".to_string()),
+            code_el.attributes.get("class"),
             Some(&"language-rust".to_string())
         );
         assert_eq!(expect_text(&code_el.children[0]).value, "fn main() {}");
@@ -1075,10 +1072,7 @@ mod tests {
 
         let ol = expect_element(&root_children(&root)[0]);
         assert_eq!(ol.tag, "ol");
-        assert_eq!(
-            ol.attributes.get(&"start".to_string()),
-            Some(&"5".to_string())
-        );
+        assert_eq!(ol.attributes.get("start"), Some(&"5".to_string()));
     }
 
     #[test]
@@ -1105,7 +1099,7 @@ mod tests {
 
         let ol = expect_element(&root_children(&root)[0]);
         assert_eq!(ol.tag, "ol");
-        assert!(ol.attributes.get(&"start".to_string()).is_none());
+        assert!(ol.attributes.get("start").is_none());
     }
 
     #[test]
@@ -1136,11 +1130,11 @@ mod tests {
         let checkbox = expect_element(&li_el.children[0]);
         assert_eq!(checkbox.tag, "input");
         assert_eq!(
-            checkbox.attributes.get(&"type".to_string()),
+            checkbox.attributes.get("type"),
             Some(&"checkbox".to_string())
         );
-        assert!(checkbox.attributes.contains_key(&"checked".to_string()));
-        assert!(checkbox.attributes.contains_key(&"disabled".to_string()));
+        assert!(checkbox.attributes.contains_key("checked"));
+        assert!(checkbox.attributes.contains_key("disabled"));
         assert!(checkbox.self_closing);
     }
 
@@ -1170,8 +1164,8 @@ mod tests {
         let li_el = expect_element(&ul.children[0]);
         let checkbox = expect_element(&li_el.children[0]);
         assert_eq!(checkbox.tag, "input");
-        assert!(!checkbox.attributes.contains_key(&"checked".to_string()));
-        assert!(checkbox.attributes.contains_key(&"disabled".to_string()));
+        assert!(!checkbox.attributes.contains_key("checked"));
+        assert!(checkbox.attributes.contains_key("disabled"));
     }
 
     #[test]
@@ -1213,10 +1207,10 @@ mod tests {
         let a = expect_element(&p.children[0]);
         assert_eq!(a.tag, "a");
         assert_eq!(
-            a.attributes.get(&"href".to_string()),
+            a.attributes.get("href"),
             Some(&"https://example.com".to_string())
         );
-        assert!(a.attributes.get(&"title".to_string()).is_none());
+        assert!(a.attributes.get("title").is_none());
         assert_eq!(expect_text(&a.children[0]).value, "click");
     }
 
@@ -1242,10 +1236,7 @@ mod tests {
         let p = expect_element(&root_children(&root)[0]);
         let a = expect_element(&p.children[0]);
         assert_eq!(a.tag, "a");
-        assert_eq!(
-            a.attributes.get(&"title".to_string()),
-            Some(&"Example".to_string())
-        );
+        assert_eq!(a.attributes.get("title"), Some(&"Example".to_string()));
     }
 
     #[test]
@@ -1270,14 +1261,8 @@ mod tests {
         let img_el = expect_element(&p.children[0]);
         assert_eq!(img_el.tag, "img");
         assert!(img_el.self_closing);
-        assert_eq!(
-            img_el.attributes.get(&"src".to_string()),
-            Some(&"photo.jpg".to_string())
-        );
-        assert_eq!(
-            img_el.attributes.get(&"alt".to_string()),
-            Some(&"A photo".to_string())
-        );
+        assert_eq!(img_el.attributes.get("src"), Some(&"photo.jpg".to_string()));
+        assert_eq!(img_el.attributes.get("alt"), Some(&"A photo".to_string()));
     }
 
     #[test]
@@ -1295,7 +1280,7 @@ mod tests {
 
         let img_el = expect_element(&root_children(&root)[0]);
         assert_eq!(
-            img_el.attributes.get(&"title".to_string()),
+            img_el.attributes.get("title"),
             Some(&"My Photo".to_string())
         );
     }
@@ -1440,22 +1425,13 @@ mod tests {
         let tr = expect_element(&thead.children[0]);
 
         let th0 = expect_element(&tr.children[0]);
-        assert_eq!(
-            th0.attributes.get(&"align".to_string()),
-            Some(&"left".to_string())
-        );
+        assert_eq!(th0.attributes.get("align"), Some(&"left".to_string()));
 
         let th1 = expect_element(&tr.children[1]);
-        assert_eq!(
-            th1.attributes.get(&"align".to_string()),
-            Some(&"center".to_string())
-        );
+        assert_eq!(th1.attributes.get("align"), Some(&"center".to_string()));
 
         let th2 = expect_element(&tr.children[2]);
-        assert_eq!(
-            th2.attributes.get(&"align".to_string()),
-            Some(&"right".to_string())
-        );
+        assert_eq!(th2.attributes.get("align"), Some(&"right".to_string()));
     }
 
     #[test]
@@ -1479,15 +1455,12 @@ mod tests {
         let sup = expect_element(&p.children[0]);
         assert_eq!(sup.tag, "sup");
         assert_eq!(
-            sup.attributes.get(&"class".to_string()),
+            sup.attributes.get("class"),
             Some(&"footnote-ref".to_string())
         );
         let link = expect_element(&sup.children[0]);
         assert_eq!(link.tag, "a");
-        assert_eq!(
-            link.attributes.get(&"href".to_string()),
-            Some(&"#fn-1".to_string())
-        );
+        assert_eq!(link.attributes.get("href"), Some(&"#fn-1".to_string()));
     }
 
     #[test]
@@ -1511,10 +1484,7 @@ mod tests {
 
         let li = expect_element(&root_children(&root)[0]);
         assert_eq!(li.tag, "li");
-        assert_eq!(
-            li.attributes.get(&"id".to_string()),
-            Some(&"fn-1".to_string())
-        );
+        assert_eq!(li.attributes.get("id"), Some(&"fn-1".to_string()));
     }
 
     #[test]

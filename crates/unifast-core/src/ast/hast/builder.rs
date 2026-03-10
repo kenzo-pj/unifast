@@ -123,13 +123,10 @@ mod tests {
         if let HNode::Element(e) = &link {
             assert_eq!(e.tag, "a");
             assert_eq!(
-                e.attributes.get(&"href".to_string()),
+                e.attributes.get("href"),
                 Some(&"https://example.com".to_string())
             );
-            assert_eq!(
-                e.attributes.get(&"target".to_string()),
-                Some(&"_blank".to_string())
-            );
+            assert_eq!(e.attributes.get("target"), Some(&"_blank".to_string()));
             assert!(!e.self_closing);
         } else {
             panic!("expected Element");

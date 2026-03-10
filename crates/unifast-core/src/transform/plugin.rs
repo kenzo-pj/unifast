@@ -46,7 +46,7 @@ mod tests {
         plugin.apply(&mut registry);
         assert_eq!(registry.len(), 1);
 
-        let passes = registry.ordered_passes();
+        let passes: Vec<_> = registry.iter().collect();
         assert_eq!(passes[0].name(), "mock_pass");
         assert_eq!(passes[0].phase(), Phase::Transform);
     }

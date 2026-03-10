@@ -69,14 +69,8 @@ mod tests {
         apply_img_lazy_loading(&mut root, 0);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert_eq!(
-                elem.attributes.get(&"loading".to_string()),
-                Some(&"lazy".to_string())
-            );
-            assert_eq!(
-                elem.attributes.get(&"decoding".to_string()),
-                Some(&"async".to_string())
-            );
+            assert_eq!(elem.attributes.get("loading"), Some(&"lazy".to_string()));
+            assert_eq!(elem.attributes.get("decoding"), Some(&"async".to_string()));
         } else {
             panic!("expected img element");
         }
@@ -93,24 +87,15 @@ mod tests {
         apply_img_lazy_loading(&mut root, 1);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(elem.attributes.get(&"loading".to_string()).is_none());
-            assert!(elem.attributes.get(&"decoding".to_string()).is_none());
+            assert!(elem.attributes.get("loading").is_none());
+            assert!(elem.attributes.get("decoding").is_none());
         }
         if let HNode::Element(elem) = &root.children[1] {
-            assert_eq!(
-                elem.attributes.get(&"loading".to_string()),
-                Some(&"lazy".to_string())
-            );
-            assert_eq!(
-                elem.attributes.get(&"decoding".to_string()),
-                Some(&"async".to_string())
-            );
+            assert_eq!(elem.attributes.get("loading"), Some(&"lazy".to_string()));
+            assert_eq!(elem.attributes.get("decoding"), Some(&"async".to_string()));
         }
         if let HNode::Element(elem) = &root.children[2] {
-            assert_eq!(
-                elem.attributes.get(&"loading".to_string()),
-                Some(&"lazy".to_string())
-            );
+            assert_eq!(elem.attributes.get("loading"), Some(&"lazy".to_string()));
         }
     }
 
@@ -133,11 +118,11 @@ mod tests {
         if let HNode::Element(div_elem) = &root.children[0] {
             if let HNode::Element(img_elem) = &div_elem.children[0] {
                 assert_eq!(
-                    img_elem.attributes.get(&"loading".to_string()),
+                    img_elem.attributes.get("loading"),
                     Some(&"lazy".to_string())
                 );
                 assert_eq!(
-                    img_elem.attributes.get(&"decoding".to_string()),
+                    img_elem.attributes.get("decoding"),
                     Some(&"async".to_string())
                 );
             } else {
@@ -173,7 +158,7 @@ mod tests {
         apply_img_lazy_loading(&mut root, 10);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(elem.attributes.get(&"loading".to_string()).is_none());
+            assert!(elem.attributes.get("loading").is_none());
         }
     }
 }

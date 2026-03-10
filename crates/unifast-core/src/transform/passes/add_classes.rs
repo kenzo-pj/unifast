@@ -15,7 +15,7 @@ pub fn apply_add_classes(root: &mut HRoot, rules: &[(String, String)]) {
         .filter_map(|(sel, cls)| {
             parse_css_selector(sel)
                 .ok()
-                .map(|selector| (selector, cls.clone()))
+                .map(|selector| (selector, cls.as_str()))
         })
         .collect();
 
@@ -25,7 +25,7 @@ pub fn apply_add_classes(root: &mut HRoot, rules: &[(String, String)]) {
 
     let arena = HastArena::from_hroot(root);
 
-    let mut class_map: HashMap<NodeId, Vec<String>> = HashMap::new();
+    let mut class_map: HashMap<NodeId, Vec<&str>> = HashMap::new();
 
     for elem_id in arena.elements() {
         let elem_ref = arena.node_ref(elem_id);
@@ -34,7 +34,7 @@ pub fn apply_add_classes(root: &mut HRoot, rules: &[(String, String)]) {
                 class_map
                     .entry(arena.node(elem_id).original_id)
                     .or_default()
-                    .push(classes.clone());
+                    .push(classes);
             }
         }
     }
@@ -44,7 +44,7 @@ pub fn apply_add_classes(root: &mut HRoot, rules: &[(String, String)]) {
     }
 }
 
-fn apply_classes_to_tree(children: &mut [HNode], class_map: &HashMap<NodeId, Vec<String>>) {
+fn apply_classes_to_tree(children: &mut [HNode], class_map: &HashMap<NodeId, Vec<&str>>) {
     for child in children.iter_mut() {
         match child {
             HNode::Element(elem) => {
@@ -64,14 +64,14 @@ fn apply_classes_to_tree(children: &mut [HNode], class_map: &HashMap<NodeId, Vec
 }
 
 fn add_class(elem: &mut HElement, classes: &str) {
-    let key = "class".to_string();
-    if let Some(existing) = elem.attributes.get(&key) {
-        let mut merged = existing.clone();
+    if let Some(existing) = elem.attributes.get("class") {
+        let mut merged = String::with_capacity(existing.len() + 1 + classes.len());
+        merged.push_str(existing);
         merged.push(' ');
         merged.push_str(classes);
-        elem.attributes.insert(key, merged);
+        elem.attributes.insert("class".into(), merged);
     } else {
-        elem.attributes.insert(key, classes.to_string());
+        elem.attributes.insert("class".into(), classes.to_string());
     }
 }
 
@@ -127,7 +127,7 @@ mod tests {
 
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(
-                elem.attributes.get(&"class".to_string()),
+                elem.attributes.get("class"),
                 Some(&"text-3xl font-bold".to_string())
             );
         } else {
@@ -150,7 +150,7 @@ mod tests {
         );
 
         if let HNode::Element(elem) = &root.children[0] {
-            let class = elem.attributes.get(&"class".to_string()).unwrap();
+            let class = elem.attributes.get("class").unwrap();
             assert!(
                 class.contains("border-red"),
                 "expected border-red in class: {class}"
@@ -180,10 +180,7 @@ mod tests {
         apply_add_classes(&mut root, &[("#main".to_string(), "container".to_string())]);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert_eq!(
-                elem.attributes.get(&"class".to_string()),
-                Some(&"container".to_string())
-            );
+            assert_eq!(elem.attributes.get("class"), Some(&"container".to_string()));
         } else {
             panic!("expected div element");
         }
@@ -201,10 +198,7 @@ mod tests {
         apply_add_classes(&mut root, &[("[href]".to_string(), "has-link".to_string())]);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert_eq!(
-                elem.attributes.get(&"class".to_string()),
-                Some(&"has-link".to_string())
-            );
+            assert_eq!(elem.attributes.get("class"), Some(&"has-link".to_string()));
         } else {
             panic!("expected a element");
         }
@@ -225,10 +219,7 @@ mod tests {
         );
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert_eq!(
-                elem.attributes.get(&"class".to_string()),
-                Some(&"external".to_string())
-            );
+            assert_eq!(elem.attributes.get("class"), Some(&"external".to_string()));
         } else {
             panic!("expected a element");
         }
@@ -249,10 +240,7 @@ mod tests {
         );
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert_eq!(
-                elem.attributes.get(&"class".to_string()),
-                Some(&"pdf-link".to_string())
-            );
+            assert_eq!(elem.attributes.get("class"), Some(&"pdf-link".to_string()));
         } else {
             panic!("expected a element");
         }
@@ -277,7 +265,7 @@ mod tests {
 
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(
-                elem.attributes.get(&"class".to_string()),
+                elem.attributes.get("class"),
                 Some(&"example-link".to_string())
             );
         } else {
@@ -301,7 +289,7 @@ mod tests {
         if let HNode::Element(pre_elem) = &root.children[0] {
             if let HNode::Element(code_elem) = &pre_elem.children[0] {
                 assert_eq!(
-                    code_elem.attributes.get(&"class".to_string()),
+                    code_elem.attributes.get("class"),
                     Some(&"highlighted".to_string())
                 );
             } else {
@@ -330,7 +318,7 @@ mod tests {
             if let HNode::Element(div_elem) = &pre_elem.children[0] {
                 if let HNode::Element(code_elem) = &div_elem.children[0] {
                     assert!(
-                        code_elem.attributes.get(&"class".to_string()).is_none(),
+                        code_elem.attributes.get("class").is_none(),
                         "child combinator should not match grandchild"
                     );
                 } else {
@@ -362,7 +350,7 @@ mod tests {
             if let HNode::Element(div_elem) = &pre_elem.children[0] {
                 if let HNode::Element(code_elem) = &div_elem.children[0] {
                     assert_eq!(
-                        code_elem.attributes.get(&"class".to_string()),
+                        code_elem.attributes.get("class"),
                         Some(&"highlighted".to_string())
                     );
                 } else {
@@ -388,7 +376,7 @@ mod tests {
         apply_add_classes(&mut root, &[("h1".to_string(), "added".to_string())]);
 
         if let HNode::Element(elem) = &root.children[0] {
-            let class = elem.attributes.get(&"class".to_string()).unwrap();
+            let class = elem.attributes.get("class").unwrap();
             assert_eq!(class, "existing added");
         } else {
             panic!("expected h1 element");
@@ -411,7 +399,7 @@ mod tests {
         );
 
         if let HNode::Element(elem) = &root.children[0] {
-            let class = elem.attributes.get(&"class".to_string()).unwrap();
+            let class = elem.attributes.get("class").unwrap();
             assert!(class.contains("text-3xl"), "missing text-3xl: {class}");
             assert!(class.contains("font-bold"), "missing font-bold: {class}");
         } else {
@@ -433,20 +421,14 @@ mod tests {
         apply_add_classes(&mut root, &[("h1, h2".to_string(), "heading".to_string())]);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert_eq!(
-                elem.attributes.get(&"class".to_string()),
-                Some(&"heading".to_string())
-            );
+            assert_eq!(elem.attributes.get("class"), Some(&"heading".to_string()));
         }
         if let HNode::Element(elem) = &root.children[1] {
-            assert_eq!(
-                elem.attributes.get(&"class".to_string()),
-                Some(&"heading".to_string())
-            );
+            assert_eq!(elem.attributes.get("class"), Some(&"heading".to_string()));
         }
         if let HNode::Element(elem) = &root.children[2] {
             assert!(
-                elem.attributes.get(&"class".to_string()).is_none(),
+                elem.attributes.get("class").is_none(),
                 "p should not match h1, h2 selector"
             );
         }
@@ -462,7 +444,7 @@ mod tests {
         apply_add_classes(&mut root, &[("h1".to_string(), "text-3xl".to_string())]);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(elem.attributes.get(&"class".to_string()).is_none());
+            assert!(elem.attributes.get("class").is_none());
         }
     }
 
@@ -476,7 +458,7 @@ mod tests {
         apply_add_classes(&mut root, &[]);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(elem.attributes.get(&"class".to_string()).is_none());
+            assert!(elem.attributes.get("class").is_none());
         }
     }
 
@@ -500,7 +482,7 @@ mod tests {
                 if let HNode::Element(p_e) = &div_e.children[0] {
                     if let HNode::Element(span_e) = &p_e.children[0] {
                         assert_eq!(
-                            span_e.attributes.get(&"class".to_string()),
+                            span_e.attributes.get("class"),
                             Some(&"deep-span".to_string())
                         );
                     } else {
@@ -536,7 +518,7 @@ mod tests {
         );
 
         if let HNode::Element(elem) = &root.children[0] {
-            let class = elem.attributes.get(&"class".to_string()).unwrap();
+            let class = elem.attributes.get("class").unwrap();
             assert!(class.contains("matched"), "expected matched in: {class}");
         } else {
             panic!("expected div element");
@@ -557,7 +539,7 @@ mod tests {
         );
 
         if let HNode::Element(elem) = &root.children[0] {
-            let class = elem.attributes.get(&"class".to_string()).unwrap();
+            let class = elem.attributes.get("class").unwrap();
             assert!(class.contains("matched"), "expected matched in: {class}");
         } else {
             panic!("expected div element");
@@ -580,16 +562,13 @@ mod tests {
 
         if let HNode::Element(ul_e) = &root.children[0] {
             if let HNode::Element(first) = &ul_e.children[0] {
-                assert_eq!(
-                    first.attributes.get(&"class".to_string()),
-                    Some(&"first".to_string())
-                );
+                assert_eq!(first.attributes.get("class"), Some(&"first".to_string()));
             }
             if let HNode::Element(second) = &ul_e.children[1] {
-                assert!(second.attributes.get(&"class".to_string()).is_none());
+                assert!(second.attributes.get("class").is_none());
             }
             if let HNode::Element(third) = &ul_e.children[2] {
-                assert!(third.attributes.get(&"class".to_string()).is_none());
+                assert!(third.attributes.get("class").is_none());
             }
         } else {
             panic!("expected ul element");
@@ -612,13 +591,10 @@ mod tests {
 
         if let HNode::Element(ul_e) = &root.children[0] {
             if let HNode::Element(first) = &ul_e.children[0] {
-                assert!(first.attributes.get(&"class".to_string()).is_none());
+                assert!(first.attributes.get("class").is_none());
             }
             if let HNode::Element(last) = &ul_e.children[2] {
-                assert_eq!(
-                    last.attributes.get(&"class".to_string()),
-                    Some(&"last".to_string())
-                );
+                assert_eq!(last.attributes.get("class"), Some(&"last".to_string()));
             }
         } else {
             panic!("expected ul element");
@@ -644,13 +620,13 @@ mod tests {
                 if let HNode::Element(li) = child {
                     if i % 2 == 0 {
                         assert_eq!(
-                            li.attributes.get(&"class".to_string()),
+                            li.attributes.get("class"),
                             Some(&"odd".to_string()),
                             "expected odd at index {i}"
                         );
                     } else {
                         assert!(
-                            li.attributes.get(&"class".to_string()).is_none(),
+                            li.attributes.get("class").is_none(),
                             "expected no class at index {i}"
                         );
                     }
@@ -676,17 +652,14 @@ mod tests {
         );
 
         if let HNode::Element(first) = &root.children[0] {
-            let class = first.attributes.get(&"class".to_string()).unwrap();
+            let class = first.attributes.get("class").unwrap();
             assert!(
                 !class.contains("not-foo"),
                 "div.foo should not match :not(.foo)"
             );
         }
         if let HNode::Element(second) = &root.children[1] {
-            assert_eq!(
-                second.attributes.get(&"class".to_string()),
-                Some(&"not-foo".to_string())
-            );
+            assert_eq!(second.attributes.get("class"), Some(&"not-foo".to_string()));
         }
     }
 
@@ -702,13 +675,13 @@ mod tests {
 
         if let HNode::Element(p_elem) = &root.children[1] {
             assert_eq!(
-                p_elem.attributes.get(&"class".to_string()),
+                p_elem.attributes.get("class"),
                 Some(&"after-h1".to_string())
             );
         }
         if let HNode::Element(div_elem) = &root.children[2] {
             assert!(
-                div_elem.attributes.get(&"class".to_string()).is_none(),
+                div_elem.attributes.get("class").is_none(),
                 "div is not adjacent to h1"
             );
         }
@@ -730,19 +703,19 @@ mod tests {
 
         if let HNode::Element(p1_elem) = &root.children[1] {
             assert_eq!(
-                p1_elem.attributes.get(&"class".to_string()),
+                p1_elem.attributes.get("class"),
                 Some(&"sibling-of-h1".to_string())
             );
         }
         if let HNode::Element(p2_elem) = &root.children[3] {
             assert_eq!(
-                p2_elem.attributes.get(&"class".to_string()),
+                p2_elem.attributes.get("class"),
                 Some(&"sibling-of-h1".to_string())
             );
         }
         if let HNode::Element(div_elem) = &root.children[2] {
             assert!(
-                div_elem.attributes.get(&"class".to_string()).is_none(),
+                div_elem.attributes.get("class").is_none(),
                 "div should not match h1 ~ p"
             );
         }
@@ -762,12 +735,12 @@ mod tests {
 
         if let HNode::Element(div_e) = &root.children[0] {
             assert!(
-                div_e.attributes.get(&"class".to_string()).is_none(),
+                div_e.attributes.get("class").is_none(),
                 "div itself should not match div > *"
             );
             if let HNode::Element(p_e) = &div_e.children[0] {
                 assert_eq!(
-                    p_e.attributes.get(&"class".to_string()),
+                    p_e.attributes.get("class"),
                     Some(&"child-of-div".to_string())
                 );
             }
@@ -790,14 +763,11 @@ mod tests {
         );
 
         if let HNode::Element(empty) = &root.children[0] {
-            assert_eq!(
-                empty.attributes.get(&"class".to_string()),
-                Some(&"is-empty".to_string())
-            );
+            assert_eq!(empty.attributes.get("class"), Some(&"is-empty".to_string()));
         }
         if let HNode::Element(nonempty) = &root.children[1] {
             assert!(
-                nonempty.attributes.get(&"class".to_string()).is_none(),
+                nonempty.attributes.get("class").is_none(),
                 "non-empty div should not match :empty"
             );
         }
@@ -817,7 +787,7 @@ mod tests {
         );
 
         if let HNode::Element(elem) = &root.children[0] {
-            let class = elem.attributes.get(&"class".to_string()).unwrap();
+            let class = elem.attributes.get("class").unwrap();
             assert!(class.contains("has-bar"), "expected has-bar in: {class}");
         } else {
             panic!("expected div element");
@@ -843,12 +813,12 @@ mod tests {
         );
 
         if let HNode::Element(elem) = &root.children[0] {
-            let class = elem.attributes.get(&"class".to_string());
+            let class = elem.attributes.get("class");
             assert_eq!(class, Some(&"english".to_string()));
         }
         if let HNode::Element(elem) = &root.children[1] {
             assert!(
-                elem.attributes.get(&"class".to_string()).is_none(),
+                elem.attributes.get("class").is_none(),
                 "fr should not match [lang|=en]"
             );
         }

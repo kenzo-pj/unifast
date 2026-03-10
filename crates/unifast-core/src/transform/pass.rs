@@ -64,6 +64,26 @@ pub trait Pass: Send + Sync {
     fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult;
 }
 
+pub type PassFnPtr = fn(&mut PassContext, &mut AstPayload) -> PassResult;
+
+pub(crate) struct FnPtrPass {
+    pub name: &'static str,
+    pub phase: Phase,
+    pub run_fn: PassFnPtr,
+}
+
+impl Pass for FnPtrPass {
+    fn name(&self) -> &'static str {
+        self.name
+    }
+    fn phase(&self) -> Phase {
+        self.phase
+    }
+    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
+        (self.run_fn)(ctx, ast)
+    }
+}
+
 type PassFn = Box<dyn Fn(&mut PassContext, &mut AstPayload) -> PassResult + Send + Sync>;
 
 pub(crate) struct FnPass {

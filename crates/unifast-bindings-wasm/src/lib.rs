@@ -15,9 +15,9 @@ pub fn compile_to_html(input: &str) -> String {
 }
 
 #[wasm_bindgen]
-#[must_use]
-pub fn compile_with_options(input: &str, options_json: &str) -> String {
-    let opts = CompileOptions::from_json(options_json).unwrap_or_default();
+pub fn compile_with_options(input: &str, options_json: &str) -> Result<String, JsValue> {
+    let opts = CompileOptions::from_json(options_json)
+        .map_err(|e| JsValue::from_str(&format!("invalid options JSON: {e}")))?;
     let result = compile::compile(input, &opts);
-    result.to_json_string()
+    Ok(result.to_json_string())
 }

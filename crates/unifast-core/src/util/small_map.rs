@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::collections::BTreeMap;
 
 use serde::ser::{Serialize, SerializeMap, Serializer};
@@ -15,7 +16,11 @@ impl<K: Ord, V> SmallMap<K, V> {
         self.0.insert(key, value)
     }
 
-    pub fn get(&self, key: &K) -> Option<&V> {
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        K: Borrow<Q>,
+        Q: Ord + ?Sized,
+    {
         self.0.get(key)
     }
 
@@ -33,11 +38,19 @@ impl<K: Ord, V> SmallMap<K, V> {
         self.0.is_empty()
     }
 
-    pub fn contains_key(&self, key: &K) -> bool {
+    pub fn contains_key<Q>(&self, key: &Q) -> bool
+    where
+        K: Borrow<Q>,
+        Q: Ord + ?Sized,
+    {
         self.0.contains_key(key)
     }
 
-    pub fn remove(&mut self, key: &K) -> Option<V> {
+    pub fn remove<Q>(&mut self, key: &Q) -> Option<V>
+    where
+        K: Borrow<Q>,
+        Q: Ord + ?Sized,
+    {
         self.0.remove(key)
     }
 }

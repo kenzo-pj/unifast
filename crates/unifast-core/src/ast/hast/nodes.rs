@@ -212,14 +212,8 @@ mod tests {
         if let HNode::Element(e) = &el {
             assert_eq!(e.tag, "div");
             assert_eq!(e.attributes.len(), 3);
-            assert_eq!(
-                e.attributes.get(&"class".to_string()),
-                Some(&"container".to_string())
-            );
-            assert_eq!(
-                e.attributes.get(&"id".to_string()),
-                Some(&"main".to_string())
-            );
+            assert_eq!(e.attributes.get("class"), Some(&"container".to_string()));
+            assert_eq!(e.attributes.get("id"), Some(&"main".to_string()));
             assert!(!e.self_closing);
         } else {
             panic!("expected Element");
@@ -441,10 +435,7 @@ mod tests {
         if let HNode::Element(e) = &img {
             assert!(e.self_closing);
             assert_eq!(e.tag, "img");
-            assert_eq!(
-                e.attributes.get(&"src".to_string()),
-                Some(&"photo.jpg".to_string())
-            );
+            assert_eq!(e.attributes.get("src"), Some(&"photo.jpg".to_string()));
         }
     }
 }

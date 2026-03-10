@@ -1,6 +1,6 @@
 ---
 title: "Key Concepts"
-description: "Understand unifast's multi-stage compilation pipeline, plugin system, and how MdAst and HAst transformations work."
+description: "Understand unifast's multi-stage compilation pipeline, built-in passes, and how MdAst and HAst transformations work."
 ---
 
 unifast compiles Markdown through a multi-stage pipeline. Understanding these stages helps you configure the compiler and choose the right plugins.

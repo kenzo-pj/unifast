@@ -1,0 +1,1935 @@
+{
+  "summary": {
+    "total_benchmarks": 88,
+    "unifast_benchmarks": 50,
+    "avg_unifast_hz_change_pct": -55.26,
+    "avg_unifast_mean_change_pct": 140.89,
+    "notable_improvements": [],
+    "notable_regressions": [
+      {
+        "name": "compile.bench.ts > Markdown to HTML (simple) > unifast",
+        "hz_change": "-63.97%",
+        "mean_change": "177.55%"
+      },
+      {
+        "name": "compile.bench.ts > Markdown to HTML (readme) > unifast",
+        "hz_change": "-70.99%",
+        "mean_change": "244.69%"
+      },
+      {
+        "name": "compile.bench.ts > Markdown to HTML (large) > unifast",
+        "hz_change": "-62.23%",
+        "mean_change": "164.77%"
+      },
+      {
+        "name": "extras.bench.ts > External Links (readme) > unifast",
+        "hz_change": "-71.23%",
+        "mean_change": "247.59%"
+      },
+      {
+        "name": "extras.bench.ts > Autolink Headings (readme) > unifast",
+        "hz_change": "-46.51%",
+        "mean_change": "86.95%"
+      },
+      {
+        "name": "extras.bench.ts > Smartypants (readme) > unifast",
+        "hz_change": "-47.71%",
+        "mean_change": "91.25%"
+      },
+      {
+        "name": "extras.bench.ts > Emoji (all-features) > unifast",
+        "hz_change": "-45.14%",
+        "mean_change": "82.27%"
+      },
+      {
+        "name": "extras.bench.ts > Breaks (readme) > unifast",
+        "hz_change": "-45.13%",
+        "mean_change": "82.25%"
+      },
+      {
+        "name": "extras.bench.ts > Math (all-features) > unifast",
+        "hz_change": "-62.57%",
+        "mean_change": "167.18%"
+      },
+      {
+        "name": "extras.bench.ts > GitHub Alerts (all-features) > unifast",
+        "hz_change": "-72.13%",
+        "mean_change": "258.79%"
+      },
+      {
+        "name": "extras.bench.ts > Directive (all-features) > unifast",
+        "hz_change": "-36.34%",
+        "mean_change": "57.08%"
+      },
+      {
+        "name": "extras.bench.ts > Wiki Link (all-features) > unifast",
+        "hz_change": "-46.99%",
+        "mean_change": "88.65%"
+      },
+      {
+        "name": "frontmatter.bench.ts > Frontmatter (simple) > unifast",
+        "hz_change": "-31.48%",
+        "mean_change": "45.94%"
+      },
+      {
+        "name": "frontmatter.bench.ts > Frontmatter (readme) > unifast",
+        "hz_change": "-49.24%",
+        "mean_change": "96.99%"
+      },
+      {
+        "name": "frontmatter.bench.ts > Frontmatter (large) > unifast",
+        "hz_change": "-38.86%",
+        "mean_change": "63.56%"
+      },
+      {
+        "name": "gfm.bench.ts > GFM (simple) > unifast",
+        "hz_change": "-43.77%",
+        "mean_change": "77.83%"
+      },
+      {
+        "name": "gfm.bench.ts > GFM (readme) > unifast",
+        "hz_change": "-44.07%",
+        "mean_change": "78.81%"
+      },
+      {
+        "name": "gfm.bench.ts > GFM (large) > unifast",
+        "hz_change": "-55.16%",
+        "mean_change": "123.01%"
+      },
+      {
+        "name": "gfm.bench.ts > GFM + Footnotes (all-features) > unifast",
+        "hz_change": "-43.9%",
+        "mean_change": "78.25%"
+      },
+      {
+        "name": "highlight-hljs.bench.ts > highlight.js: unifast vs unified (readme) > unifast (plugin-highlight)",
+        "hz_change": "-58.88%",
+        "mean_change": "143.18%"
+      },
+      {
+        "name": "highlight-hljs.bench.ts > highlight.js: unifast vs unified (readme) > unified (rehype-highlight)",
+        "hz_change": "-59.58%",
+        "mean_change": "147.39%"
+      },
+      {
+        "name": "highlight-shiki.bench.ts > shiki: unifast vs unified (readme) > unifast (plugin-shiki)",
+        "hz_change": "-69.05%",
+        "mean_change": "223.06%"
+      },
+      {
+        "name": "highlight-shiki.bench.ts > shiki: unifast vs unified (readme) > unified (@shikijs/rehype)",
+        "hz_change": "-59.13%",
+        "mean_change": "144.71%"
+      },
+      {
+        "name": "highlight-syntect.bench.ts > syntect vs rehype-highlight (readme) > unifast (syntect)",
+        "hz_change": "-48.07%",
+        "mean_change": "92.56%"
+      },
+      {
+        "name": "highlight-treesitter.bench.ts > tree-sitter vs rehype-highlight (readme) > unifast (tree-sitter)",
+        "hz_change": "-49.77%",
+        "mean_change": "99.07%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Abbreviation (all-features) > unifast",
+        "hz_change": "-73.51%",
+        "mean_change": "277.43%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Comment Removal (all-features) > unifast",
+        "hz_change": "-75.31%",
+        "mean_change": "305.05%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Add Classes (readme) > unifast",
+        "hz_change": "-64.69%",
+        "mean_change": "183.2%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Minify (readme) > unifast",
+        "hz_change": "-64.72%",
+        "mean_change": "183.44%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Reading Time (readme) > unifast",
+        "hz_change": "-70.22%",
+        "mean_change": "235.75%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Accessible Emoji (all-features) > unifast",
+        "hz_change": "-75.65%",
+        "mean_change": "310.61%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Image Lazy Loading (readme) > unifast",
+        "hz_change": "-66.21%",
+        "mean_change": "195.94%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Figure (readme) > unifast",
+        "hz_change": "-70.53%",
+        "mean_change": "239.28%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Code Meta (all-features) > unifast",
+        "hz_change": "-70.82%",
+        "mean_change": "242.72%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Excerpt (all-features) > unifast",
+        "hz_change": "-66.02%",
+        "mean_change": "194.26%"
+      },
+      {
+        "name": "rehype-compat.bench.ts > Custom Heading ID (all-features) > unifast",
+        "hz_change": "-61.6%",
+        "mean_change": "160.41%"
+      },
+      {
+        "name": "sanitize.bench.ts > Sanitize (simple) > unifast",
+        "hz_change": "-47.14%",
+        "mean_change": "89.18%"
+      },
+      {
+        "name": "sanitize.bench.ts > Sanitize (readme) > unifast",
+        "hz_change": "-47.77%",
+        "mean_change": "91.48%"
+      },
+      {
+        "name": "sanitize.bench.ts > Sanitize (large) > unifast",
+        "hz_change": "-44.77%",
+        "mean_change": "81.06%"
+      },
+      {
+        "name": "toc.bench.ts > TOC + Slug (simple) > unifast",
+        "hz_change": "-45.46%",
+        "mean_change": "83.35%"
+      },
+      {
+        "name": "toc.bench.ts > TOC + Slug (readme) > unifast",
+        "hz_change": "-48.8%",
+        "mean_change": "95.31%"
+      },
+      {
+        "name": "toc.bench.ts > TOC + Slug (large) > unifast",
+        "hz_change": "-45.88%",
+        "mean_change": "84.78%"
+      },
+      {
+        "name": "unifast-only.bench.ts > Sectionize (readme) > unifast",
+        "hz_change": "-52.47%",
+        "mean_change": "110.39%"
+      },
+      {
+        "name": "unifast-only.bench.ts > Sectionize (readme) > unified (baseline)",
+        "hz_change": "-45.67%",
+        "mean_change": "84.05%"
+      },
+      {
+        "name": "unifast-only.bench.ts > Definition List (all-features) > unifast",
+        "hz_change": "-47.57%",
+        "mean_change": "90.74%"
+      },
+      {
+        "name": "unifast-only.bench.ts > Definition List (all-features) > unified (baseline)",
+        "hz_change": "-59.27%",
+        "mean_change": "145.51%"
+      },
+      {
+        "name": "unifast-only.bench.ts > Ruby Annotation (all-features) > unifast",
+        "hz_change": "-45.36%",
+        "mean_change": "83.03%"
+      },
+      {
+        "name": "unifast-only.bench.ts > Ruby Annotation (all-features) > unified (baseline)",
+        "hz_change": "-46.16%",
+        "mean_change": "85.75%"
+      },
+      {
+        "name": "unifast-only.bench.ts > CJK (all-features) > unifast",
+        "hz_change": "-47.85%",
+        "mean_change": "91.75%"
+      },
+      {
+        "name": "unifast-only.bench.ts > CJK (all-features) > unified (baseline)",
+        "hz_change": "-57.74%",
+        "mean_change": "136.61%"
+      }
+    ]
+  },
+  "details": [
+    {
+      "benchmark": "compile.bench.ts > Markdown to HTML (simple) > unifast",
+      "current": {
+        "hz": 1968.92,
+        "mean_ms": 0.5079,
+        "p75_ms": 0.5899,
+        "p99_ms": 0.9317
+      },
+      "previous": {
+        "hz": 5464.7,
+        "mean_ms": 0.183,
+        "p75_ms": 0.1847,
+        "p99_ms": 0.3147
+      },
+      "change": {
+        "hz_pct": -63.97,
+        "mean_pct": 177.55
+      }
+    },
+    {
+      "benchmark": "compile.bench.ts > Markdown to HTML (simple) > unified",
+      "current": {
+        "hz": 58.53,
+        "mean_ms": 17.086,
+        "p75_ms": 20.2807,
+        "p99_ms": 27.0811
+      },
+      "previous": {
+        "hz": 209.4,
+        "mean_ms": 4.7755,
+        "p75_ms": 5.1799,
+        "p99_ms": 12.2928
+      },
+      "change": {
+        "hz_pct": -72.05,
+        "mean_pct": 257.78
+      }
+    },
+    {
+      "benchmark": "compile.bench.ts > Markdown to HTML (readme) > unifast",
+      "current": {
+        "hz": 699.73,
+        "mean_ms": 1.4291,
+        "p75_ms": 1.5572,
+        "p99_ms": 2.1641
+      },
+      "previous": {
+        "hz": 2411.94,
+        "mean_ms": 0.4146,
+        "p75_ms": 0.4174,
+        "p99_ms": 0.7712
+      },
+      "change": {
+        "hz_pct": -70.99,
+        "mean_pct": 244.69
+      }
+    },
+    {
+      "benchmark": "compile.bench.ts > Markdown to HTML (readme) > unified",
+      "current": {
+        "hz": 30.97,
+        "mean_ms": 32.2895,
+        "p75_ms": 34.9329,
+        "p99_ms": 36.8601
+      },
+      "previous": {
+        "hz": 89.15,
+        "mean_ms": 11.2171,
+        "p75_ms": 12.2911,
+        "p99_ms": 18.6215
+      },
+      "change": {
+        "hz_pct": -65.26,
+        "mean_pct": 187.86
+      }
+    },
+    {
+      "benchmark": "compile.bench.ts > Markdown to HTML (large) > unifast",
+      "current": {
+        "hz": 315.15,
+        "mean_ms": 3.1731,
+        "p75_ms": 3.5403,
+        "p99_ms": 4.7086
+      },
+      "previous": {
+        "hz": 834.41,
+        "mean_ms": 1.1985,
+        "p75_ms": 1.2263,
+        "p99_ms": 2.6654
+      },
+      "change": {
+        "hz_pct": -62.23,
+        "mean_pct": 164.77
+      }
+    },
+    {
+      "benchmark": "compile.bench.ts > Markdown to HTML (large) > unified",
+      "current": {
+        "hz": 15.81,
+        "mean_ms": 63.2327,
+        "p75_ms": 68.3807,
+        "p99_ms": 92.8997
+      },
+      "previous": {
+        "hz": 31.73,
+        "mean_ms": 31.5128,
+        "p75_ms": 33.1064,
+        "p99_ms": 36.4098
+      },
+      "change": {
+        "hz_pct": -50.16,
+        "mean_pct": 100.66
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > External Links (readme) > unifast",
+      "current": {
+        "hz": 619.81,
+        "mean_ms": 1.6134,
+        "p75_ms": 1.7274,
+        "p99_ms": 2.7447
+      },
+      "previous": {
+        "hz": 2154.42,
+        "mean_ms": 0.4642,
+        "p75_ms": 0.4797,
+        "p99_ms": 0.8646
+      },
+      "change": {
+        "hz_pct": -71.23,
+        "mean_pct": 247.59
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > External Links (readme) > unified",
+      "current": {
+        "hz": 33.7,
+        "mean_ms": 29.6763,
+        "p75_ms": 32.1841,
+        "p99_ms": 55.372
+      },
+      "previous": {
+        "hz": 75.74,
+        "mean_ms": 13.2037,
+        "p75_ms": 16.2418,
+        "p99_ms": 21.6211
+      },
+      "change": {
+        "hz_pct": -55.51,
+        "mean_pct": 124.76
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Autolink Headings (readme) > unifast",
+      "current": {
+        "hz": 1137.16,
+        "mean_ms": 0.8794,
+        "p75_ms": 0.968,
+        "p99_ms": 1.2565
+      },
+      "previous": {
+        "hz": 2125.86,
+        "mean_ms": 0.4704,
+        "p75_ms": 0.4705,
+        "p99_ms": 0.7602
+      },
+      "change": {
+        "hz_pct": -46.51,
+        "mean_pct": 86.95
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Autolink Headings (readme) > unified",
+      "current": {
+        "hz": 40.7,
+        "mean_ms": 24.5727,
+        "p75_ms": 27.3893,
+        "p99_ms": 36.7087
+      },
+      "previous": {
+        "hz": 79.69,
+        "mean_ms": 12.549,
+        "p75_ms": 12.7245,
+        "p99_ms": 22.1935
+      },
+      "change": {
+        "hz_pct": -48.93,
+        "mean_pct": 95.81
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Smartypants (readme) > unifast",
+      "current": {
+        "hz": 1048.82,
+        "mean_ms": 0.9535,
+        "p75_ms": 1.0192,
+        "p99_ms": 1.7702
+      },
+      "previous": {
+        "hz": 2005.9,
+        "mean_ms": 0.4985,
+        "p75_ms": 0.5026,
+        "p99_ms": 0.9885
+      },
+      "change": {
+        "hz_pct": -47.71,
+        "mean_pct": 91.25
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Smartypants (readme) > unified",
+      "current": {
+        "hz": 31.97,
+        "mean_ms": 31.2838,
+        "p75_ms": 32.231,
+        "p99_ms": 41.4884
+      },
+      "previous": {
+        "hz": 61.59,
+        "mean_ms": 16.2359,
+        "p75_ms": 18.2727,
+        "p99_ms": 22.5753
+      },
+      "change": {
+        "hz_pct": -48.1,
+        "mean_pct": 92.68
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Emoji (all-features) > unifast",
+      "current": {
+        "hz": 1162.07,
+        "mean_ms": 0.8605,
+        "p75_ms": 0.9367,
+        "p99_ms": 1.7175
+      },
+      "previous": {
+        "hz": 2118.12,
+        "mean_ms": 0.4721,
+        "p75_ms": 0.4879,
+        "p99_ms": 0.7774
+      },
+      "change": {
+        "hz_pct": -45.14,
+        "mean_pct": 82.27
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Emoji (all-features) > unified",
+      "current": {
+        "hz": 57.96,
+        "mean_ms": 17.2527,
+        "p75_ms": 20.9693,
+        "p99_ms": 38.7235
+      },
+      "previous": {
+        "hz": 130.93,
+        "mean_ms": 7.6374,
+        "p75_ms": 7.6409,
+        "p99_ms": 16.9185
+      },
+      "change": {
+        "hz_pct": -55.73,
+        "mean_pct": 125.9
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Breaks (readme) > unifast",
+      "current": {
+        "hz": 1289.15,
+        "mean_ms": 0.7757,
+        "p75_ms": 0.8365,
+        "p99_ms": 1.4336
+      },
+      "previous": {
+        "hz": 2349.49,
+        "mean_ms": 0.4256,
+        "p75_ms": 0.4336,
+        "p99_ms": 0.5202
+      },
+      "change": {
+        "hz_pct": -45.13,
+        "mean_pct": 82.25
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Breaks (readme) > unified",
+      "current": {
+        "hz": 37.83,
+        "mean_ms": 26.4306,
+        "p75_ms": 32.2423,
+        "p99_ms": 42.7916
+      },
+      "previous": {
+        "hz": 87.54,
+        "mean_ms": 11.4239,
+        "p75_ms": 12.0633,
+        "p99_ms": 19.3916
+      },
+      "change": {
+        "hz_pct": -56.78,
+        "mean_pct": 131.36
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Math (all-features) > unifast",
+      "current": {
+        "hz": 872.77,
+        "mean_ms": 1.1458,
+        "p75_ms": 1.2625,
+        "p99_ms": 2.0479
+      },
+      "previous": {
+        "hz": 2331.88,
+        "mean_ms": 0.4288,
+        "p75_ms": 0.4251,
+        "p99_ms": 0.8513
+      },
+      "change": {
+        "hz_pct": -62.57,
+        "mean_pct": 167.18
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Math (all-features) > unified",
+      "current": {
+        "hz": 41.1,
+        "mean_ms": 24.3301,
+        "p75_ms": 29.9843,
+        "p99_ms": 44.1875
+      },
+      "previous": {
+        "hz": 87.28,
+        "mean_ms": 11.4571,
+        "p75_ms": 12.2883,
+        "p99_ms": 18.0875
+      },
+      "change": {
+        "hz_pct": -52.91,
+        "mean_pct": 112.36
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > GitHub Alerts (all-features) > unifast",
+      "current": {
+        "hz": 606.97,
+        "mean_ms": 1.6475,
+        "p75_ms": 1.9192,
+        "p99_ms": 2.3936
+      },
+      "previous": {
+        "hz": 2177.74,
+        "mean_ms": 0.4592,
+        "p75_ms": 0.47,
+        "p99_ms": 1.0244
+      },
+      "change": {
+        "hz_pct": -72.13,
+        "mean_pct": 258.79
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > GitHub Alerts (all-features) > unified",
+      "current": {
+        "hz": 68.78,
+        "mean_ms": 14.5384,
+        "p75_ms": 16.8331,
+        "p99_ms": 25.5895
+      },
+      "previous": {
+        "hz": 137.92,
+        "mean_ms": 7.2504,
+        "p75_ms": 7.4604,
+        "p99_ms": 14.6864
+      },
+      "change": {
+        "hz_pct": -50.13,
+        "mean_pct": 100.52
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Directive (all-features) > unifast",
+      "current": {
+        "hz": 1506.34,
+        "mean_ms": 0.6639,
+        "p75_ms": 0.7091,
+        "p99_ms": 1.0677
+      },
+      "previous": {
+        "hz": 2366.24,
+        "mean_ms": 0.4226,
+        "p75_ms": 0.4335,
+        "p99_ms": 0.7218
+      },
+      "change": {
+        "hz_pct": -36.34,
+        "mean_pct": 57.08
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Directive (all-features) > unified",
+      "current": {
+        "hz": 64.83,
+        "mean_ms": 15.4249,
+        "p75_ms": 16.4598,
+        "p99_ms": 29.0658
+      },
+      "previous": {
+        "hz": 132.54,
+        "mean_ms": 7.5449,
+        "p75_ms": 7.9371,
+        "p99_ms": 13.1808
+      },
+      "change": {
+        "hz_pct": -51.09,
+        "mean_pct": 104.44
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Wiki Link (all-features) > unifast",
+      "current": {
+        "hz": 1198.26,
+        "mean_ms": 0.8345,
+        "p75_ms": 0.9007,
+        "p99_ms": 1.6586
+      },
+      "previous": {
+        "hz": 2260.57,
+        "mean_ms": 0.4424,
+        "p75_ms": 0.4587,
+        "p99_ms": 0.6304
+      },
+      "change": {
+        "hz_pct": -46.99,
+        "mean_pct": 88.65
+      }
+    },
+    {
+      "benchmark": "extras.bench.ts > Wiki Link (all-features) > unified",
+      "current": {
+        "hz": 62.94,
+        "mean_ms": 15.8873,
+        "p75_ms": 16.9979,
+        "p99_ms": 24.0233
+      },
+      "previous": {
+        "hz": 135.51,
+        "mean_ms": 7.3798,
+        "p75_ms": 7.3025,
+        "p99_ms": 17.39
+      },
+      "change": {
+        "hz_pct": -53.55,
+        "mean_pct": 115.28
+      }
+    },
+    {
+      "benchmark": "frontmatter.bench.ts > Frontmatter (simple) > unifast",
+      "current": {
+        "hz": 3337.12,
+        "mean_ms": 0.2997,
+        "p75_ms": 0.319,
+        "p99_ms": 0.546
+      },
+      "previous": {
+        "hz": 4870.28,
+        "mean_ms": 0.2053,
+        "p75_ms": 0.2093,
+        "p99_ms": 0.3797
+      },
+      "change": {
+        "hz_pct": -31.48,
+        "mean_pct": 45.94
+      }
+    },
+    {
+      "benchmark": "frontmatter.bench.ts > Frontmatter (simple) > unified",
+      "current": {
+        "hz": 95.47,
+        "mean_ms": 10.474,
+        "p75_ms": 11.661,
+        "p99_ms": 16.469
+      },
+      "previous": {
+        "hz": 199.63,
+        "mean_ms": 5.0093,
+        "p75_ms": 5.4393,
+        "p99_ms": 15.2538
+      },
+      "change": {
+        "hz_pct": -52.17,
+        "mean_pct": 109.09
+      }
+    },
+    {
+      "benchmark": "frontmatter.bench.ts > Frontmatter (readme) > unifast",
+      "current": {
+        "hz": 1112.51,
+        "mean_ms": 0.8989,
+        "p75_ms": 0.9919,
+        "p99_ms": 1.655
+      },
+      "previous": {
+        "hz": 2191.54,
+        "mean_ms": 0.4563,
+        "p75_ms": 0.4566,
+        "p99_ms": 0.6044
+      },
+      "change": {
+        "hz_pct": -49.24,
+        "mean_pct": 96.99
+      }
+    },
+    {
+      "benchmark": "frontmatter.bench.ts > Frontmatter (readme) > unified",
+      "current": {
+        "hz": 49.16,
+        "mean_ms": 20.342,
+        "p75_ms": 22.3394,
+        "p99_ms": 23.4386
+      },
+      "previous": {
+        "hz": 86.74,
+        "mean_ms": 11.5283,
+        "p75_ms": 11.8557,
+        "p99_ms": 24.5212
+      },
+      "change": {
+        "hz_pct": -43.33,
+        "mean_pct": 76.45
+      }
+    },
+    {
+      "benchmark": "frontmatter.bench.ts > Frontmatter (large) > unifast",
+      "current": {
+        "hz": 460.22,
+        "mean_ms": 2.1729,
+        "p75_ms": 2.4186,
+        "p99_ms": 3.6631
+      },
+      "previous": {
+        "hz": 752.74,
+        "mean_ms": 1.3285,
+        "p75_ms": 1.4116,
+        "p99_ms": 2.8661
+      },
+      "change": {
+        "hz_pct": -38.86,
+        "mean_pct": 63.56
+      }
+    },
+    {
+      "benchmark": "frontmatter.bench.ts > Frontmatter (large) > unified",
+      "current": {
+        "hz": 14.08,
+        "mean_ms": 71.0251,
+        "p75_ms": 79.2118,
+        "p99_ms": 88.5044
+      },
+      "previous": {
+        "hz": 29.5,
+        "mean_ms": 33.9038,
+        "p75_ms": 37.5116,
+        "p99_ms": 44.2678
+      },
+      "change": {
+        "hz_pct": -52.27,
+        "mean_pct": 109.49
+      }
+    },
+    {
+      "benchmark": "gfm.bench.ts > GFM (simple) > unifast",
+      "current": {
+        "hz": 3200.99,
+        "mean_ms": 0.3124,
+        "p75_ms": 0.3369,
+        "p99_ms": 0.6275
+      },
+      "previous": {
+        "hz": 5692.41,
+        "mean_ms": 0.1757,
+        "p75_ms": 0.1766,
+        "p99_ms": 0.2541
+      },
+      "change": {
+        "hz_pct": -43.77,
+        "mean_pct": 77.83
+      }
+    },
+    {
+      "benchmark": "gfm.bench.ts > GFM (simple) > unified",
+      "current": {
+        "hz": 75.63,
+        "mean_ms": 13.2224,
+        "p75_ms": 15.4581,
+        "p99_ms": 26.6875
+      },
+      "previous": {
+        "hz": 148.18,
+        "mean_ms": 6.7484,
+        "p75_ms": 7.5298,
+        "p99_ms": 14.8066
+      },
+      "change": {
+        "hz_pct": -48.96,
+        "mean_pct": 95.93
+      }
+    },
+    {
+      "benchmark": "gfm.bench.ts > GFM (readme) > unifast",
+      "current": {
+        "hz": 1318.97,
+        "mean_ms": 0.7582,
+        "p75_ms": 0.813,
+        "p99_ms": 1.8165
+      },
+      "previous": {
+        "hz": 2358.43,
+        "mean_ms": 0.424,
+        "p75_ms": 0.434,
+        "p99_ms": 0.6736
+      },
+      "change": {
+        "hz_pct": -44.07,
+        "mean_pct": 78.81
+      }
+    },
+    {
+      "benchmark": "gfm.bench.ts > GFM (readme) > unified",
+      "current": {
+        "hz": 17.47,
+        "mean_ms": 57.2248,
+        "p75_ms": 63.5354,
+        "p99_ms": 81.9799
+      },
+      "previous": {
+        "hz": 59.45,
+        "mean_ms": 16.8223,
+        "p75_ms": 18.2839,
+        "p99_ms": 26.8814
+      },
+      "change": {
+        "hz_pct": -70.6,
+        "mean_pct": 240.17
+      }
+    },
+    {
+      "benchmark": "gfm.bench.ts > GFM (large) > unifast",
+      "current": {
+        "hz": 388.78,
+        "mean_ms": 2.5722,
+        "p75_ms": 3.4155,
+        "p99_ms": 6.1947
+      },
+      "previous": {
+        "hz": 866.99,
+        "mean_ms": 1.1534,
+        "p75_ms": 1.1609,
+        "p99_ms": 2.633
+      },
+      "change": {
+        "hz_pct": -55.16,
+        "mean_pct": 123.01
+      }
+    },
+    {
+      "benchmark": "gfm.bench.ts > GFM (large) > unified",
+      "current": {
+        "hz": 12.52,
+        "mean_ms": 79.8961,
+        "p75_ms": 86.5283,
+        "p99_ms": 92.735
+      },
+      "previous": {
+        "hz": 22.54,
+        "mean_ms": 44.3721,
+        "p75_ms": 47.0102,
+        "p99_ms": 49.3924
+      },
+      "change": {
+        "hz_pct": -44.46,
+        "mean_pct": 80.06
+      }
+    },
+    {
+      "benchmark": "gfm.bench.ts > GFM + Footnotes (all-features) > unifast",
+      "current": {
+        "hz": 1330.34,
+        "mean_ms": 0.7517,
+        "p75_ms": 0.8043,
+        "p99_ms": 1.3552
+      },
+      "previous": {
+        "hz": 2371.27,
+        "mean_ms": 0.4217,
+        "p75_ms": 0.4291,
+        "p99_ms": 0.5776
+      },
+      "change": {
+        "hz_pct": -43.9,
+        "mean_pct": 78.25
+      }
+    },
+    {
+      "benchmark": "gfm.bench.ts > GFM + Footnotes (all-features) > unified",
+      "current": {
+        "hz": 37.81,
+        "mean_ms": 26.4486,
+        "p75_ms": 27.8765,
+        "p99_ms": 33.8825
+      },
+      "previous": {
+        "hz": 81.61,
+        "mean_ms": 12.2534,
+        "p75_ms": 14.0578,
+        "p99_ms": 18.7414
+      },
+      "change": {
+        "hz_pct": -53.67,
+        "mean_pct": 115.85
+      }
+    },
+    {
+      "benchmark": "highlight-hljs.bench.ts > highlight.js: unifast vs unified (readme) > unifast (plugin-highlight)",
+      "current": {
+        "hz": 90.75,
+        "mean_ms": 11.0199,
+        "p75_ms": 12.1495,
+        "p99_ms": 16.7437
+      },
+      "previous": {
+        "hz": 220.67,
+        "mean_ms": 4.5316,
+        "p75_ms": 4.9487,
+        "p99_ms": 9.5737
+      },
+      "change": {
+        "hz_pct": -58.88,
+        "mean_pct": 143.18
+      }
+    },
+    {
+      "benchmark": "highlight-hljs.bench.ts > highlight.js: unifast vs unified (readme) > unified (rehype-highlight)",
+      "current": {
+        "hz": 23.23,
+        "mean_ms": 43.0561,
+        "p75_ms": 46.8475,
+        "p99_ms": 56.4383
+      },
+      "previous": {
+        "hz": 57.46,
+        "mean_ms": 17.4043,
+        "p75_ms": 19.4758,
+        "p99_ms": 23.9482
+      },
+      "change": {
+        "hz_pct": -59.58,
+        "mean_pct": 147.39
+      }
+    },
+    {
+      "benchmark": "highlight-shiki.bench.ts > shiki: unifast vs unified (readme) > unifast (plugin-shiki)",
+      "current": {
+        "hz": 19.45,
+        "mean_ms": 51.4138,
+        "p75_ms": 54.065,
+        "p99_ms": 57.92
+      },
+      "previous": {
+        "hz": 62.83,
+        "mean_ms": 15.9148,
+        "p75_ms": 16.5472,
+        "p99_ms": 21.5678
+      },
+      "change": {
+        "hz_pct": -69.05,
+        "mean_pct": 223.06
+      }
+    },
+    {
+      "benchmark": "highlight-shiki.bench.ts > shiki: unifast vs unified (readme) > unified (@shikijs/rehype)",
+      "current": {
+        "hz": 14.59,
+        "mean_ms": 68.5349,
+        "p75_ms": 78.8274,
+        "p99_ms": 92.6163
+      },
+      "previous": {
+        "hz": 35.71,
+        "mean_ms": 28.0068,
+        "p75_ms": 29.9415,
+        "p99_ms": 39.7379
+      },
+      "change": {
+        "hz_pct": -59.13,
+        "mean_pct": 144.71
+      }
+    },
+    {
+      "benchmark": "highlight-syntect.bench.ts > syntect vs rehype-highlight (readme) > unifast (syntect)",
+      "current": {
+        "hz": 80.78,
+        "mean_ms": 12.3786,
+        "p75_ms": 13.0589,
+        "p99_ms": 16.011
+      },
+      "previous": {
+        "hz": 155.56,
+        "mean_ms": 6.4284,
+        "p75_ms": 6.4896,
+        "p99_ms": 12.3375
+      },
+      "change": {
+        "hz_pct": -48.07,
+        "mean_pct": 92.56
+      }
+    },
+    {
+      "benchmark": "highlight-syntect.bench.ts > syntect vs rehype-highlight (readme) > unified (rehype-highlight)",
+      "current": {
+        "hz": 26.05,
+        "mean_ms": 38.3942,
+        "p75_ms": 42.5911,
+        "p99_ms": 44.356
+      },
+      "previous": {
+        "hz": 55.79,
+        "mean_ms": 17.9244,
+        "p75_ms": 21.2907,
+        "p99_ms": 27.2321
+      },
+      "change": {
+        "hz_pct": -53.31,
+        "mean_pct": 114.2
+      }
+    },
+    {
+      "benchmark": "highlight-treesitter.bench.ts > tree-sitter vs rehype-highlight (readme) > unifast (tree-sitter)",
+      "current": {
+        "hz": 220.55,
+        "mean_ms": 4.5342,
+        "p75_ms": 5.0353,
+        "p99_ms": 7.3934
+      },
+      "previous": {
+        "hz": 439.04,
+        "mean_ms": 2.2777,
+        "p75_ms": 2.3264,
+        "p99_ms": 3.7389
+      },
+      "change": {
+        "hz_pct": -49.77,
+        "mean_pct": 99.07
+      }
+    },
+    {
+      "benchmark": "highlight-treesitter.bench.ts > tree-sitter vs rehype-highlight (readme) > unified (rehype-highlight)",
+      "current": {
+        "hz": 17.57,
+        "mean_ms": 56.9011,
+        "p75_ms": 67.7029,
+        "p99_ms": 80.8166
+      },
+      "previous": {
+        "hz": 54.07,
+        "mean_ms": 18.4939,
+        "p75_ms": 21.0777,
+        "p99_ms": 28.6272
+      },
+      "change": {
+        "hz_pct": -67.5,
+        "mean_pct": 207.68
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Abbreviation (all-features) > unifast",
+      "current": {
+        "hz": 547.83,
+        "mean_ms": 1.8254,
+        "p75_ms": 2.0897,
+        "p99_ms": 2.7098
+      },
+      "previous": {
+        "hz": 2067.67,
+        "mean_ms": 0.4836,
+        "p75_ms": 0.4986,
+        "p99_ms": 0.7845
+      },
+      "change": {
+        "hz_pct": -73.51,
+        "mean_pct": 277.43
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Abbreviation (all-features) > unified (remark-abbr)",
+      "current": {
+        "hz": 31.64,
+        "mean_ms": 31.6006,
+        "p75_ms": 34.8984,
+        "p99_ms": 46.3258
+      },
+      "previous": {
+        "hz": 139.91,
+        "mean_ms": 7.1473,
+        "p75_ms": 7.8968,
+        "p99_ms": 11.3111
+      },
+      "change": {
+        "hz_pct": -77.38,
+        "mean_pct": 342.13
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Comment Removal (all-features) > unifast",
+      "current": {
+        "hz": 621.34,
+        "mean_ms": 1.6094,
+        "p75_ms": 1.8583,
+        "p99_ms": 2.5664
+      },
+      "previous": {
+        "hz": 2516.76,
+        "mean_ms": 0.3973,
+        "p75_ms": 0.4069,
+        "p99_ms": 0.5218
+      },
+      "change": {
+        "hz_pct": -75.31,
+        "mean_pct": 305.05
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Comment Removal (all-features) > unified (rehype-remove-comments)",
+      "current": {
+        "hz": 35.54,
+        "mean_ms": 28.1358,
+        "p75_ms": 31.8644,
+        "p99_ms": 42.5646
+      },
+      "previous": {
+        "hz": 134.81,
+        "mean_ms": 7.4177,
+        "p75_ms": 8.4082,
+        "p99_ms": 11.5917
+      },
+      "change": {
+        "hz_pct": -73.64,
+        "mean_pct": 279.31
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Add Classes (readme) > unifast",
+      "current": {
+        "hz": 803.59,
+        "mean_ms": 1.2444,
+        "p75_ms": 1.2977,
+        "p99_ms": 1.9481
+      },
+      "previous": {
+        "hz": 2275.81,
+        "mean_ms": 0.4394,
+        "p75_ms": 0.4626,
+        "p99_ms": 0.5886
+      },
+      "change": {
+        "hz_pct": -64.69,
+        "mean_pct": 183.2
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Add Classes (readme) > unified (rehype-class-names)",
+      "current": {
+        "hz": 27.04,
+        "mean_ms": 36.9883,
+        "p75_ms": 43.273,
+        "p99_ms": 47.7649
+      },
+      "previous": {
+        "hz": 75.56,
+        "mean_ms": 13.2346,
+        "p75_ms": 14.2891,
+        "p99_ms": 16.6771
+      },
+      "change": {
+        "hz_pct": -64.22,
+        "mean_pct": 179.48
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Minify (readme) > unifast",
+      "current": {
+        "hz": 676.25,
+        "mean_ms": 1.4788,
+        "p75_ms": 1.5909,
+        "p99_ms": 2.2808
+      },
+      "previous": {
+        "hz": 1916.78,
+        "mean_ms": 0.5217,
+        "p75_ms": 0.5534,
+        "p99_ms": 0.7328
+      },
+      "change": {
+        "hz_pct": -64.72,
+        "mean_pct": 183.44
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Minify (readme) > unified (rehype-preset-minify)",
+      "current": {
+        "hz": 13.76,
+        "mean_ms": 72.6892,
+        "p75_ms": 81.8397,
+        "p99_ms": 82.6867
+      },
+      "previous": {
+        "hz": 37.43,
+        "mean_ms": 26.7171,
+        "p75_ms": 32.1824,
+        "p99_ms": 36.3978
+      },
+      "change": {
+        "hz_pct": -63.24,
+        "mean_pct": 172.07
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Reading Time (readme) > unifast",
+      "current": {
+        "hz": 694.07,
+        "mean_ms": 1.4408,
+        "p75_ms": 1.5566,
+        "p99_ms": 2.2556
+      },
+      "previous": {
+        "hz": 2330.33,
+        "mean_ms": 0.4291,
+        "p75_ms": 0.4337,
+        "p99_ms": 0.8177
+      },
+      "change": {
+        "hz_pct": -70.22,
+        "mean_pct": 235.75
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Reading Time (readme) > unified + reading-time",
+      "current": {
+        "hz": 23.62,
+        "mean_ms": 42.3444,
+        "p75_ms": 44.6138,
+        "p99_ms": 60.7173
+      },
+      "previous": {
+        "hz": 90.73,
+        "mean_ms": 11.0221,
+        "p75_ms": 11.6013,
+        "p99_ms": 15.3591
+      },
+      "change": {
+        "hz_pct": -73.97,
+        "mean_pct": 284.18
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Accessible Emoji (all-features) > unifast",
+      "current": {
+        "hz": 587.64,
+        "mean_ms": 1.7017,
+        "p75_ms": 1.981,
+        "p99_ms": 2.5659
+      },
+      "previous": {
+        "hz": 2412.92,
+        "mean_ms": 0.4144,
+        "p75_ms": 0.4203,
+        "p99_ms": 0.5812
+      },
+      "change": {
+        "hz_pct": -75.65,
+        "mean_pct": 310.61
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Accessible Emoji (all-features) > unified (rehype-accessible-emojis)",
+      "current": {
+        "hz": 31.93,
+        "mean_ms": 31.3171,
+        "p75_ms": 32.3381,
+        "p99_ms": 39.5859
+      },
+      "previous": {
+        "hz": 106.21,
+        "mean_ms": 9.4157,
+        "p75_ms": 9.9519,
+        "p99_ms": 13.8545
+      },
+      "change": {
+        "hz_pct": -69.93,
+        "mean_pct": 232.61
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Image Lazy Loading (readme) > unifast",
+      "current": {
+        "hz": 783.8,
+        "mean_ms": 1.2758,
+        "p75_ms": 1.3579,
+        "p99_ms": 2.1128
+      },
+      "previous": {
+        "hz": 2319.59,
+        "mean_ms": 0.4311,
+        "p75_ms": 0.451,
+        "p99_ms": 0.5714
+      },
+      "change": {
+        "hz_pct": -66.21,
+        "mean_pct": 195.94
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Image Lazy Loading (readme) > unified (rehype-image-native-lazy-loading)",
+      "current": {
+        "hz": 26.89,
+        "mean_ms": 37.1906,
+        "p75_ms": 41.1924,
+        "p99_ms": 49.4091
+      },
+      "previous": {
+        "hz": 101.91,
+        "mean_ms": 9.8126,
+        "p75_ms": 10.539,
+        "p99_ms": 12.6571
+      },
+      "change": {
+        "hz_pct": -73.62,
+        "mean_pct": 279.01
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Figure (readme) > unifast",
+      "current": {
+        "hz": 694.5,
+        "mean_ms": 1.4399,
+        "p75_ms": 1.5346,
+        "p99_ms": 2.6492
+      },
+      "previous": {
+        "hz": 2356.29,
+        "mean_ms": 0.4244,
+        "p75_ms": 0.4324,
+        "p99_ms": 0.557
+      },
+      "change": {
+        "hz_pct": -70.53,
+        "mean_pct": 239.28
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Figure (readme) > unified (rehype-figure)",
+      "current": {
+        "hz": 28.43,
+        "mean_ms": 35.1689,
+        "p75_ms": 38.1416,
+        "p99_ms": 53.6656
+      },
+      "previous": {
+        "hz": 106.51,
+        "mean_ms": 9.3892,
+        "p75_ms": 9.6392,
+        "p99_ms": 14.1776
+      },
+      "change": {
+        "hz_pct": -73.3,
+        "mean_pct": 274.57
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Code Meta (all-features) > unifast",
+      "current": {
+        "hz": 685.62,
+        "mean_ms": 1.4585,
+        "p75_ms": 1.5958,
+        "p99_ms": 2.4722
+      },
+      "previous": {
+        "hz": 2349.74,
+        "mean_ms": 0.4256,
+        "p75_ms": 0.4199,
+        "p99_ms": 0.9057
+      },
+      "change": {
+        "hz_pct": -70.82,
+        "mean_pct": 242.72
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Code Meta (all-features) > unified (baseline)",
+      "current": {
+        "hz": 45.48,
+        "mean_ms": 21.9885,
+        "p75_ms": 22.9928,
+        "p99_ms": 32.7719
+      },
+      "previous": {
+        "hz": 155.35,
+        "mean_ms": 6.437,
+        "p75_ms": 6.9489,
+        "p99_ms": 10.0514
+      },
+      "change": {
+        "hz_pct": -70.73,
+        "mean_pct": 241.59
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Excerpt (all-features) > unifast",
+      "current": {
+        "hz": 792.42,
+        "mean_ms": 1.262,
+        "p75_ms": 1.375,
+        "p99_ms": 2.0816
+      },
+      "previous": {
+        "hz": 2331.82,
+        "mean_ms": 0.4288,
+        "p75_ms": 0.4296,
+        "p99_ms": 0.8541
+      },
+      "change": {
+        "hz_pct": -66.02,
+        "mean_pct": 194.26
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Excerpt (all-features) > unified (baseline)",
+      "current": {
+        "hz": 41.69,
+        "mean_ms": 23.9894,
+        "p75_ms": 26.4166,
+        "p99_ms": 33.7469
+      },
+      "previous": {
+        "hz": 151.92,
+        "mean_ms": 6.5825,
+        "p75_ms": 6.9874,
+        "p99_ms": 9.7087
+      },
+      "change": {
+        "hz_pct": -72.56,
+        "mean_pct": 264.45
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Custom Heading ID (all-features) > unifast",
+      "current": {
+        "hz": 924.47,
+        "mean_ms": 1.0817,
+        "p75_ms": 1.1609,
+        "p99_ms": 2.1799
+      },
+      "previous": {
+        "hz": 2407.45,
+        "mean_ms": 0.4154,
+        "p75_ms": 0.4181,
+        "p99_ms": 0.8549
+      },
+      "change": {
+        "hz_pct": -61.6,
+        "mean_pct": 160.41
+      }
+    },
+    {
+      "benchmark": "rehype-compat.bench.ts > Custom Heading ID (all-features) > unified (baseline)",
+      "current": {
+        "hz": 43.03,
+        "mean_ms": 23.2379,
+        "p75_ms": 23.6852,
+        "p99_ms": 38.5529
+      },
+      "previous": {
+        "hz": 152.52,
+        "mean_ms": 6.5565,
+        "p75_ms": 7.0818,
+        "p99_ms": 10.097
+      },
+      "change": {
+        "hz_pct": -71.79,
+        "mean_pct": 254.42
+      }
+    },
+    {
+      "benchmark": "sanitize.bench.ts > Sanitize (simple) > unifast",
+      "current": {
+        "hz": 3088.02,
+        "mean_ms": 0.3238,
+        "p75_ms": 0.3397,
+        "p99_ms": 0.6468
+      },
+      "previous": {
+        "hz": 5841.79,
+        "mean_ms": 0.1712,
+        "p75_ms": 0.1727,
+        "p99_ms": 0.2563
+      },
+      "change": {
+        "hz_pct": -47.14,
+        "mean_pct": 89.18
+      }
+    },
+    {
+      "benchmark": "sanitize.bench.ts > Sanitize (simple) > unified",
+      "current": {
+        "hz": 129.81,
+        "mean_ms": 7.7035,
+        "p75_ms": 8.3373,
+        "p99_ms": 21.4092
+      },
+      "previous": {
+        "hz": 235.08,
+        "mean_ms": 4.2538,
+        "p75_ms": 4.7569,
+        "p99_ms": 10.2865
+      },
+      "change": {
+        "hz_pct": -44.78,
+        "mean_pct": 81.1
+      }
+    },
+    {
+      "benchmark": "sanitize.bench.ts > Sanitize (readme) > unifast",
+      "current": {
+        "hz": 1231.97,
+        "mean_ms": 0.8117,
+        "p75_ms": 0.8803,
+        "p99_ms": 1.4215
+      },
+      "previous": {
+        "hz": 2358.92,
+        "mean_ms": 0.4239,
+        "p75_ms": 0.4339,
+        "p99_ms": 0.5378
+      },
+      "change": {
+        "hz_pct": -47.77,
+        "mean_pct": 91.48
+      }
+    },
+    {
+      "benchmark": "sanitize.bench.ts > Sanitize (readme) > unified",
+      "current": {
+        "hz": 52,
+        "mean_ms": 19.2302,
+        "p75_ms": 20.5048,
+        "p99_ms": 29.3562
+      },
+      "previous": {
+        "hz": 85.24,
+        "mean_ms": 11.7313,
+        "p75_ms": 13.3902,
+        "p99_ms": 19.4879
+      },
+      "change": {
+        "hz_pct": -39,
+        "mean_pct": 63.92
+      }
+    },
+    {
+      "benchmark": "sanitize.bench.ts > Sanitize (large) > unifast",
+      "current": {
+        "hz": 491.07,
+        "mean_ms": 2.0364,
+        "p75_ms": 2.1905,
+        "p99_ms": 3.1066
+      },
+      "previous": {
+        "hz": 889.11,
+        "mean_ms": 1.1247,
+        "p75_ms": 1.1415,
+        "p99_ms": 2.5895
+      },
+      "change": {
+        "hz_pct": -44.77,
+        "mean_pct": 81.06
+      }
+    },
+    {
+      "benchmark": "sanitize.bench.ts > Sanitize (large) > unified",
+      "current": {
+        "hz": 17.81,
+        "mean_ms": 56.1582,
+        "p75_ms": 62.892,
+        "p99_ms": 79.4235
+      },
+      "previous": {
+        "hz": 32.17,
+        "mean_ms": 31.0889,
+        "p75_ms": 32.6163,
+        "p99_ms": 36.1465
+      },
+      "change": {
+        "hz_pct": -44.64,
+        "mean_pct": 80.64
+      }
+    },
+    {
+      "benchmark": "toc.bench.ts > TOC + Slug (simple) > unifast",
+      "current": {
+        "hz": 2996.97,
+        "mean_ms": 0.3337,
+        "p75_ms": 0.3574,
+        "p99_ms": 0.7406
+      },
+      "previous": {
+        "hz": 5495.01,
+        "mean_ms": 0.182,
+        "p75_ms": 0.1857,
+        "p99_ms": 0.2592
+      },
+      "change": {
+        "hz_pct": -45.46,
+        "mean_pct": 83.35
+      }
+    },
+    {
+      "benchmark": "toc.bench.ts > TOC + Slug (simple) > unified",
+      "current": {
+        "hz": 115.81,
+        "mean_ms": 8.6351,
+        "p75_ms": 9.5811,
+        "p99_ms": 13.2598
+      },
+      "previous": {
+        "hz": 221.28,
+        "mean_ms": 4.5191,
+        "p75_ms": 5.1728,
+        "p99_ms": 10.6019
+      },
+      "change": {
+        "hz_pct": -47.67,
+        "mean_pct": 91.08
+      }
+    },
+    {
+      "benchmark": "toc.bench.ts > TOC + Slug (readme) > unifast",
+      "current": {
+        "hz": 1061.68,
+        "mean_ms": 0.9419,
+        "p75_ms": 1.0493,
+        "p99_ms": 1.9424
+      },
+      "previous": {
+        "hz": 2073.54,
+        "mean_ms": 0.4823,
+        "p75_ms": 0.4917,
+        "p99_ms": 0.6916
+      },
+      "change": {
+        "hz_pct": -48.8,
+        "mean_pct": 95.31
+      }
+    },
+    {
+      "benchmark": "toc.bench.ts > TOC + Slug (readme) > unified",
+      "current": {
+        "hz": 52.12,
+        "mean_ms": 19.188,
+        "p75_ms": 21.7164,
+        "p99_ms": 25.8205
+      },
+      "previous": {
+        "hz": 87.37,
+        "mean_ms": 11.4452,
+        "p75_ms": 12.1989,
+        "p99_ms": 18.0295
+      },
+      "change": {
+        "hz_pct": -40.35,
+        "mean_pct": 67.65
+      }
+    },
+    {
+      "benchmark": "toc.bench.ts > TOC + Slug (large) > unifast",
+      "current": {
+        "hz": 428.92,
+        "mean_ms": 2.3314,
+        "p75_ms": 2.4793,
+        "p99_ms": 4.1528
+      },
+      "previous": {
+        "hz": 792.58,
+        "mean_ms": 1.2617,
+        "p75_ms": 1.3092,
+        "p99_ms": 2.7033
+      },
+      "change": {
+        "hz_pct": -45.88,
+        "mean_pct": 84.78
+      }
+    },
+    {
+      "benchmark": "toc.bench.ts > TOC + Slug (large) > unified",
+      "current": {
+        "hz": 10.42,
+        "mean_ms": 95.9534,
+        "p75_ms": 115.0153,
+        "p99_ms": 134.5877
+      },
+      "previous": {
+        "hz": 29.21,
+        "mean_ms": 34.2406,
+        "p75_ms": 35.0147,
+        "p99_ms": 42.5633
+      },
+      "change": {
+        "hz_pct": -64.32,
+        "mean_pct": 180.23
+      }
+    },
+    {
+      "benchmark": "unifast-only.bench.ts > Sectionize (readme) > unifast",
+      "current": {
+        "hz": 1042.59,
+        "mean_ms": 0.9592,
+        "p75_ms": 1.0893,
+        "p99_ms": 1.8826
+      },
+      "previous": {
+        "hz": 2193.5,
+        "mean_ms": 0.4559,
+        "p75_ms": 0.456,
+        "p99_ms": 0.9168
+      },
+      "change": {
+        "hz_pct": -52.47,
+        "mean_pct": 110.39
+      }
+    },
+    {
+      "benchmark": "unifast-only.bench.ts > Sectionize (readme) > unified (baseline)",
+      "current": {
+        "hz": 39.07,
+        "mean_ms": 25.593,
+        "p75_ms": 30.1346,
+        "p99_ms": 38.187
+      },
+      "previous": {
+        "hz": 71.91,
+        "mean_ms": 13.9057,
+        "p75_ms": 14.4306,
+        "p99_ms": 41.25
+      },
+      "change": {
+        "hz_pct": -45.67,
+        "mean_pct": 84.05
+      }
+    },
+    {
+      "benchmark": "unifast-only.bench.ts > Definition List (all-features) > unifast",
+      "current": {
+        "hz": 1211.22,
+        "mean_ms": 0.8256,
+        "p75_ms": 0.935,
+        "p99_ms": 1.4914
+      },
+      "previous": {
+        "hz": 2310.32,
+        "mean_ms": 0.4328,
+        "p75_ms": 0.4379,
+        "p99_ms": 0.5983
+      },
+      "change": {
+        "hz_pct": -47.57,
+        "mean_pct": 90.74
+      }
+    },
+    {
+      "benchmark": "unifast-only.bench.ts > Definition List (all-features) > unified (baseline)",
+      "current": {
+        "hz": 53.96,
+        "mean_ms": 18.5322,
+        "p75_ms": 19.6276,
+        "p99_ms": 33.4648
+      },
+      "previous": {
+        "hz": 132.47,
+        "mean_ms": 7.5486,
+        "p75_ms": 7.9589,
+        "p99_ms": 14.9617
+      },
+      "change": {
+        "hz_pct": -59.27,
+        "mean_pct": 145.51
+      }
+    },
+    {
+      "benchmark": "unifast-only.bench.ts > Ruby Annotation (all-features) > unifast",
+      "current": {
+        "hz": 1264.16,
+        "mean_ms": 0.791,
+        "p75_ms": 0.9078,
+        "p99_ms": 1.5471
+      },
+      "previous": {
+        "hz": 2313.8,
+        "mean_ms": 0.4322,
+        "p75_ms": 0.4321,
+        "p99_ms": 0.6022
+      },
+      "change": {
+        "hz_pct": -45.36,
+        "mean_pct": 83.03
+      }
+    },
+    {
+      "benchmark": "unifast-only.bench.ts > Ruby Annotation (all-features) > unified (baseline)",
+      "current": {
+        "hz": 65.32,
+        "mean_ms": 15.3094,
+        "p75_ms": 16.19,
+        "p99_ms": 24.1558
+      },
+      "previous": {
+        "hz": 121.33,
+        "mean_ms": 8.2421,
+        "p75_ms": 8.6981,
+        "p99_ms": 16.9899
+      },
+      "change": {
+        "hz_pct": -46.16,
+        "mean_pct": 85.75
+      }
+    },
+    {
+      "benchmark": "unifast-only.bench.ts > CJK (all-features) > unifast",
+      "current": {
+        "hz": 1127.62,
+        "mean_ms": 0.8868,
+        "p75_ms": 0.9322,
+        "p99_ms": 1.7845
+      },
+      "previous": {
+        "hz": 2162.24,
+        "mean_ms": 0.4625,
+        "p75_ms": 0.468,
+        "p99_ms": 0.8073
+      },
+      "change": {
+        "hz_pct": -47.85,
+        "mean_pct": 91.75
+      }
+    },
+    {
+      "benchmark": "unifast-only.bench.ts > CJK (all-features) > unified (baseline)",
+      "current": {
+        "hz": 59.51,
+        "mean_ms": 16.8031,
+        "p75_ms": 19.4748,
+        "p99_ms": 25.456
+      },
+      "previous": {
+        "hz": 140.81,
+        "mean_ms": 7.1017,
+        "p75_ms": 7.1583,
+        "p99_ms": 15.4766
+      },
+      "change": {
+        "hz_pct": -57.74,
+        "mean_pct": 136.61
+      }
+    }
+  ]
+}

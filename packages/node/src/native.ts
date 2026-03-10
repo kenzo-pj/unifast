@@ -6,6 +6,7 @@ interface NativeBinding {
     options?: object,
   ): {
     output: string;
+    sourcemap?: string;
     frontmatter: string;
     diagnostics: Array<{
       level: string;

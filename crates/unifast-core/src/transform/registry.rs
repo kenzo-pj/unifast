@@ -1,17 +1,66 @@
-use super::pass::{FnPass, Pass, PassResult, Phase};
+use super::pass::{AstPayload, FnPass, FnPtrPass, Pass, PassContext, PassFnPtr, PassResult, Phase};
+
+const PHASE_COUNT: usize = 5;
+
+pub(crate) enum PassSlot {
+    FnPtr(FnPtrPass),
+    Boxed(Box<dyn Pass>),
+}
+
+impl PassSlot {
+    fn phase_index(&self) -> usize {
+        match self {
+            Self::FnPtr(p) => p.phase as usize,
+            Self::Boxed(p) => p.phase() as usize,
+        }
+    }
+}
+
+impl Pass for PassSlot {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::FnPtr(p) => p.name,
+            Self::Boxed(p) => p.name(),
+        }
+    }
+    fn phase(&self) -> Phase {
+        match self {
+            Self::FnPtr(p) => p.phase,
+            Self::Boxed(p) => p.phase(),
+        }
+    }
+    fn run(&self, ctx: &mut PassContext, ast: &mut AstPayload) -> PassResult {
+        match self {
+            Self::FnPtr(p) => (p.run_fn)(ctx, ast),
+            Self::Boxed(p) => p.run(ctx, ast),
+        }
+    }
+}
 
 pub struct PassRegistry {
-    passes: Vec<Box<dyn Pass>>,
+    phases: [Vec<PassSlot>; PHASE_COUNT],
 }
 
 impl PassRegistry {
     #[must_use]
-    pub fn new() -> Self {
-        Self { passes: vec![] }
+    pub const fn new() -> Self {
+        Self {
+            phases: [Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new()],
+        }
     }
 
     pub fn register(&mut self, pass: Box<dyn Pass>) {
-        self.passes.push(pass);
+        let idx = pass.phase() as usize;
+        self.phases[idx].push(PassSlot::Boxed(pass));
+    }
+
+    pub fn register_fn_ptr(&mut self, name: &'static str, phase: Phase, run: PassFnPtr) {
+        let slot = PassSlot::FnPtr(FnPtrPass {
+            name,
+            phase,
+            run_fn: run,
+        });
+        self.phases[slot.phase_index()].push(slot);
     }
 
     pub fn register_fn(
@@ -23,32 +72,25 @@ impl PassRegistry {
         + Sync
         + 'static,
     ) {
-        self.passes.push(Box::new(FnPass {
+        self.phases[phase as usize].push(PassSlot::Boxed(Box::new(FnPass {
             name,
             phase,
             run_fn: Box::new(run),
-        }));
+        })));
     }
 
-    #[must_use]
-    pub fn ordered_passes(&self) -> Vec<&dyn Pass> {
-        let mut refs: Vec<&dyn Pass> = self
-            .passes
-            .iter()
-            .map(std::convert::AsRef::as_ref)
-            .collect();
-        refs.sort_by_key(|p| p.phase());
-        refs
+    pub(crate) fn iter(&self) -> impl Iterator<Item = &PassSlot> {
+        self.phases.iter().flat_map(|bucket| bucket.iter())
     }
 
     #[must_use]
     pub fn len(&self) -> usize {
-        self.passes.len()
+        self.phases.iter().map(Vec::len).sum()
     }
 
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.passes.is_empty()
+        self.phases.iter().all(Vec::is_empty)
     }
 }
 
@@ -105,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn registry_ordered_passes_by_phase() {
+    fn registry_ordered_by_phase() {
         let mut reg = PassRegistry::new();
         reg.register(Box::new(MockPass {
             name: "emit_pass",
@@ -128,13 +170,13 @@ mod tests {
             phase: Phase::Optimize,
         }));
 
-        let ordered = reg.ordered_passes();
-        assert_eq!(ordered.len(), 5);
-        assert_eq!(ordered[0].name(), "parse_pass");
-        assert_eq!(ordered[1].name(), "transform_pass");
-        assert_eq!(ordered[2].name(), "lower_pass");
-        assert_eq!(ordered[3].name(), "optimize_pass");
-        assert_eq!(ordered[4].name(), "emit_pass");
+        let names: Vec<&str> = reg.iter().map(|p| p.name()).collect();
+        assert_eq!(names.len(), 5);
+        assert_eq!(names[0], "parse_pass");
+        assert_eq!(names[1], "transform_pass");
+        assert_eq!(names[2], "lower_pass");
+        assert_eq!(names[3], "optimize_pass");
+        assert_eq!(names[4], "emit_pass");
     }
 
     #[test]
@@ -153,16 +195,36 @@ mod tests {
             phase: Phase::Parse,
         }));
 
-        let ordered = reg.ordered_passes();
-        assert_eq!(ordered.len(), 3);
-        assert_eq!(ordered[0].phase(), Phase::Parse);
-        assert_eq!(ordered[1].phase(), Phase::Transform);
-        assert_eq!(ordered[2].phase(), Phase::Transform);
+        let phases: Vec<Phase> = reg.iter().map(|p| p.phase()).collect();
+        assert_eq!(phases.len(), 3);
+        assert_eq!(phases[0], Phase::Parse);
+        assert_eq!(phases[1], Phase::Transform);
+        assert_eq!(phases[2], Phase::Transform);
     }
 
     #[test]
     fn registry_default() {
         let reg = PassRegistry::default();
         assert!(reg.is_empty());
+    }
+
+    #[test]
+    fn registry_fn_ptr_inline() {
+        let mut reg = PassRegistry::new();
+        reg.register_fn_ptr("inline_pass", Phase::Transform, |_ctx, _ast| Ok(()));
+        assert_eq!(reg.len(), 1);
+        let names: Vec<&str> = reg.iter().map(|p| p.name()).collect();
+        assert_eq!(names[0], "inline_pass");
+    }
+
+    #[test]
+    fn registry_insertion_order_within_phase() {
+        let mut reg = PassRegistry::new();
+        reg.register_fn_ptr("a", Phase::Optimize, |_ctx, _ast| Ok(()));
+        reg.register_fn_ptr("b", Phase::Optimize, |_ctx, _ast| Ok(()));
+        reg.register_fn_ptr("c", Phase::Optimize, |_ctx, _ast| Ok(()));
+
+        let names: Vec<&str> = reg.iter().map(|p| p.name()).collect();
+        assert_eq!(names, vec!["a", "b", "c"]);
     }
 }

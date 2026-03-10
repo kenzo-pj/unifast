@@ -121,10 +121,10 @@ fn apply_to_node(node: &mut HNode) {
     match node {
         HNode::Element(elem) => {
             if elem.tag == "pre" {
-                if let Some(meta_str) = elem.attributes.get(&"data-meta".to_string()).cloned() {
+                if let Some(meta_str) = elem.attributes.get("data-meta").cloned() {
                     let parsed = parse_meta(&meta_str);
                     apply_meta_to_pre(elem, &parsed);
-                    elem.attributes.remove(&"data-meta".to_string());
+                    elem.attributes.remove("data-meta");
                 }
             } else {
                 for child in &mut elem.children {
@@ -246,13 +246,13 @@ fn annotate_diff_lines(children: &mut [HNode]) {
 
 fn is_line_span(elem: &HElement) -> bool {
     elem.attributes
-        .get(&"class".to_string())
+        .get("class")
         .is_some_and(|v| v.split_whitespace().any(|c| c == "line"))
 }
 
 fn get_line_number(elem: &HElement) -> Option<u32> {
     elem.attributes
-        .get(&"data-line".to_string())
+        .get("data-line")
         .and_then(|v| v.parse::<u32>().ok())
 }
 

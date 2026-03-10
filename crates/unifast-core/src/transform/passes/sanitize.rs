@@ -397,8 +397,8 @@ mod tests {
 
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(elem.attributes.len(), 2);
-            assert!(elem.attributes.contains_key(&"href".to_string()));
-            assert!(elem.attributes.contains_key(&"title".to_string()));
+            assert!(elem.attributes.contains_key("href"));
+            assert!(elem.attributes.contains_key("title"));
         } else {
             panic!("expected a element");
         }
@@ -421,8 +421,8 @@ mod tests {
 
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(elem.attributes.len(), 1);
-            assert!(elem.attributes.contains_key(&"href".to_string()));
-            assert!(!elem.attributes.contains_key(&"onclick".to_string()));
+            assert!(elem.attributes.contains_key("href"));
+            assert!(!elem.attributes.contains_key("onclick"));
         } else {
             panic!("expected a element");
         }
@@ -443,7 +443,7 @@ mod tests {
         sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(!elem.attributes.contains_key(&"href".to_string()));
+            assert!(!elem.attributes.contains_key("href"));
         } else {
             panic!("expected a element");
         }
@@ -463,7 +463,7 @@ mod tests {
         sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(elem.attributes.contains_key(&"href".to_string()));
+            assert!(elem.attributes.contains_key("href"));
         } else {
             panic!("expected a element");
         }
@@ -483,7 +483,7 @@ mod tests {
         sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(elem.attributes.contains_key(&"href".to_string()));
+            assert!(elem.attributes.contains_key("href"));
         } else {
             panic!("expected a element");
         }
@@ -503,7 +503,7 @@ mod tests {
         sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(elem.attributes.contains_key(&"href".to_string()));
+            assert!(elem.attributes.contains_key("href"));
         } else {
             panic!("expected a element");
         }
@@ -610,7 +610,7 @@ mod tests {
         sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(elem.attributes.contains_key(&"id".to_string()));
+            assert!(elem.attributes.contains_key("id"));
         } else {
             panic!("expected h1 element");
         }
@@ -644,8 +644,8 @@ mod tests {
         sanitize(&mut root, schema, &mut diag);
 
         if let HNode::Element(elem) = &root.children[0] {
-            assert!(!elem.attributes.contains_key(&"src".to_string()));
-            assert!(elem.attributes.contains_key(&"alt".to_string()));
+            assert!(!elem.attributes.contains_key("src"));
+            assert!(elem.attributes.contains_key("alt"));
         } else {
             panic!("expected img element");
         }

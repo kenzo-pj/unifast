@@ -26,10 +26,17 @@ unifast takes a different approach:
 | **CommonMark + GFM** | Tables, task lists, strikethrough, autolinks, footnotes |
 | **Frontmatter** | YAML, TOML, and JSON metadata extraction |
 | **MDX** | JSX expressions and imports in Markdown |
+| **Diagnostics** | Precise error spans with line/column mapping |
+
+### Built-in Passes
+
+Common remark/rehype plugins are reimplemented as native Rust passes. No npm install, no ordering headaches.
+
+| Pass | Description |
+|------|-------------|
 | **Sanitization** | Schema-based HTML allowlist with safe defaults |
 | **Syntax Highlighting** | Pluggable engines (syntect, Shiki) |
 | **Table of Contents** | Auto-extracted heading tree |
-| **Diagnostics** | Precise error spans with line/column mapping |
 
 ### Platform Support
 

@@ -205,7 +205,7 @@ pub(crate) fn make_lines_self_contained(html: &str) -> Vec<String> {
 
 fn has_class(attrs: &SmallMap<String, String>, class: &str) -> bool {
     attrs
-        .get(&"class".to_string())
+        .get("class")
         .is_some_and(|v| v.split_whitespace().any(|c| c == class))
 }
 

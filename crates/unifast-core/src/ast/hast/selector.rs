@@ -287,7 +287,7 @@ impl Element for ArenaNodeRef<'_> {
         match &self.node().data {
             ArenaNodeData::Element {
                 tag, attributes, ..
-            } => tag == "a" && attributes.contains_key(&"href".to_string()),
+            } => tag == "a" && attributes.contains_key("href"),
             _ => false,
         }
     }
@@ -300,7 +300,7 @@ impl Element for ArenaNodeRef<'_> {
         let ArenaNodeData::Element { attributes, .. } = &self.node().data else {
             return false;
         };
-        let Some(elem_id) = attributes.get(&"id".to_string()) else {
+        let Some(elem_id) = attributes.get("id") else {
             return false;
         };
         case_sensitivity.eq(elem_id.as_bytes(), id.0.as_bytes())
@@ -310,7 +310,7 @@ impl Element for ArenaNodeRef<'_> {
         let ArenaNodeData::Element { attributes, .. } = &self.node().data else {
             return false;
         };
-        let Some(class_attr) = attributes.get(&"class".to_string()) else {
+        let Some(class_attr) = attributes.get("class") else {
             return false;
         };
         class_attr

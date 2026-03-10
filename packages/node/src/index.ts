@@ -171,6 +171,7 @@ export function compile(input: string, options?: CompileOptions): CompileResult 
 
   return {
     output,
+    sourcemap: rawResult.sourcemap ?? undefined,
     frontmatter,
     diagnostics: rawResult.diagnostics.map((d) => ({
       level: d.level as "error" | "warn",

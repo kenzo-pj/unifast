@@ -252,14 +252,8 @@ mod tests {
         minify_hast(&mut root);
 
         if let HNode::Element(ref e) = root.children[0] {
-            assert_eq!(
-                e.attributes.get(&"disabled".to_string()),
-                Some(&String::new())
-            );
-            assert_eq!(
-                e.attributes.get(&"type".to_string()),
-                Some(&"text".to_string())
-            );
+            assert_eq!(e.attributes.get("disabled"), Some(&String::new()));
+            assert_eq!(e.attributes.get("type"), Some(&"text".to_string()));
         } else {
             panic!("expected element");
         }
@@ -278,11 +272,8 @@ mod tests {
         minify_hast(&mut root);
 
         if let HNode::Element(ref e) = root.children[0] {
-            assert!(e.attributes.get(&"class".to_string()).is_none());
-            assert_eq!(
-                e.attributes.get(&"id".to_string()),
-                Some(&"main".to_string())
-            );
+            assert!(e.attributes.get("class").is_none());
+            assert_eq!(e.attributes.get("id"), Some(&"main".to_string()));
         } else {
             panic!("expected element");
         }
@@ -300,7 +291,7 @@ mod tests {
         minify_hast(&mut root);
 
         if let HNode::Element(ref e) = root.children[0] {
-            assert!(e.attributes.get(&"style".to_string()).is_none());
+            assert!(e.attributes.get("style").is_none());
         } else {
             panic!("expected element");
         }

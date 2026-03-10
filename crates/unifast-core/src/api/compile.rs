@@ -4,7 +4,7 @@ use crate::ast::common::Span;
 use crate::ast::hast::nodes::{HNode, HRoot};
 use crate::emit::html::stringify;
 use crate::parse;
-use crate::transform::pass::{AstPayload, PassContext, Phase};
+use crate::transform::pass::{AstPayload, Pass as _, PassContext, Phase};
 #[cfg(feature = "highlight")]
 use crate::transform::passes::highlight;
 #[cfg(feature = "highlight")]
@@ -57,7 +57,7 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
             excerpt: None,
         };
 
-        for pass in registry.ordered_passes() {
+        for pass in registry.iter() {
             if let Err(e) = pass.run(&mut ctx, &mut payload) {
                 ctx.diagnostics.error(
                     format!("pass '{}' failed: {e}", pass.name()),
@@ -204,14 +204,14 @@ pub fn compile(input: &str, opts: &CompileOptions) -> CompileResult {
 }
 
 fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
-    registry.register_fn("normalize", Phase::Transform, |_ctx, ast| {
+    registry.register_fn_ptr("normalize", Phase::Transform, |_ctx, ast| {
         if let Some(doc) = ast.mdast_mut() {
             normalize::normalize(doc);
         }
         Ok(())
     });
 
-    registry.register_fn("breaks", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("breaks", Phase::Transform, |ctx, ast| {
         if !ctx.options.breaks.enabled {
             return Ok(());
         }
@@ -221,7 +221,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("cjk", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("cjk", Phase::Transform, |ctx, ast| {
         if !ctx.options.cjk.enabled {
             return Ok(());
         }
@@ -231,7 +231,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("smartypants", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("smartypants", Phase::Transform, |ctx, ast| {
         if !ctx.options.smartypants.enabled {
             return Ok(());
         }
@@ -246,7 +246,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("emoji", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("emoji", Phase::Transform, |ctx, ast| {
         if !ctx.options.emoji.enabled {
             return Ok(());
         }
@@ -256,7 +256,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("math", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("math", Phase::Transform, |ctx, ast| {
         if !ctx.options.math.enabled {
             return Ok(());
         }
@@ -266,7 +266,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("directive", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("directive", Phase::Transform, |ctx, ast| {
         if ctx.options.directive.enabled {
             return Ok(());
         }
@@ -276,7 +276,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("wiki_link", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("wiki_link", Phase::Transform, |ctx, ast| {
         if !ctx.options.wiki_link.enabled {
             return Ok(());
         }
@@ -286,7 +286,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("definition_list", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("definition_list", Phase::Transform, |ctx, ast| {
         if !ctx.options.definition_list.enabled {
             return Ok(());
         }
@@ -296,7 +296,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("ruby_annotation", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("ruby_annotation", Phase::Transform, |ctx, ast| {
         if !ctx.options.ruby_annotation.enabled {
             return Ok(());
         }
@@ -306,7 +306,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("abbr", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("abbr", Phase::Transform, |ctx, ast| {
         if !ctx.options.abbr.enabled {
             return Ok(());
         }
@@ -316,7 +316,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("github_alert", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("github_alert", Phase::Transform, |ctx, ast| {
         if !ctx.options.github_alert.enabled {
             return Ok(());
         }
@@ -326,7 +326,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("code_import", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("code_import", Phase::Transform, |ctx, ast| {
         if !ctx.options.code_import.enabled {
             return Ok(());
         }
@@ -337,7 +337,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("custom_heading_id", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("custom_heading_id", Phase::Transform, |ctx, ast| {
         if !ctx.options.custom_heading_id.enabled {
             return Ok(());
         }
@@ -347,7 +347,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("slug", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("slug", Phase::Transform, |ctx, ast| {
         if let Some(doc) = ast.mdast_mut() {
             let mode = match ctx.options.slug.mode {
                 crate::api::options::SlugMode::GitHub => slug::SlugMode::GitHub,
@@ -358,7 +358,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("toc", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("toc", Phase::Transform, |ctx, ast| {
         if !ctx.options.toc.enabled {
             return Ok(());
         }
@@ -369,7 +369,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("reading_time", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("reading_time", Phase::Transform, |ctx, ast| {
         if !ctx.options.reading_time_opts.enabled {
             return Ok(());
         }
@@ -383,7 +383,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("excerpt", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("excerpt", Phase::Transform, |ctx, ast| {
         if !ctx.options.excerpt_opts.enabled {
             return Ok(());
         }
@@ -398,7 +398,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("comment_removal", Phase::Transform, |ctx, ast| {
+    registry.register_fn_ptr("comment_removal", Phase::Transform, |ctx, ast| {
         if !ctx.options.comment_removal.enabled {
             return Ok(());
         }
@@ -408,7 +408,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         Ok(())
     });
 
-    registry.register_fn("resolve_defs", Phase::Transform, |_ctx, ast| {
+    registry.register_fn_ptr("resolve_defs", Phase::Transform, |_ctx, ast| {
         if let Some(doc) = ast.mdast_mut() {
             resolve_defs::remove_definition_nodes(doc);
         }
@@ -416,7 +416,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
     });
 
     if opts.output_kind != OutputKind::Mdast && opts.output_kind != OutputKind::MdxJs {
-        registry.register_fn("mdast_to_hast", Phase::Lower, |ctx, ast| {
+        registry.register_fn_ptr("mdast_to_hast", Phase::Lower, |ctx, ast| {
             let doc = match ast {
                 AstPayload::Mdast(doc) => doc,
                 AstPayload::Hast(_) => return Ok(()),
@@ -442,7 +442,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("raw_html", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("raw_html", Phase::Optimize, |ctx, ast| {
             if let Some(root) = ast.hast_mut() {
                 raw_html::process_raw_html(root, ctx.options.raw_html, ctx.id_gen, ctx.diagnostics);
             }
@@ -450,7 +450,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         });
 
         if opts.sanitize.enabled {
-            registry.register_fn("sanitize", Phase::Optimize, |ctx, ast| {
+            registry.register_fn_ptr("sanitize", Phase::Optimize, |ctx, ast| {
                 let custom_schema;
                 let schema = if let Some(ref api_schema) = ctx.options.sanitize.schema {
                     custom_schema = sanitize::from_api_schema(api_schema);
@@ -467,7 +467,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
 
         #[cfg(feature = "highlight")]
         if opts.highlight.enabled {
-            registry.register_fn("highlight", Phase::Optimize, |ctx, ast| {
+            registry.register_fn_ptr("highlight", Phase::Optimize, |ctx, ast| {
                 let engine: Box<dyn highlight::HighlightEngine> = match ctx.options.highlight.engine
                 {
                     crate::api::options::HighlightEngine::Syntect => {
@@ -486,7 +486,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
         }
 
         if opts.line_numbers.enabled {
-            registry.register_fn("line_number", Phase::Optimize, |ctx, ast| {
+            registry.register_fn_ptr("line_number", Phase::Optimize, |ctx, ast| {
                 if let Some(root) = ast.hast_mut() {
                     line_number::apply_line_numbers(root, ctx.id_gen);
                 }
@@ -494,7 +494,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             });
         }
 
-        registry.register_fn("code_meta", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("code_meta", Phase::Optimize, |ctx, ast| {
             if !ctx.options.code_meta.enabled {
                 return Ok(());
             }
@@ -504,7 +504,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("img_lazy_loading", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("img_lazy_loading", Phase::Optimize, |ctx, ast| {
             if !ctx.options.img_lazy_loading.enabled {
                 return Ok(());
             }
@@ -517,7 +517,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("accessible_emoji", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("accessible_emoji", Phase::Optimize, |ctx, ast| {
             if !ctx.options.accessible_emoji.enabled {
                 return Ok(());
             }
@@ -527,7 +527,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("external_links", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("external_links", Phase::Optimize, |ctx, ast| {
             if !ctx.options.external_links.enabled {
                 return Ok(());
             }
@@ -541,7 +541,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("autolink_headings", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("autolink_headings", Phase::Optimize, |ctx, ast| {
             if !ctx.options.autolink_headings.enabled {
                 return Ok(());
             }
@@ -555,7 +555,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("sectionize", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("sectionize", Phase::Optimize, |ctx, ast| {
             if !ctx.options.sectionize.enabled {
                 return Ok(());
             }
@@ -565,7 +565,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("add_classes", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("add_classes", Phase::Optimize, |ctx, ast| {
             if !ctx.options.add_classes.enabled {
                 return Ok(());
             }
@@ -575,7 +575,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("html_cleanup", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("html_cleanup", Phase::Optimize, |ctx, ast| {
             let cleanup_opts = &ctx.options.html_cleanup;
             if !cleanup_opts.remove_empty_nodes && !cleanup_opts.minify_whitespace {
                 return Ok(());
@@ -592,7 +592,7 @@ fn register_builtin_passes(registry: &mut PassRegistry, opts: &CompileOptions) {
             Ok(())
         });
 
-        registry.register_fn("minify", Phase::Optimize, |ctx, ast| {
+        registry.register_fn_ptr("minify", Phase::Optimize, |ctx, ast| {
             if !ctx.options.minify.enabled {
                 return Ok(());
             }

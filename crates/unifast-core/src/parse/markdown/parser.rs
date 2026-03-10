@@ -195,11 +195,11 @@ impl<'a> Parser<'a> {
         while self.pos < self.source.len() {
             let line_start = self.pos;
             let line = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
+                Some(l) => l,
                 None => break,
             };
 
-            if Self::is_blank_line(&line) {
+            if Self::is_blank_line(line) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -207,7 +207,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if self.is_definition_line(&line, line_start) {
+            if self.is_definition_line(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -216,7 +216,7 @@ impl<'a> Parser<'a> {
             }
 
             if !para_lines.is_empty()
-                && let Some(depth) = Self::setext_underline_depth(&line)
+                && let Some(depth) = Self::setext_underline_depth(line)
             {
                 self.advance_line();
                 let node = self.flush_setext_heading(&mut para_lines, depth, line_start, self.pos);
@@ -224,7 +224,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_thematic_break(&line, line_start) {
+            if let Some(node) = self.try_parse_thematic_break(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -232,7 +232,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_atx_heading(&line, line_start) {
+            if let Some(node) = self.try_parse_atx_heading(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -240,7 +240,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_code_fence(&line, line_start) {
+            if let Some(node) = self.try_parse_code_fence(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -248,7 +248,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_container_directive(&line, line_start) {
+            if let Some(node) = self.try_parse_container_directive(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -257,13 +257,13 @@ impl<'a> Parser<'a> {
             }
 
             if para_lines.is_empty()
-                && let Some(node) = self.try_parse_indented_code(&line, line_start)
+                && let Some(node) = self.try_parse_indented_code(line, line_start)
             {
                 blocks.push(node);
                 continue;
             }
 
-            if let Some(node) = self.try_parse_blockquote(&line, line_start) {
+            if let Some(node) = self.try_parse_blockquote(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -271,7 +271,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_list(&line, line_start) {
+            if let Some(node) = self.try_parse_list(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -280,7 +280,7 @@ impl<'a> Parser<'a> {
             }
 
             if para_lines.is_empty()
-                && let Some(node) = self.try_parse_html_block(&line, line_start)
+                && let Some(node) = self.try_parse_html_block(line, line_start)
             {
                 blocks.push(node);
                 continue;
@@ -288,7 +288,7 @@ impl<'a> Parser<'a> {
 
             if self.gfm.footnotes
                 && para_lines.is_empty()
-                && let Some(node) = self.try_parse_footnote_definition(&line, line_start)
+                && let Some(node) = self.try_parse_footnote_definition(line, line_start)
             {
                 blocks.push(node);
                 continue;
@@ -296,15 +296,15 @@ impl<'a> Parser<'a> {
 
             if self.gfm.tables
                 && para_lines.is_empty()
-                && gfm::tables::could_be_table_row(&line)
-                && let Some(node) = self.try_parse_table(&line, line_start)
+                && gfm::tables::could_be_table_row(line)
+                && let Some(node) = self.try_parse_table(line, line_start)
             {
                 blocks.push(node);
                 continue;
             }
             if self.gfm.tables
                 && para_lines.len() == 1
-                && gfm::tables::is_table_separator(&line).is_some()
+                && gfm::tables::is_table_separator(line).is_some()
             {
                 let header_range = para_lines[0];
                 let header_line = self.source[header_range.0..header_range.1]
@@ -313,7 +313,7 @@ impl<'a> Parser<'a> {
                 if gfm::tables::could_be_table_row(&header_line) {
                     para_lines.clear();
                     if let Some(node) =
-                        self.parse_table_from_header(&header_line, &line, header_range.0)
+                        self.parse_table_from_header(&header_line, line, header_range.0)
                     {
                         blocks.push(node);
                         continue;
@@ -568,7 +568,7 @@ impl<'a> Parser<'a> {
         while self.pos < self.source.len() {
             let line_start = self.pos;
             let line = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
+                Some(l) => l,
                 None => break,
             };
 
@@ -582,7 +582,7 @@ impl<'a> Parser<'a> {
                 return blocks;
             }
 
-            if Self::is_blank_line(&line) {
+            if Self::is_blank_line(line) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -590,7 +590,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_container_directive(&line, line_start) {
+            if let Some(node) = self.try_parse_container_directive(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -598,7 +598,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_atx_heading(&line, line_start) {
+            if let Some(node) = self.try_parse_atx_heading(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -606,7 +606,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_code_fence(&line, line_start) {
+            if let Some(node) = self.try_parse_code_fence(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -614,7 +614,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_blockquote(&line, line_start) {
+            if let Some(node) = self.try_parse_blockquote(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -622,7 +622,7 @@ impl<'a> Parser<'a> {
                 continue;
             }
 
-            if let Some(node) = self.try_parse_list(&line, line_start) {
+            if let Some(node) = self.try_parse_list(line, line_start) {
                 if !para_lines.is_empty() {
                     blocks.push(self.flush_paragraph(&mut para_lines));
                 }
@@ -650,10 +650,10 @@ impl<'a> Parser<'a> {
 
         while self.pos < self.source.len() {
             let cl = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
+                Some(l) => l,
                 None => break,
             };
-            if Self::is_blank_line(&cl) {
+            if Self::is_blank_line(cl) {
                 code_lines.push(String::new());
                 self.advance_line();
                 continue;
@@ -696,7 +696,7 @@ impl<'a> Parser<'a> {
         while self.pos < self.source.len() {
             let cur_line_start = self.pos;
             let cl = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
+                Some(l) => l,
                 None => break,
             };
             let ct = cl.trim_start();
@@ -743,11 +743,11 @@ impl<'a> Parser<'a> {
             }
             let item_start = self.pos;
             let current_line = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
+                Some(l) => l,
                 None => break,
             };
 
-            let (mi, content_indent) = match Self::list_marker_info(&current_line) {
+            let (mi, content_indent) = match Self::list_marker_info(current_line) {
                 Some(x) => x,
                 None => break,
             };
@@ -775,10 +775,10 @@ impl<'a> Parser<'a> {
             while self.pos < self.source.len() {
                 let cont_line_start = self.pos;
                 let cl = match self.peek_line_raw() {
-                    Some(l) => l.to_string(),
+                    Some(l) => l,
                     None => break,
                 };
-                if Self::is_blank_line(&cl) {
+                if Self::is_blank_line(cl) {
                     item_has_blank = true;
                     item_lines.push('\n');
                     self.advance_line();
@@ -938,13 +938,13 @@ impl<'a> Parser<'a> {
         let mut html_content = String::new();
         while self.pos < self.source.len() {
             let cl = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
+                Some(l) => l,
                 None => break,
             };
-            html_content.push_str(&cl);
+            html_content.push_str(cl);
             html_content.push('\n');
             self.advance_line();
-            if Self::is_blank_line(&cl) {
+            if Self::is_blank_line(cl) {
                 break;
             }
         }
@@ -966,13 +966,13 @@ impl<'a> Parser<'a> {
         self.advance_line();
 
         let sep_line = if let Some(l) = self.peek_line_raw() {
-            l.to_string()
+            l
         } else {
             self.pos = saved_pos;
             return None;
         };
 
-        let aligns = if let Some(a) = gfm::tables::is_table_separator(&sep_line) {
+        let aligns = if let Some(a) = gfm::tables::is_table_separator(sep_line) {
             a
         } else {
             self.pos = saved_pos;
@@ -989,12 +989,9 @@ impl<'a> Parser<'a> {
         _sep_line: &str,
         table_start: usize,
     ) -> Option<MdNode> {
-        let sep_line = match self.peek_line_raw() {
-            Some(l) => l.to_string(),
-            None => return None,
-        };
+        let sep_line = self.peek_line_raw()?;
 
-        let aligns = gfm::tables::is_table_separator(&sep_line)?;
+        let aligns = gfm::tables::is_table_separator(sep_line)?;
         self.advance_line();
 
         self.parse_table_body(header_line, &aligns, table_start)
@@ -1040,17 +1037,17 @@ impl<'a> Parser<'a> {
 
         while self.pos < self.source.len() {
             let body_line = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
+                Some(l) => l,
                 None => break,
             };
 
-            if Self::is_blank_line(&body_line) || !gfm::tables::could_be_table_row(&body_line) {
+            if Self::is_blank_line(body_line) || !gfm::tables::could_be_table_row(body_line) {
                 break;
             }
 
             self.advance_line();
 
-            let body_cells = gfm::tables::parse_table_row(&body_line);
+            let body_cells = gfm::tables::parse_table_row(body_line);
             let mut body_cell_nodes: Vec<MdNode> = Vec::new();
             for (idx, cell_text) in body_cells.iter().enumerate() {
                 if idx >= col_count {
@@ -1098,10 +1095,10 @@ impl<'a> Parser<'a> {
 
         while self.pos < self.source.len() {
             let cl = match self.peek_line_raw() {
-                Some(l) => l.to_string(),
+                Some(l) => l,
                 None => break,
             };
-            if Self::is_blank_line(&cl) {
+            if Self::is_blank_line(cl) {
                 content.push('\n');
                 self.advance_line();
                 continue;
@@ -1725,7 +1722,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn peek_line_raw(&self) -> Option<&str> {
+    fn peek_line_raw(&self) -> Option<&'a str> {
         if self.pos >= self.source.len() {
             return None;
         }

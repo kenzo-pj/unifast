@@ -146,10 +146,7 @@ mod tests {
         let result = parse_inline_attributes("#my-id .cls data-x=1").unwrap();
         assert_eq!(result.id, Some("my-id".to_string()));
         assert_eq!(result.classes, vec!["cls"]);
-        assert_eq!(
-            result.attrs.get(&"data-x".to_string()),
-            Some(&"1".to_string())
-        );
+        assert_eq!(result.attrs.get("data-x"), Some(&"1".to_string()));
     }
 
     #[test]
@@ -217,10 +214,7 @@ mod tests {
         apply_custom_heading_ids(&mut doc);
 
         if let MdNode::Heading(h) = &doc.children[0] {
-            assert_eq!(
-                h.extra_attrs.get(&"class".to_string()),
-                Some(&"note".to_string())
-            );
+            assert_eq!(h.extra_attrs.get("class"), Some(&"note".to_string()));
         } else {
             panic!("expected heading");
         }
@@ -251,14 +245,8 @@ mod tests {
 
         if let MdNode::Heading(h) = &doc.children[0] {
             assert_eq!(h.slug.as_deref(), Some("id"));
-            assert_eq!(
-                h.extra_attrs.get(&"class".to_string()),
-                Some(&"cls".to_string())
-            );
-            assert_eq!(
-                h.extra_attrs.get(&"data-level".to_string()),
-                Some(&"2".to_string())
-            );
+            assert_eq!(h.extra_attrs.get("class"), Some(&"cls".to_string()));
+            assert_eq!(h.extra_attrs.get("data-level"), Some(&"2".to_string()));
         } else {
             panic!("expected heading");
         }

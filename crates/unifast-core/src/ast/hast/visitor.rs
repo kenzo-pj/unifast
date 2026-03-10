@@ -218,10 +218,7 @@ mod tests {
 
         if let HNode::Root(r) = &root {
             if let HNode::Element(e) = &r.children[0] {
-                assert_eq!(
-                    e.attributes.get(&"class".to_string()),
-                    Some(&"styled".to_string())
-                );
+                assert_eq!(e.attributes.get("class"), Some(&"styled".to_string()));
             } else {
                 panic!("expected Element");
             }

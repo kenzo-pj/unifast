@@ -80,6 +80,5 @@ crates/unifast-core/src/
 ├── transform/    # Pass system, registry, built-in passes
 ├── emit/         # HTML stringify, MDX JS printer, sourcemaps
 ├── diagnostics/  # DiagLevel, Diagnostic, render
-├── cache/        # Memory cache, disk cache stub
 └── util/         # LineIndex, Interner, hash, SmallMap
 ```

@@ -112,14 +112,15 @@ impl<'a> MdxJsPrinter<'a> {
 
     fn inject_jsx_key(&mut self, start_len: usize, key: usize) {
         let emitted = &self.output[start_len..];
-        let trimmed = emitted.trim_start();
-        if trimmed.starts_with("_jsx")
-            && let Some(rel_pos) = emitted.rfind(')')
-        {
+        if !emitted.trim_start().starts_with("_jsx") {
+            return;
+        }
+        if let Some(rel_pos) = emitted.rfind(')') {
             let abs_pos = start_len + rel_pos;
-            let key_str = format!(", \"{key}\"");
-            self.column += key_str.len() as u32;
-            self.output.insert_str(abs_pos, &key_str);
+            self.output.truncate(abs_pos);
+            let key_suffix = format!(", \"{key}\")");
+            self.column += key_suffix.len() as u32 - 1;
+            self.output.push_str(&key_suffix);
         }
     }
 

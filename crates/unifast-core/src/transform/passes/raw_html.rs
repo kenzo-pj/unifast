@@ -297,13 +297,10 @@ mod tests {
         if let HNode::Element(elem) = &root.children[0] {
             assert_eq!(elem.tag, "a");
             assert_eq!(
-                elem.attributes.get(&"href".to_string()),
+                elem.attributes.get("href"),
                 Some(&"https://example.com".to_string())
             );
-            assert_eq!(
-                elem.attributes.get(&"class".to_string()),
-                Some(&"link".to_string())
-            );
+            assert_eq!(elem.attributes.get("class"), Some(&"link".to_string()));
         } else {
             panic!("expected a element");
         }

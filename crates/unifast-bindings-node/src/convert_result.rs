@@ -33,6 +33,7 @@ pub struct JsReadingTime {
 #[napi(object)]
 pub struct JsCompileResult {
     pub output: String,
+    pub sourcemap: Option<String>,
     pub frontmatter: String,
     pub diagnostics: Vec<JsDiagnostic>,
     pub stats: JsCompileStats,
@@ -42,32 +43,35 @@ pub struct JsCompileResult {
 }
 
 pub fn convert_result(result: CompileResult) -> JsCompileResult {
-    let output = match &result.output {
-        Output::Html(html) => html.clone(),
-        Output::MdxJs { code, .. } => code.clone(),
-        Output::Hast(root) => {
-            serde_json::to_string(root).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}"))
-        }
-        Output::Mdast(doc) => {
-            serde_json::to_string(doc).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}"))
-        }
+    let (output, sourcemap) = match result.output {
+        Output::Html(html) => (html, None),
+        Output::MdxJs { code, map } => (code, map),
+        Output::Hast(ref root) => (
+            serde_json::to_string(root).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}")),
+            None,
+        ),
+        Output::Mdast(ref doc) => (
+            serde_json::to_string(doc).unwrap_or_else(|e| format!("{{\"error\":\"{e}\"}}")),
+            None,
+        ),
     };
 
     JsCompileResult {
         output,
+        sourcemap,
         frontmatter: serde_json::to_string(&result.frontmatter)
             .unwrap_or_else(|_| "{}".to_string()),
         diagnostics: result
             .diagnostics
-            .iter()
+            .into_iter()
             .map(|d| JsDiagnostic {
                 level: match d.level {
                     DiagLevel::Error => "error".to_string(),
                     DiagLevel::Warning => "warn".to_string(),
                 },
-                message: d.message.clone(),
                 start: Some(d.span.start),
                 end: Some(d.span.end),
+                message: d.message,
             })
             .collect(),
         stats: JsCompileStats {
@@ -77,17 +81,17 @@ pub fn convert_result(result: CompileResult) -> JsCompileResult {
         },
         toc: result
             .toc
-            .iter()
+            .into_iter()
             .map(|e| JsTocEntry {
                 depth: u32::from(e.depth),
-                text: e.text.clone(),
-                slug: e.slug.clone(),
+                text: e.text,
+                slug: e.slug,
             })
             .collect(),
         reading_time: result.reading_time.map(|rt| JsReadingTime {
             words: rt.words,
             minutes: rt.minutes,
         }),
-        excerpt: result.excerpt.clone(),
+        excerpt: result.excerpt,
     }
 }

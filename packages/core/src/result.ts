@@ -2,6 +2,7 @@ import type { TocEntry } from "./options";
 
 export type CompileResult = {
   output: string | object;
+  sourcemap?: string;
   frontmatter: Record<string, unknown>;
   diagnostics: Array<{
     level: "error" | "warn";

@@ -1,16 +1,7 @@
 use napi_derive::napi;
 use std::collections::HashMap;
-use unifast_core::api::options::{
-    AbbrOptions, AccessibleEmojiOptions, AddClassesOptions, AlertIconDef, AutolinkHeadingsBehavior,
-    AutolinkHeadingsOptions, BreaksOptions, CjkOptions, CodeImportOptions, CodeMetaOptions,
-    CommentRemovalOptions, CompileOptions, CustomHeadingIdOptions, DefinitionListOptions,
-    DiagnosticsFormat, DiagnosticsOptions, DirectiveOptions, EmojiOptions, ExcerptOptions,
-    ExternalLinksOptions, FigureOptions, FrontmatterOptions, GfmOptions, GithubAlertIconMode,
-    GithubAlertOptions, HighlightEngine, HighlightOptions, HtmlCleanupOptions,
-    ImgLazyLoadingOptions, InputKind, LineNumberOptions, MathOptions, MinifyOptions, OutputKind,
-    RawHtmlPolicy, ReadingTimeOptions, RubyAnnotationOptions, SanitizeOptions, SanitizeSchema,
-    SectionizeOptions, SlugMode, SlugOptions, SmartypantsOptions, TocOptions, WikiLinkOptions,
-};
+use unifast_core::api::json_compat::*;
+use unifast_core::api::options::CompileOptions;
 
 #[napi(object)]
 pub struct JsGfmOptions {
@@ -200,286 +191,264 @@ pub struct JsCompileOptions {
     pub minify: Option<JsFeatureToggle>,
 }
 
-pub fn convert_options(js_opts: Option<JsCompileOptions>) -> CompileOptions {
-    let js = match js_opts {
-        Some(o) => o,
-        None => return CompileOptions::default(),
-    };
+// ─── Js* → Json* conversions (field mapping only, no business logic) ──
 
-    CompileOptions {
-        input_kind: match js.input_kind.as_deref() {
-            Some("mdx") => InputKind::Mdx,
-            _ => InputKind::Markdown,
-        },
-        output_kind: match js.output_kind.as_deref() {
-            Some("hast") => OutputKind::Hast,
-            Some("mdast") => OutputKind::Mdast,
-            Some("mdxJs") => OutputKind::MdxJs,
-            _ => OutputKind::Html,
-        },
-        gfm: if let Some(g) = js.gfm {
-            GfmOptions {
-                tables: g.tables.unwrap_or(true),
-                task_list: g.task_list.unwrap_or(true),
-                strikethrough: g.strikethrough.unwrap_or(true),
-                footnotes: g.footnotes.unwrap_or(true),
-                autolink: g.autolink.unwrap_or(true),
-            }
-        } else {
-            GfmOptions::default()
-        },
-        frontmatter: if let Some(f) = js.frontmatter {
-            FrontmatterOptions {
-                yaml: f.yaml.unwrap_or(false),
-                toml: f.toml.unwrap_or(false),
-                json: f.json.unwrap_or(false),
-            }
-        } else {
-            FrontmatterOptions::default()
-        },
-        raw_html: match js.raw_html.as_deref() {
-            Some("allowDangerous") => RawHtmlPolicy::AllowDangerous,
-            Some("parseAndSanitize") => RawHtmlPolicy::ParseAndSanitize,
-            _ => RawHtmlPolicy::Disallow,
-        },
-        sanitize: if let Some(s) = js.sanitize {
-            SanitizeOptions {
-                enabled: s.enabled.unwrap_or(true),
-                schema: s.schema.map(|sc| SanitizeSchema {
-                    allowed_tags: sc.allowed_tags.unwrap_or_default(),
-                    allowed_attributes: sc.allowed_attributes.unwrap_or_default(),
-                    allowed_protocols: sc.allowed_protocols.unwrap_or_default(),
-                }),
-            }
-        } else {
-            SanitizeOptions::default()
-        },
-        highlight: if let Some(h) = js.highlight {
-            HighlightOptions {
-                enabled: h.enabled.unwrap_or(false),
-                engine: match h.engine.as_deref() {
-                    Some("syntect") => HighlightEngine::Syntect,
-                    Some("treeSitter") => HighlightEngine::TreeSitter,
-                    _ => HighlightEngine::None,
-                },
-            }
-        } else {
-            HighlightOptions::default()
-        },
-        line_numbers: if let Some(ln) = js.line_numbers {
-            LineNumberOptions {
-                enabled: ln.enabled.unwrap_or(false),
-            }
-        } else {
-            LineNumberOptions::default()
-        },
-        slug: if let Some(s) = js.slug {
-            SlugOptions {
-                mode: match s.mode.as_deref() {
-                    Some("unicode") => SlugMode::Unicode,
-                    _ => SlugMode::GitHub,
-                },
-            }
-        } else {
-            SlugOptions::default()
-        },
-        toc: if let Some(t) = js.toc {
-            TocOptions {
-                enabled: t.enabled.unwrap_or(false),
-                max_depth: t.max_depth.map_or(6, |d| d as u8),
-            }
-        } else {
-            TocOptions::default()
-        },
-        external_links: if let Some(el) = js.external_links {
-            ExternalLinksOptions {
-                enabled: el.enabled.unwrap_or(false),
-                rel: el.rel.unwrap_or_else(|| "noopener noreferrer".to_string()),
-                target: el.target,
-            }
-        } else {
-            ExternalLinksOptions::default()
-        },
-        autolink_headings: if let Some(ah) = js.autolink_headings {
-            AutolinkHeadingsOptions {
-                enabled: ah.enabled.unwrap_or(false),
-                behavior: match ah.behavior.as_deref() {
-                    Some("append") => AutolinkHeadingsBehavior::Append,
-                    Some("wrap") => AutolinkHeadingsBehavior::Wrap,
-                    _ => AutolinkHeadingsBehavior::Prepend,
-                },
-            }
-        } else {
-            AutolinkHeadingsOptions::default()
-        },
-        sectionize: SectionizeOptions {
-            enabled: js.sectionize.and_then(|s| s.enabled).unwrap_or(false),
-        },
-        breaks: BreaksOptions {
-            enabled: js.breaks.and_then(|b| b.enabled).unwrap_or(false),
-        },
-        smartypants: if let Some(sp) = js.smartypants {
-            SmartypantsOptions {
-                enabled: sp.enabled.unwrap_or(false),
-                quotes: sp.quotes.unwrap_or(true),
-                dashes: sp.dashes.unwrap_or(true),
-                ellipses: sp.ellipses.unwrap_or(true),
-            }
-        } else {
-            SmartypantsOptions::default()
-        },
-        emoji: EmojiOptions {
-            enabled: js.emoji.and_then(|e| e.enabled).unwrap_or(false),
-        },
-        github_alert: if let Some(ga) = js.github_alert {
-            let icons = match ga.icons.as_deref() {
-                Some("none") => GithubAlertIconMode::None,
-                Some("octicon") | None => {
-                    if let Some(custom) = ga.custom_icons {
-                        let map = custom
-                            .into_iter()
-                            .map(|(k, v)| {
-                                (
-                                    k,
-                                    AlertIconDef {
-                                        svg: v.svg,
-                                        import_source: v.import_source,
-                                        import_name: v.import_name,
-                                    },
-                                )
-                            })
-                            .collect();
-                        GithubAlertIconMode::Custom(map)
-                    } else {
-                        GithubAlertIconMode::Octicon
-                    }
-                }
-                _ => GithubAlertIconMode::Octicon,
-            };
-            GithubAlertOptions {
-                enabled: ga.enabled.unwrap_or(false),
-                icons,
-            }
-        } else {
-            GithubAlertOptions::default()
-        },
-        math: MathOptions {
-            enabled: js.math.and_then(|m| m.enabled).unwrap_or(false),
-        },
-        directive: DirectiveOptions {
-            enabled: js.directive.and_then(|d| d.enabled).unwrap_or(false),
-        },
-        wiki_link: if let Some(wl) = js.wiki_link {
-            WikiLinkOptions {
-                enabled: wl.enabled.unwrap_or(false),
-                href_template: wl
-                    .href_template
-                    .unwrap_or_else(|| "/wiki/{slug}".to_string()),
-            }
-        } else {
-            WikiLinkOptions::default()
-        },
-        definition_list: DefinitionListOptions {
-            enabled: js.definition_list.and_then(|d| d.enabled).unwrap_or(false),
-        },
-        ruby_annotation: RubyAnnotationOptions {
-            enabled: js.ruby_annotation.and_then(|r| r.enabled).unwrap_or(false),
-        },
-        cjk: CjkOptions {
-            enabled: js.cjk.and_then(|c| c.enabled).unwrap_or(false),
-        },
-        code_import: if let Some(ci) = js.code_import {
-            CodeImportOptions {
-                enabled: ci.enabled.unwrap_or(false),
-                root_dir: ci.root_dir,
-            }
-        } else {
-            CodeImportOptions::default()
-        },
-        code_meta: CodeMetaOptions {
-            enabled: js.code_meta.and_then(|c| c.enabled).unwrap_or(false),
-        },
-        figure: FigureOptions {
-            enabled: js.figure.and_then(|f| f.enabled).unwrap_or(false),
-        },
-        custom_heading_id: CustomHeadingIdOptions {
-            enabled: js
-                .custom_heading_id
-                .and_then(|c| c.enabled)
-                .unwrap_or(false),
-        },
-        reading_time_opts: if let Some(rt) = js.reading_time {
-            ReadingTimeOptions {
-                enabled: rt.enabled.unwrap_or(false),
-                words_per_minute: rt.words_per_minute.unwrap_or(200),
-                cjk_chars_per_minute: rt.cjk_chars_per_minute.unwrap_or(500),
-            }
-        } else {
-            ReadingTimeOptions::default()
-        },
-        excerpt_opts: if let Some(ex) = js.excerpt {
-            ExcerptOptions {
-                enabled: ex.enabled.unwrap_or(false),
-                separator: ex.separator.unwrap_or_else(|| "<!-- more -->".to_string()),
-                fallback_paragraphs: ex.fallback_paragraphs.or(Some(1)),
-                fallback_characters: ex.fallback_characters,
-            }
-        } else {
-            ExcerptOptions::default()
-        },
-        abbr: AbbrOptions {
-            enabled: js.abbr.and_then(|a| a.enabled).unwrap_or(false),
-        },
-        comment_removal: CommentRemovalOptions {
-            enabled: js.comment_removal.and_then(|c| c.enabled).unwrap_or(false),
-        },
-        img_lazy_loading: if let Some(il) = js.img_lazy_loading {
-            ImgLazyLoadingOptions {
-                enabled: il.enabled.unwrap_or(false),
-                skip_first: il.skip_first.unwrap_or(0),
-            }
-        } else {
-            ImgLazyLoadingOptions::default()
-        },
-        accessible_emoji: AccessibleEmojiOptions {
-            enabled: js.accessible_emoji.and_then(|a| a.enabled).unwrap_or(false),
-        },
-        add_classes: if let Some(ac) = js.add_classes {
-            AddClassesOptions {
-                enabled: ac.enabled.unwrap_or(false),
-                rules: ac
-                    .rules
-                    .map(|r| {
-                        r.into_iter()
-                            .map(|rule| (rule.selector, rule.classes))
-                            .collect()
-                    })
-                    .unwrap_or_default(),
-            }
-        } else {
-            AddClassesOptions::default()
-        },
-        html_cleanup: if let Some(hc) = js.html_cleanup {
-            HtmlCleanupOptions {
-                remove_empty_nodes: hc.remove_empty_nodes.unwrap_or(false),
-                minify_whitespace: hc.minify_whitespace.unwrap_or(false),
-            }
-        } else {
-            HtmlCleanupOptions::default()
-        },
-        minify: MinifyOptions {
-            enabled: js.minify.and_then(|m| m.enabled).unwrap_or(false),
-        },
-        diagnostics: if let Some(d) = js.diagnostics {
-            DiagnosticsOptions {
-                format: match d.format.as_deref() {
-                    Some("verbose") => DiagnosticsFormat::Verbose,
-                    _ => DiagnosticsFormat::Compact,
-                },
-            }
-        } else {
-            DiagnosticsOptions::default()
-        },
-        ..Default::default()
+impl From<JsFeatureToggle> for JsonToggle {
+    fn from(js: JsFeatureToggle) -> Self {
+        Self {
+            enabled: js.enabled,
+        }
+    }
+}
+
+impl From<JsGfmOptions> for JsonGfmOptions {
+    fn from(js: JsGfmOptions) -> Self {
+        Self {
+            tables: js.tables,
+            task_list: js.task_list,
+            strikethrough: js.strikethrough,
+            footnotes: js.footnotes,
+            autolink: js.autolink,
+        }
+    }
+}
+
+impl From<JsFrontmatterOptions> for JsonFrontmatterOptions {
+    fn from(js: JsFrontmatterOptions) -> Self {
+        Self {
+            yaml: js.yaml,
+            toml: js.toml,
+            json: js.json,
+        }
+    }
+}
+
+impl From<JsSanitizeSchemaOptions> for JsonSanitizeSchema {
+    fn from(js: JsSanitizeSchemaOptions) -> Self {
+        Self {
+            allowed_tags: js.allowed_tags,
+            allowed_attributes: js.allowed_attributes,
+            allowed_protocols: js.allowed_protocols,
+        }
+    }
+}
+
+impl From<JsSanitizeOptions> for JsonSanitizeOptions {
+    fn from(js: JsSanitizeOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            schema: js.schema.map(Into::into),
+        }
+    }
+}
+
+impl From<JsHighlightOptions> for JsonHighlightOptions {
+    fn from(js: JsHighlightOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            engine: js.engine,
+        }
+    }
+}
+
+impl From<JsSlugOptions> for JsonSlugOptions {
+    fn from(js: JsSlugOptions) -> Self {
+        Self { mode: js.mode }
+    }
+}
+
+impl From<JsTocOptions> for JsonTocOptions {
+    fn from(js: JsTocOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            max_depth: js.max_depth,
+        }
+    }
+}
+
+impl From<JsDiagnosticsOptions> for JsonDiagnosticsOptions {
+    fn from(js: JsDiagnosticsOptions) -> Self {
+        Self { format: js.format }
+    }
+}
+
+impl From<JsExternalLinksOptions> for JsonExternalLinksOptions {
+    fn from(js: JsExternalLinksOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            rel: js.rel,
+            target: js.target,
+        }
+    }
+}
+
+impl From<JsAutolinkHeadingsOptions> for JsonAutolinkHeadingsOptions {
+    fn from(js: JsAutolinkHeadingsOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            behavior: js.behavior,
+        }
+    }
+}
+
+impl From<JsSmartypantsOptions> for JsonSmartypantsOptions {
+    fn from(js: JsSmartypantsOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            quotes: js.quotes,
+            dashes: js.dashes,
+            ellipses: js.ellipses,
+        }
+    }
+}
+
+impl From<JsAlertIconDef> for JsonAlertIconDef {
+    fn from(js: JsAlertIconDef) -> Self {
+        Self {
+            svg: js.svg,
+            import_source: js.import_source,
+            import_name: js.import_name,
+        }
+    }
+}
+
+impl From<JsGithubAlertOptions> for JsonGithubAlertOptions {
+    fn from(js: JsGithubAlertOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            icons: js.icons,
+            custom_icons: js
+                .custom_icons
+                .map(|m| m.into_iter().map(|(k, v)| (k, v.into())).collect()),
+        }
+    }
+}
+
+impl From<JsWikiLinkOptions> for JsonWikiLinkOptions {
+    fn from(js: JsWikiLinkOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            href_template: js.href_template,
+        }
+    }
+}
+
+impl From<JsCodeImportOptions> for JsonCodeImportOptions {
+    fn from(js: JsCodeImportOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            root_dir: js.root_dir,
+        }
+    }
+}
+
+impl From<JsReadingTimeOptions> for JsonReadingTimeOptions {
+    fn from(js: JsReadingTimeOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            words_per_minute: js.words_per_minute,
+            cjk_chars_per_minute: js.cjk_chars_per_minute,
+        }
+    }
+}
+
+impl From<JsExcerptOptions> for JsonExcerptOptions {
+    fn from(js: JsExcerptOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            separator: js.separator,
+            fallback_paragraphs: js.fallback_paragraphs,
+            fallback_characters: js.fallback_characters,
+        }
+    }
+}
+
+impl From<JsImgLazyLoadingOptions> for JsonImgLazyLoadingOptions {
+    fn from(js: JsImgLazyLoadingOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            skip_first: js.skip_first,
+        }
+    }
+}
+
+impl From<JsAddClassesRule> for JsonAddClassesRule {
+    fn from(js: JsAddClassesRule) -> Self {
+        Self {
+            selector: js.selector,
+            classes: js.classes,
+        }
+    }
+}
+
+impl From<JsAddClassesOptions> for JsonAddClassesOptions {
+    fn from(js: JsAddClassesOptions) -> Self {
+        Self {
+            enabled: js.enabled,
+            rules: js.rules.map(|r| r.into_iter().map(Into::into).collect()),
+        }
+    }
+}
+
+impl From<JsHtmlCleanupOptions> for JsonHtmlCleanupOptions {
+    fn from(js: JsHtmlCleanupOptions) -> Self {
+        Self {
+            remove_empty_nodes: js.remove_empty_nodes,
+            minify_whitespace: js.minify_whitespace,
+        }
+    }
+}
+
+impl From<JsCompileOptions> for JsonCompileOptions {
+    fn from(js: JsCompileOptions) -> Self {
+        Self {
+            input_kind: js.input_kind,
+            output_kind: js.output_kind,
+            raw_html: js.raw_html,
+            gfm: js.gfm.map(Into::into),
+            frontmatter: js.frontmatter.map(Into::into),
+            sanitize: js.sanitize.map(Into::into),
+            highlight: js.highlight.map(Into::into),
+            line_numbers: js.line_numbers.map(|l| JsonToggle { enabled: l.enabled }),
+            slug: js.slug.map(Into::into),
+            toc: js.toc.map(Into::into),
+            external_links: js.external_links.map(Into::into),
+            autolink_headings: js.autolink_headings.map(Into::into),
+            sectionize: js.sectionize.map(Into::into),
+            breaks: js.breaks.map(Into::into),
+            smartypants: js.smartypants.map(Into::into),
+            emoji: js.emoji.map(Into::into),
+            github_alert: js.github_alert.map(Into::into),
+            math: js.math.map(Into::into),
+            directive: js.directive.map(Into::into),
+            wiki_link: js.wiki_link.map(Into::into),
+            definition_list: js.definition_list.map(Into::into),
+            ruby_annotation: js.ruby_annotation.map(Into::into),
+            cjk: js.cjk.map(Into::into),
+            code_import: js.code_import.map(Into::into),
+            code_meta: js.code_meta.map(Into::into),
+            figure: js.figure.map(Into::into),
+            custom_heading_id: js.custom_heading_id.map(Into::into),
+            reading_time: js.reading_time.map(Into::into),
+            excerpt: js.excerpt.map(Into::into),
+            abbr: js.abbr.map(Into::into),
+            comment_removal: js.comment_removal.map(Into::into),
+            img_lazy_loading: js.img_lazy_loading.map(Into::into),
+            accessible_emoji: js.accessible_emoji.map(Into::into),
+            add_classes: js.add_classes.map(Into::into),
+            html_cleanup: js.html_cleanup.map(Into::into),
+            minify: js.minify.map(Into::into),
+            diagnostics: js.diagnostics.map(Into::into),
+        }
+    }
+}
+
+pub fn convert_options(js_opts: Option<JsCompileOptions>) -> CompileOptions {
+    match js_opts {
+        Some(js) => {
+            let json_opts: JsonCompileOptions = js.into();
+            json_opts.into()
+        }
+        None => CompileOptions::default(),
     }
 }

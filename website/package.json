@@ -22,18 +22,18 @@
   "dependencies": {
     "@base-ui/react": "^1.2.0",
     "@posthog/react": "^1.8.2",
-    "@tanstack/react-router": "^1.166.2",
+    "@tanstack/react-router": "^1.166.6",
     "@unifast/node": "workspace:*",
     "@unifast/vite": "workspace:*",
     "hugeicons-react": "^0.4.0",
-    "katex": "^0.16.37",
+    "katex": "^0.16.38",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
     "@css-modules-kit/codegen": "^0.10.0",
     "@css-modules-kit/stylelint-plugin": "^0.10.0",
-    "@tanstack/router-plugin": "^1.166.2",
+    "@tanstack/router-plugin": "^1.166.6",
     "@types/html-minifier-terser": "^7.0.2",
     "@types/katex": "^0.16.8",
     "@types/react": "^19.2.14",
@@ -41,7 +41,7 @@
     "@vitejs/plugin-react": "^5.1.4",
     "babel-plugin-react-compiler": "^1.0.0",
     "html-minifier-terser": "^7.2.0",
-    "lightningcss": "^1.31.1",
+    "lightningcss": "^1.32.0",
     "markdownlint-cli2": "^0.21.0",
     "pagefind": "^1.4.0",
     "stylelint": "^17.4.0",
@@ -51,6 +51,6 @@
     "textlint-rule-preset-ja-technical-writing": "^12.0.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "npm:rolldown-vite@^7.3.1"
+    "vite": "^8.0.0-beta.18"
   }
 }

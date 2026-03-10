@@ -18,7 +18,7 @@ fn apply_to_node(node: &mut HNode, behavior: AutolinkHeadingsBehavior, id_gen: &
         HNode::Element(elem) => {
             let is_heading = matches!(elem.tag.as_str(), "h1" | "h2" | "h3" | "h4" | "h5" | "h6");
             if is_heading {
-                if let Some(id) = elem.attributes.get(&"id".to_string()).cloned() {
+                if let Some(id) = elem.attributes.get("id").cloned() {
                     let href = format!("#{id}");
                     let mut link_attrs = SmallMap::new();
                     link_attrs.insert("href".to_string(), href);
@@ -108,10 +108,7 @@ mod tests {
             assert_eq!(h.children.len(), 2);
             if let HNode::Element(a) = &h.children[0] {
                 assert_eq!(a.tag, "a");
-                assert_eq!(
-                    a.attributes.get(&"href".to_string()),
-                    Some(&"#hello".to_string())
-                );
+                assert_eq!(a.attributes.get("href"), Some(&"#hello".to_string()));
             } else {
                 panic!("expected anchor element");
             }
@@ -145,10 +142,7 @@ mod tests {
             assert!(matches!(&h.children[0], HNode::Text(_)));
             if let HNode::Element(a) = &h.children[1] {
                 assert_eq!(a.tag, "a");
-                assert_eq!(
-                    a.attributes.get(&"href".to_string()),
-                    Some(&"#foo".to_string())
-                );
+                assert_eq!(a.attributes.get("href"), Some(&"#foo".to_string()));
             } else {
                 panic!("expected anchor");
             }
@@ -181,10 +175,7 @@ mod tests {
             assert_eq!(h.children.len(), 1);
             if let HNode::Element(a) = &h.children[0] {
                 assert_eq!(a.tag, "a");
-                assert_eq!(
-                    a.attributes.get(&"href".to_string()),
-                    Some(&"#bar".to_string())
-                );
+                assert_eq!(a.attributes.get("href"), Some(&"#bar".to_string()));
                 assert_eq!(a.children.len(), 1);
                 assert!(matches!(&a.children[0], HNode::Text(t) if t.value == "Bar"));
             } else {

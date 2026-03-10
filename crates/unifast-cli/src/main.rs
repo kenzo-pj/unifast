@@ -75,13 +75,13 @@ fn main() {
 
     let result = compile(&input, &opts);
 
-    let output_str = match &result.output {
-        Output::Html(html) => html.clone(),
-        Output::MdxJs { code, .. } => code.clone(),
-        Output::Hast(root) => {
+    let output_str = match result.output {
+        Output::Html(html) => html,
+        Output::MdxJs { code, .. } => code,
+        Output::Hast(ref root) => {
             serde_json::to_string_pretty(root).unwrap_or_else(|_| format!("{root:#?}"))
         }
-        Output::Mdast(doc) => {
+        Output::Mdast(ref doc) => {
             serde_json::to_string_pretty(doc).unwrap_or_else(|_| format!("{doc:#?}"))
         }
     };
@@ -102,6 +102,10 @@ fn main() {
 
     if cli.diagnostics && !result.diagnostics.is_empty() {
         let line_index = unifast_core::util::line_index::LineIndex::new(&input);
+        let source = std::sync::Arc::new(miette::NamedSource::new(
+            cli.input.display().to_string(),
+            input,
+        ));
         for d in &result.diagnostics {
             let _pos = line_index.line_col(d.span.start);
             let _len = (d.span.end - d.span.start).max(1) as usize;
@@ -119,10 +123,7 @@ fn main() {
                 "{}",
                 d.message
             )
-            .with_source_code(miette::NamedSource::new(
-                cli.input.display().to_string(),
-                input.clone(),
-            ));
+            .with_source_code(source.clone());
             eprintln!("{report:?}");
         }
     }

@@ -431,7 +431,7 @@ fn try_highlight_code_block(
     if code_elem.tag != "code" {
         return;
     }
-    let Some(class) = code_elem.attributes.get(&"class".to_string()) else {
+    let Some(class) = code_elem.attributes.get("class") else {
         return;
     };
     let class_val = class.clone();
@@ -449,7 +449,7 @@ fn try_highlight_code_block(
     })];
     let existing_class = code_elem
         .attributes
-        .get(&"class".to_string())
+        .get("class")
         .cloned()
         .unwrap_or_default();
     code_elem
@@ -543,7 +543,7 @@ mod tests {
                 } else {
                     panic!("expected Raw node after highlighting");
                 }
-                let class = code_elem.attributes.get(&"class".to_string()).unwrap();
+                let class = code_elem.attributes.get("class").unwrap();
                 assert!(class.contains("highlighted"));
             } else {
                 panic!("expected code element");
@@ -567,7 +567,7 @@ mod tests {
             if let HNode::Element(ref code_elem) = pre.children[0] {
                 assert_eq!(code_elem.children.len(), 1);
                 assert!(matches!(code_elem.children[0], HNode::Text(_)));
-                let class = code_elem.attributes.get(&"class".to_string()).unwrap();
+                let class = code_elem.attributes.get("class").unwrap();
                 assert!(!class.contains("highlighted"));
             } else {
                 panic!("expected code element");

@@ -176,13 +176,6 @@ pub struct LineNumberOptions {
 }
 
 #[derive(Debug, Clone, Default)]
-#[allow(dead_code)]
-pub(crate) struct CacheOptions {
-    pub(crate) enabled: bool,
-    pub(crate) dir: Option<String>,
-}
-
-#[derive(Debug, Clone, Default)]
 pub struct Extension {
     pub name: String,
     pub enabled: bool,

@@ -10,7 +10,7 @@ fn apply_to_node(node: &mut HNode, rel: &str, target: Option<&str>) {
     match node {
         HNode::Element(elem) => {
             if elem.tag == "a"
-                && let Some(href) = elem.attributes.get(&"href".to_string())
+                && let Some(href) = elem.attributes.get("href")
                 && (href.starts_with("http://") || href.starts_with("https://"))
             {
                 elem.attributes.insert("rel".to_string(), rel.to_string());
@@ -57,13 +57,10 @@ mod tests {
         apply_external_links(&mut root, "noopener noreferrer", Some("_blank"));
         if let HNode::Element(a) = &root.children[0] {
             assert_eq!(
-                a.attributes.get(&"rel".to_string()),
+                a.attributes.get("rel"),
                 Some(&"noopener noreferrer".to_string())
             );
-            assert_eq!(
-                a.attributes.get(&"target".to_string()),
-                Some(&"_blank".to_string())
-            );
+            assert_eq!(a.attributes.get("target"), Some(&"_blank".to_string()));
         }
     }
 
@@ -86,11 +83,8 @@ mod tests {
         };
         apply_external_links(&mut root, "noopener", None);
         if let HNode::Element(a) = &root.children[0] {
-            assert_eq!(
-                a.attributes.get(&"rel".to_string()),
-                Some(&"noopener".to_string())
-            );
-            assert!(a.attributes.get(&"target".to_string()).is_none());
+            assert_eq!(a.attributes.get("rel"), Some(&"noopener".to_string()));
+            assert!(a.attributes.get("target").is_none());
         }
     }
 
@@ -121,10 +115,7 @@ mod tests {
         apply_external_links(&mut root, "noopener", Some("_blank"));
         if let HNode::Element(div) = &root.children[0] {
             if let HNode::Element(a) = &div.children[0] {
-                assert_eq!(
-                    a.attributes.get(&"rel".to_string()),
-                    Some(&"noopener".to_string())
-                );
+                assert_eq!(a.attributes.get("rel"), Some(&"noopener".to_string()));
             } else {
                 panic!("expected anchor");
             }
@@ -150,7 +141,7 @@ mod tests {
         };
         apply_external_links(&mut root, "noopener", None);
         if let HNode::Element(a) = &root.children[0] {
-            assert!(a.attributes.get(&"rel".to_string()).is_none());
+            assert!(a.attributes.get("rel").is_none());
         }
     }
 }
