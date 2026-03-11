@@ -4,15 +4,7 @@ type ThemeMode = "light" | "dark" | "system";
 type ResolvedTheme = "light" | "dark";
 
 function getSystemTheme(): ResolvedTheme {
-  if (globalThis.window === undefined) return "light";
   return globalThis.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
-function getStoredMode(): ThemeMode {
-  if (globalThis.window === undefined) return "system";
-  const stored = localStorage.getItem("theme");
-  if (stored === "light" || stored === "dark") return stored;
-  return "system";
 }
 
 function applyTheme(resolved: ResolvedTheme) {
@@ -24,16 +16,17 @@ function applyTheme(resolved: ResolvedTheme) {
 }
 
 export function useTheme() {
-  const [mode, setMode] = useState<ThemeMode>(getStoredMode);
-  const [resolved, setResolved] = useState<ResolvedTheme>(() =>
-    mode === "system" ? getSystemTheme() : mode,
-  );
+  const [mode, setMode] = useState<ThemeMode>("system");
+  const [resolved, setResolved] = useState<ResolvedTheme>("light");
 
   useEffect(() => {
-    const newResolved = mode === "system" ? getSystemTheme() : mode;
-    setResolved(newResolved);
-    applyTheme(newResolved);
-  }, [mode]);
+    const stored = localStorage.getItem("theme");
+    const initialMode: ThemeMode = stored === "light" || stored === "dark" ? stored : "system";
+    setMode(initialMode);
+    const initialResolved = initialMode === "system" ? getSystemTheme() : initialMode;
+    setResolved(initialResolved);
+    applyTheme(initialResolved);
+  }, []);
 
   useEffect(() => {
     if (mode !== "system") return;
@@ -55,6 +48,9 @@ export function useTheme() {
       } else {
         localStorage.setItem("theme", next);
       }
+      const newResolved = next === "system" ? getSystemTheme() : next;
+      setResolved(newResolved);
+      applyTheme(newResolved);
       return next;
     });
   }, []);

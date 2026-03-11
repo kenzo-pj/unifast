@@ -67,7 +67,10 @@ export function SearchDialog() {
     setActiveIndex(results.length > 0 ? 0 : -1);
   }, [results]);
 
-  const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
+  const [isMac, setIsMac] = useState(false);
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad/.test(navigator.userAgent));
+  }, []);
 
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>

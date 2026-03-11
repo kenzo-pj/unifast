@@ -1,5 +1,5 @@
 import { Tabs } from "@base-ui/react/tabs";
-import { memo, useState, useCallback, useMemo, type ComponentType } from "react";
+import { memo, useState, useEffect, useCallback, useMemo, type ComponentType } from "react";
 
 import { CopyButton } from "~/components/CopyButton";
 import { NpmIcon, YarnIcon, PnpmIcon, BunIcon } from "~/components/icons/logos";
@@ -19,11 +19,6 @@ const MANAGERS = [
   icon: ComponentType<{ size?: number; className?: string }>;
   command: (pkg: string) => string;
 }[];
-
-function getDefaultManager(): string {
-  if (globalThis.window === undefined) return "npm";
-  return localStorage.getItem(STORAGE_KEY) ?? "npm";
-}
 
 const ManagerPanel = memo(function ManagerPanel({
   id,
@@ -52,7 +47,12 @@ interface PackageInstallProps {
 export const PackageInstall = memo(function PackageInstall(props: PackageInstallProps) {
   const pkg = props.package;
   const { highlighted } = props;
-  const [manager, setManager] = useState(getDefaultManager);
+  const [manager, setManager] = useState("npm");
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) setManager(stored);
+  }, []);
 
   const currentCommand =
     MANAGERS.find((m) => m.id === manager)?.command(pkg) ?? `npm install ${pkg}`;
