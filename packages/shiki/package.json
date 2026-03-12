@@ -1,6 +1,6 @@
 {
   "name": "@unifast/shiki",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Shiki syntax highlighting plugin for unifast via HAST transforms",
   "files": [
     "dist"

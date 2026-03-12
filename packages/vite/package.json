@@ -1,6 +1,6 @@
 {
   "name": "@unifast/vite",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Vite plugin for unifast — transform Markdown and MDX files into JS modules",
   "files": [
     "dist"
