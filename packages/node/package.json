@@ -2,6 +2,26 @@
   "name": "@unifast/node",
   "version": "0.0.4",
   "description": "Node.js binding for unifast Markdown/MDX compiler",
+  "license": "MIT",
+  "author": "Kenzo-Wada",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kenzo-pj/unifast",
+    "directory": "packages/node"
+  },
+  "homepage": "https://kenzo-pj.github.io/unifast/",
+  "bugs": {
+    "url": "https://github.com/kenzo-pj/unifast/issues"
+  },
+  "keywords": [
+    "unifast",
+    "markdown",
+    "mdx",
+    "compiler",
+    "rust",
+    "napi",
+    "nodejs"
+  ],
   "files": [
     "dist",
     "native"

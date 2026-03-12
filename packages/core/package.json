@@ -2,6 +2,24 @@
   "name": "@unifast/core",
   "version": "0.0.4",
   "description": "TypeScript type definitions for unifast",
+  "license": "MIT",
+  "author": "Kenzo-Wada",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kenzo-pj/unifast",
+    "directory": "packages/core"
+  },
+  "homepage": "https://kenzo-pj.github.io/unifast/",
+  "bugs": {
+    "url": "https://github.com/kenzo-pj/unifast/issues"
+  },
+  "keywords": [
+    "unifast",
+    "markdown",
+    "mdx",
+    "hast",
+    "types"
+  ],
   "files": [
     "dist"
   ],

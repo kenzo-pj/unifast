@@ -11,8 +11,11 @@ members = [
 version = "0.0.4"
 edition = "2024"
 license = "MIT"
+homepage = "https://kenzo-pj.github.io/unifast/"
 repository = "https://github.com/kenzo-pj/unifast"
 description = "High-performance Markdown/MDX compiler"
+keywords = ["markdown", "mdx", "compiler", "parser", "html"]
+categories = ["parsing", "text-processing", "web-programming"]
 
 [workspace.lints.clippy]
 # Enable all groups

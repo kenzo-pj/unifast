@@ -20,7 +20,7 @@ STEP_NUM=0
 step() {
   STEP_NUM=$((STEP_NUM + 1))
   echo ""
-  echo -e "${BOLD}${BLUE}[${STEP_NUM}/7]${RESET} ${BOLD}$1${RESET}"
+  echo -e "${BOLD}${BLUE}[${STEP_NUM}/6]${RESET} ${BOLD}$1${RESET}"
 }
 
 info() {
@@ -185,33 +185,9 @@ step "Push"
 run_with_spinner "Pushing to origin" git -C "$ROOT" push --follow-tags
 success "Pushed with tags"
 
-# ── Step 7: Create GitHub Release ────────────────────────────────
-step "Create GitHub Release"
-
-if command -v gh &>/dev/null; then
-  RELEASE_NOTES=""
-  if command -v git-cliff &>/dev/null; then
-    RELEASE_NOTES=$(git-cliff --current --strip header 2>/dev/null || true)
-  fi
-
-  if [[ -z "$RELEASE_NOTES" ]]; then
-    gh release create "v${NEXT_VERSION}" \
-      --title "v${NEXT_VERSION}" \
-      --generate-notes
-  else
-    gh release create "v${NEXT_VERSION}" \
-      --title "v${NEXT_VERSION}" \
-      --notes "$RELEASE_NOTES"
-  fi
-  success "GitHub Release created"
-else
-  info "${YELLOW}gh CLI not found — skipping GitHub Release creation${RESET}"
-  info "Install: ${DIM}https://cli.github.com${RESET}"
-fi
-
 # ── Done ──────────────────────────────────────────────────────────
 echo ""
 echo -e "${DIM}─────────────────────────────────────${RESET}"
 echo -e "${GREEN}${BOLD}  Released v${NEXT_VERSION}${RESET}"
-echo -e "${DIM}  GitHub Actions will publish to crates.io and npm.${RESET}"
+echo -e "${DIM}  GitHub Actions will publish to crates.io, npm, and create a GitHub Release.${RESET}"
 echo ""

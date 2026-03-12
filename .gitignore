@@ -29,6 +29,9 @@ docs/plans/
 # Screenshots (temporary)
 *.png
 
+# Benchmark results (contain local paths)
+benchmark-results*.json
+
 # Coverage reports
 coverage/
 *.lcov
