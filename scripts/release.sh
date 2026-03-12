@@ -175,7 +175,7 @@ step "Commit & tag"
 git -C "$ROOT" commit -m "release: v${NEXT_VERSION}"
 success "Committed ${GREEN}release: v${NEXT_VERSION}${RESET}"
 
-git -C "$ROOT" tag "v${NEXT_VERSION}"
+git -C "$ROOT" tag -a "v${NEXT_VERSION}" -m "v${NEXT_VERSION}"
 success "Tagged ${GREEN}v${NEXT_VERSION}${RESET}"
 
 # ── Step 6: Push ──────────────────────────────────────────────────
