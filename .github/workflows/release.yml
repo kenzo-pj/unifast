@@ -146,6 +146,8 @@ jobs:
       - name: 🔨 Build native module (zigbuild)
         if: matrix.use-zigbuild
         run: cargo zigbuild -p unifast-bindings-node --release --target ${{ matrix.target }}
+        env:
+          RUSTFLAGS: "-D warnings -C target-feature=-crt-static"
 
       - name: 🔨 Build native module
         if: ${{ !matrix.use-zigbuild }}
@@ -153,12 +155,23 @@ jobs:
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
+      - name: 📦 Rename native module to .node
+        shell: bash
+        run: |
+          cd target/${{ matrix.target }}/release
+          for ext in so dylib dll; do
+            for f in *unifast*.$ext; do
+              [ -f "$f" ] && mv "$f" "${f%.*}.node" && echo "Renamed $f -> ${f%.*}.node"
+            done
+          done
+          ls -la *.node 2>/dev/null || echo "No .node files found"
+
       - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: binding-${{ matrix.artifact }}
           path: target/${{ matrix.target }}/release/*.node
-          if-no-files-found: warn
+          if-no-files-found: error
 
   publish-npm:
     name: 📦 Publish to npm
