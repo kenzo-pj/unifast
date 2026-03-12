@@ -30,8 +30,8 @@
   "devDependencies": {
     "@unifast/node": "workspace:*",
     "typescript": "^5.9.3",
-    "vite": "^8.0.0-beta.18",
-    "vitest": "^4.0.18"
+    "vite": "^8.0.0",
+    "vitest": "^4.1.0"
   },
   "peerDependencies": {
     "@unifast/node": ">=0.1.0",

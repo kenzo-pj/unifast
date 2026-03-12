@@ -100,7 +100,7 @@ precomputed-hash = { workspace = true }
 workspace = true
 
 [dev-dependencies]
-divan = { version = "4.3.0", package = "codspeed-divan-compat" }
+divan = { version = "4.4.1", package = "codspeed-divan-compat" }
 insta = { workspace = true }
 
 [[bench]]
