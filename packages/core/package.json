@@ -1,6 +1,6 @@
 {
   "name": "@unifast/core",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "TypeScript type definitions for unifast",
   "files": [
     "dist"

@@ -1,6 +1,6 @@
 {
   "name": "@unifast/highlight",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "highlight.js syntax highlighting plugin for unifast via HAST transforms",
   "files": [
     "dist"
