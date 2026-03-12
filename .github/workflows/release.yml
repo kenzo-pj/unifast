@@ -194,7 +194,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: 🏗️ Build TypeScript packages
-        run: pnpm build
+        run: pnpm turbo build --filter='!@unifast/website'
 
       - name: 📥 Download all native binding artifacts
         uses: actions/download-artifact@v4
