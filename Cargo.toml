@@ -8,7 +8,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.4"
+version = "0.0.5"
 edition = "2024"
 license = "MIT"
 homepage = "https://kenzo-pj.github.io/unifast/"
@@ -73,7 +73,7 @@ unused_peekable = "allow"
 unsafe_code = "deny"
 
 [workspace.dependencies]
-unifast-core = { path = "crates/unifast-core", version = "0.0.4", default-features = false }
+unifast-core = { path = "crates/unifast-core", version = "0.0.5", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"

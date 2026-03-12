@@ -1,6 +1,6 @@
 {
   "name": "@unifast/highlight",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "highlight.js syntax highlighting plugin for unifast via HAST transforms",
   "license": "MIT",
   "author": "Kenzo-Wada",
