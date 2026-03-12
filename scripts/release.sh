@@ -1,38 +1,104 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ── Colors & Symbols ──────────────────────────────────────────────
+BOLD='\033[1m'
+DIM='\033[2m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+RESET='\033[0m'
+
+ARROW="${CYAN}▸${RESET}"
+CHECK="${GREEN}✔${RESET}"
+CROSS="${RED}✖${RESET}"
+
+STEP_NUM=0
+
+step() {
+  STEP_NUM=$((STEP_NUM + 1))
+  echo ""
+  echo -e "${BOLD}${BLUE}[${STEP_NUM}/6]${RESET} ${BOLD}$1${RESET}"
+}
+
+info() {
+  echo -e "  ${ARROW} $1"
+}
+
+success() {
+  echo -e "  ${CHECK} $1"
+}
+
+error() {
+  echo -e "  ${CROSS} ${RED}$1${RESET}" >&2
+}
+
+# Spinner for long-running commands
+spin() {
+  local pid=$1
+  local label=$2
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local i=0
+
+  while kill -0 "$pid" 2>/dev/null; do
+    printf "\r  ${CYAN}${frames[$i]}${RESET} ${DIM}%s${RESET}" "$label"
+    i=$(( (i + 1) % ${#frames[@]} ))
+    sleep 0.1
+  done
+  wait "$pid"
+  local exit_code=$?
+  printf "\r\033[K"
+  return $exit_code
+}
+
+# Run a command with spinner
+run_with_spinner() {
+  local label=$1
+  shift
+  "$@" &
+  local pid=$!
+  if spin "$pid" "$label"; then
+    success "$label"
+  else
+    error "$label — failed"
+    return 1
+  fi
+}
+
+# ── Args ──────────────────────────────────────────────────────────
 LEVEL="${1:?Usage: release.sh <patch|minor|major> [--dry-run]}"
 DRY_RUN="${2:-}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-# Validate level
 if [[ "$LEVEL" != "patch" && "$LEVEL" != "minor" && "$LEVEL" != "major" ]]; then
-  echo "Error: level must be patch, minor, or major"
+  error "level must be patch, minor, or major"
   exit 1
 fi
 
-# Ensure working directory is clean
+# ── Preflight ─────────────────────────────────────────────────────
+echo ""
+echo -e "${BOLD}${CYAN}unifast release${RESET} ${DIM}(${LEVEL})${RESET}"
+echo -e "${DIM}─────────────────────────────────────${RESET}"
+
 if [[ -n "$(git -C "$ROOT" status --porcelain)" ]]; then
-  echo "Error: working directory is not clean. Commit or stash changes first."
+  error "Working directory is not clean. Commit or stash changes first."
   exit 1
 fi
 
-# Ensure on main branch
 BRANCH="$(git -C "$ROOT" branch --show-current)"
 if [[ "$BRANCH" != "main" ]]; then
-  echo "Error: releases must be made from the main branch (current: $BRANCH)"
+  error "Releases must be made from main branch (current: ${BRANCH})"
   exit 1
 fi
 
-# Get current version from Cargo.toml workspace
 CURRENT_VERSION="$(sed -n '/\[workspace\.package\]/,/\[/{s/^version = "\(.*\)"/\1/p}' "$ROOT/Cargo.toml")"
 if [[ -z "$CURRENT_VERSION" ]]; then
-  echo "Error: could not read version from Cargo.toml"
+  error "Could not read version from Cargo.toml"
   exit 1
 fi
-echo "Current version: $CURRENT_VERSION"
 
-# Calculate next version
 IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
 case "$LEVEL" in
   patch) PATCH=$((PATCH + 1)) ;;
@@ -40,49 +106,87 @@ case "$LEVEL" in
   major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
 esac
 NEXT_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-echo "Next version: $NEXT_VERSION"
 
+echo ""
+echo -e "  ${YELLOW}${CURRENT_VERSION}${RESET} → ${GREEN}${BOLD}${NEXT_VERSION}${RESET}"
+
+# ── Dry Run ───────────────────────────────────────────────────────
 if [[ "$DRY_RUN" == "--dry-run" ]]; then
   echo ""
-  echo "=== DRY RUN ==="
-  echo "Would bump: $CURRENT_VERSION → $NEXT_VERSION"
+  echo -e "${BOLD}${YELLOW}  DRY RUN — no changes will be made${RESET}"
   echo ""
-  echo "=== Files to update ==="
-  echo "  $ROOT/Cargo.toml (workspace version)"
+  echo -e "  ${BOLD}Files to update:${RESET}"
+  echo -e "    ${ARROW} Cargo.toml ${DIM}(workspace version)${RESET}"
   for pkg in "$ROOT"/packages/*/package.json; do
     if echo "$pkg" | grep -q "benchmark"; then continue; fi
-    echo "  $pkg"
+    local_pkg="${pkg#"$ROOT"/}"
+    echo -e "    ${ARROW} ${local_pkg}"
   done
   echo ""
-  echo "=== CHANGELOG preview ==="
-  git-cliff --unreleased --tag "v${NEXT_VERSION}" 2>/dev/null || echo "(no conventional commits found)"
+  echo -e "  ${BOLD}CHANGELOG preview:${RESET}"
+  git-cliff --unreleased --tag "v${NEXT_VERSION}" 2>/dev/null || echo -e "    ${DIM}(no conventional commits found)${RESET}"
   exit 0
 fi
 
-# Bump Cargo.toml workspace version
-sed -i "s/^version = \"$CURRENT_VERSION\"/version = \"$NEXT_VERSION\"/" "$ROOT/Cargo.toml"
-echo "Updated Cargo.toml workspace version"
+# ── Step 1: Bump versions ────────────────────────────────────────
+step "Bump versions"
 
-# Bump all package.json files (skip benchmark)
+sed -i "s/^version = \"$CURRENT_VERSION\"/version = \"$NEXT_VERSION\"/" "$ROOT/Cargo.toml"
+success "Cargo.toml"
+
 for pkg in "$ROOT"/packages/*/package.json; do
   if echo "$pkg" | grep -q "benchmark"; then continue; fi
   sed -i "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEXT_VERSION\"/" "$pkg"
-  echo "Updated $pkg"
+  local_pkg="${pkg#"$ROOT"/}"
+  success "${local_pkg}"
 done
 
-# Update Cargo.lock
-cargo check --quiet --manifest-path "$ROOT/Cargo.toml" 2>/dev/null || true
+# ── Step 2: Update Cargo.lock ─────────────────────────────────────
+step "Update Cargo.lock"
 
-# Generate CHANGELOG
-git-cliff --tag "v${NEXT_VERSION}" -o "$ROOT/CHANGELOG.md"
-echo "Generated CHANGELOG.md"
+cargo check --manifest-path "$ROOT/Cargo.toml" 2>&1 \
+  | grep -E '^(Compiling|Checking|Updating|Downloading|Locking)' \
+  | while IFS= read -r line; do
+      info "${DIM}${line}${RESET}"
+    done || true
 
-# Commit, tag, push
+success "Cargo.lock synced"
+
+# ── Step 3: Generate CHANGELOG ────────────────────────────────────
+step "Generate CHANGELOG"
+
+if command -v git-cliff &>/dev/null; then
+  run_with_spinner "git-cliff" git-cliff --tag "v${NEXT_VERSION}" -o "$ROOT/CHANGELOG.md"
+else
+  info "${YELLOW}git-cliff not found — skipping CHANGELOG generation${RESET}"
+  info "Install: ${DIM}cargo install git-cliff${RESET}"
+fi
+
+# ── Step 4: Stage changes ────────────────────────────────────────
+step "Stage changes"
+
 git -C "$ROOT" add -A
-git -C "$ROOT" commit -m "release: v${NEXT_VERSION}"
-git -C "$ROOT" tag "v${NEXT_VERSION}"
-git -C "$ROOT" push --follow-tags
+CHANGED=$(git -C "$ROOT" diff --cached --stat | tail -1)
+success "${CHANGED}"
 
+# ── Step 5: Commit & tag ─────────────────────────────────────────
+step "Commit & tag"
+
+git -C "$ROOT" commit -m "release: v${NEXT_VERSION}"
+success "Committed ${GREEN}release: v${NEXT_VERSION}${RESET}"
+
+git -C "$ROOT" tag "v${NEXT_VERSION}"
+success "Tagged ${GREEN}v${NEXT_VERSION}${RESET}"
+
+# ── Step 6: Push ──────────────────────────────────────────────────
+step "Push"
+
+run_with_spinner "Pushing to origin" git -C "$ROOT" push --follow-tags
+success "Pushed with tags"
+
+# ── Done ──────────────────────────────────────────────────────────
 echo ""
-echo "Released v${NEXT_VERSION}"
-echo "GitHub Actions will now publish to crates.io and npm."
+echo -e "${DIM}─────────────────────────────────────${RESET}"
+echo -e "${GREEN}${BOLD}  Released v${NEXT_VERSION}${RESET}"
+echo -e "${DIM}  GitHub Actions will publish to crates.io and npm.${RESET}"
+echo ""
