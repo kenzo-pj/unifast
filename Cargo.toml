@@ -70,7 +70,7 @@ unused_peekable = "allow"
 unsafe_code = "deny"
 
 [workspace.dependencies]
-unifast-core = { path = "crates/unifast-core", default-features = false }
+unifast-core = { path = "crates/unifast-core", version = "0.0.1", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"

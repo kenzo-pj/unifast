@@ -107,11 +107,12 @@ jobs:
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
             artifact: linux-x64-musl
+            use-zigbuild: true
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             artifact: linux-arm64-gnu
           - target: x86_64-apple-darwin
-            os: macos-13
+            os: macos-15
             artifact: darwin-x64
           - target: aarch64-apple-darwin
             os: macos-14
@@ -132,15 +133,22 @@ jobs:
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
-      - name: 🔧 Install musl tools
-        if: matrix.target == 'x86_64-unknown-linux-musl'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools
+      - name: 🔧 Install zigbuild (musl)
+        if: matrix.use-zigbuild
+        uses: mlugg/setup-zig@v2
+
+      - name: 🔧 Install cargo-zigbuild (musl)
+        if: matrix.use-zigbuild
+        run: cargo install cargo-zigbuild
+
+      - name: 🔨 Build native module (zigbuild)
+        if: matrix.use-zigbuild
+        run: cargo zigbuild -p unifast-bindings-node --release --target ${{ matrix.target }}
 
       - name: 🔨 Build native module
+        if: ${{ !matrix.use-zigbuild }}
         run: cargo build -p unifast-bindings-node --release --target ${{ matrix.target }}
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
