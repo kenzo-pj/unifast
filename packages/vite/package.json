@@ -2,6 +2,17 @@
   "name": "@unifast/vite",
   "version": "0.0.5",
   "description": "Vite plugin for unifast — transform Markdown and MDX files into JS modules",
+  "keywords": [
+    "markdown",
+    "mdx",
+    "unifast",
+    "vite",
+    "vite-plugin"
+  ],
+  "homepage": "https://kenzo-pj.github.io/unifast/",
+  "bugs": {
+    "url": "https://github.com/kenzo-pj/unifast/issues"
+  },
   "license": "MIT",
   "author": "Kenzo-Wada",
   "repository": {
@@ -9,17 +20,6 @@
     "url": "https://github.com/kenzo-pj/unifast",
     "directory": "packages/vite"
   },
-  "homepage": "https://kenzo-pj.github.io/unifast/",
-  "bugs": {
-    "url": "https://github.com/kenzo-pj/unifast/issues"
-  },
-  "keywords": [
-    "unifast",
-    "markdown",
-    "mdx",
-    "vite",
-    "vite-plugin"
-  ],
   "files": [
     "dist"
   ],

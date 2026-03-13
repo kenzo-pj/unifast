@@ -28,6 +28,7 @@ Code blocks with a language class (e.g., ` ```js `) are automatically highlighte
 Create a unifast plugin for lowlight-based syntax highlighting. Returns a `UnifastPlugin`.
 
 The plugin:
+
 - Disables unifast's built-in highlighting
 - Transforms `<pre><code>` blocks in the HAST output
 - Supports all languages included in highlight.js

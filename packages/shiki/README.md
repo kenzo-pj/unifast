@@ -36,12 +36,12 @@ Create a unifast plugin for Shiki syntax highlighting. Returns a `Promise<Unifas
 
 **Options:**
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `themes` | `BundledTheme \| BundledTheme[] \| { light, dark }` | Theme(s) to use |
-| `defaultTheme` | `BundledTheme` | Fallback theme |
-| `defaultColor` | `string \| false` | Default color for highlighted tokens |
-| `langs` | `BundledLanguage[]` | Languages to load |
+| Option         | Type                                                | Description                          |
+| -------------- | --------------------------------------------------- | ------------------------------------ |
+| `themes`       | `BundledTheme \| BundledTheme[] \| { light, dark }` | Theme(s) to use                      |
+| `defaultTheme` | `BundledTheme`                                      | Fallback theme                       |
+| `defaultColor` | `string \| false`                                   | Default color for highlighted tokens |
+| `langs`        | `BundledLanguage[]`                                 | Languages to load                    |
 
 ### `createShikiTransformer(options?)`
 

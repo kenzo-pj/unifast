@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { bench, describe } from "vitest";
 import { compile } from "@unifast/node";
 import {
-  createAbbrProcessor,
   createCommentRemovalProcessor,
   createAddClassesProcessor,
   createMinifyProcessor,
@@ -18,7 +17,6 @@ const fixturesDir = join(import.meta.dirname, "fixtures");
 const readme = readFileSync(join(fixturesDir, "readme.md"), "utf-8");
 const allFeatures = readFileSync(join(fixturesDir, "all-features.md"), "utf-8");
 
-const unifiedAbbr = createAbbrProcessor();
 const unifiedCommentRemoval = createCommentRemovalProcessor();
 const unifiedAddClasses = createAddClassesProcessor();
 const unifiedMinify = createMinifyProcessor();
@@ -28,7 +26,6 @@ const unifiedImgLazy = createImgLazyLoadingProcessor();
 const unifiedFigure = createFigureProcessor();
 const baseline = createBasicProcessor();
 
-const abbrOpts = { abbr: { enabled: true } };
 const commentRemovalOpts = { commentRemoval: { enabled: true } };
 const addClassOpts = { addClass: { enabled: true, rules: { "h1": "title", "p": "text", "a": "link" } } };
 const minifyOpts = { minify: { enabled: true } };
@@ -39,11 +36,6 @@ const figureOpts = { figure: { enabled: true } };
 const codeMetaOpts = { codeMeta: { enabled: true } };
 const excerptOpts = { excerpt: { enabled: true } };
 const customHeadingIdOpts = { customHeadingId: { enabled: true } };
-
-describe("Abbreviation (all-features)", () => {
-  bench("unifast", () => { compile(allFeatures, abbrOpts); });
-  bench("unified (remark-abbr)", () => { unifiedAbbr.processSync(allFeatures); });
-});
 
 describe("Comment Removal (all-features)", () => {
   bench("unifast", () => { compile(allFeatures, commentRemovalOpts); });

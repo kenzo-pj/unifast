@@ -2,6 +2,17 @@
   "name": "@unifast/shiki",
   "version": "0.0.5",
   "description": "Shiki syntax highlighting plugin for unifast via HAST transforms",
+  "keywords": [
+    "hast",
+    "markdown",
+    "shiki",
+    "syntax-highlighting",
+    "unifast"
+  ],
+  "homepage": "https://kenzo-pj.github.io/unifast/",
+  "bugs": {
+    "url": "https://github.com/kenzo-pj/unifast/issues"
+  },
   "license": "MIT",
   "author": "Kenzo-Wada",
   "repository": {
@@ -9,17 +20,6 @@
     "url": "https://github.com/kenzo-pj/unifast",
     "directory": "packages/shiki"
   },
-  "homepage": "https://kenzo-pj.github.io/unifast/",
-  "bugs": {
-    "url": "https://github.com/kenzo-pj/unifast/issues"
-  },
-  "keywords": [
-    "unifast",
-    "markdown",
-    "syntax-highlighting",
-    "shiki",
-    "hast"
-  ],
   "files": [
     "dist"
   ],

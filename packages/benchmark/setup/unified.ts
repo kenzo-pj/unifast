@@ -19,7 +19,6 @@ import rehypeKatex from "rehype-katex";
 import remarkGithubAlert from "remark-github-blockquote-alert";
 import remarkDirective from "remark-directive";
 import remarkWikiLink from "remark-wiki-link";
-import remarkAbbr from "remark-abbr";
 import rehypeRemoveComments from "rehype-remove-comments";
 import rehypeClassNames from "rehype-class-names";
 import rehypePresetMinify from "rehype-preset-minify";
@@ -163,14 +162,6 @@ export function createWikiLinkProcessor() {
   return unified()
     .use(remarkParse)
     .use(remarkWikiLink)
-    .use(remarkRehype)
-    .use(rehypeStringify);
-}
-
-export function createAbbrProcessor() {
-  return unified()
-    .use(remarkParse)
-    .use(remarkAbbr)
     .use(remarkRehype)
     .use(rehypeStringify);
 }

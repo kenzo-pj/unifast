@@ -53,13 +53,13 @@ Compile Markdown to a React element tree.
 
 Returns `CompileToReactResult`:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `element` | `ReactElement` | Rendered React element tree |
-| `frontmatter` | `Record<string, unknown>` | Extracted metadata |
-| `diagnostics` | `Diagnostic[]` | Compilation diagnostics |
-| `stats` | `object` | Performance timing |
-| `toc` | `TocEntry[]` | Table of contents |
+| Property      | Type                      | Description                 |
+| ------------- | ------------------------- | --------------------------- |
+| `element`     | `ReactElement`            | Rendered React element tree |
+| `frontmatter` | `Record<string, unknown>` | Extracted metadata          |
+| `diagnostics` | `Diagnostic[]`            | Compilation diagnostics     |
+| `stats`       | `object`                  | Performance timing          |
+| `toc`         | `TocEntry[]`              | Table of contents           |
 
 ### `hastToReact(hast, options)`
 

@@ -85,6 +85,13 @@
   scrollbar-color: oklch(0 0 0 / 0.2) transparent;
 }
 
+.no-transition,
+.no-transition *,
+.no-transition *::before,
+.no-transition *::after {
+  transition: none !important;
+}
+
 [data-theme="dark"],
 [data-theme="dark"] * {
   scrollbar-color: oklch(1 0 0 / 0.2) transparent;

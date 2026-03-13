@@ -17,8 +17,6 @@ async function minifyHtml(html: string): Promise<string> {
   return minify(html, {
     collapseWhitespace: true,
     removeComments: true,
-    removeRedundantAttributes: true,
-    removeEmptyAttributes: true,
     minifyCSS: true,
     minifyJS: true,
   });

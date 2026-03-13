@@ -2,6 +2,18 @@
   "name": "@unifast/highlight",
   "version": "0.0.5",
   "description": "highlight.js syntax highlighting plugin for unifast via HAST transforms",
+  "keywords": [
+    "hast",
+    "highlight.js",
+    "lowlight",
+    "markdown",
+    "syntax-highlighting",
+    "unifast"
+  ],
+  "homepage": "https://kenzo-pj.github.io/unifast/",
+  "bugs": {
+    "url": "https://github.com/kenzo-pj/unifast/issues"
+  },
   "license": "MIT",
   "author": "Kenzo-Wada",
   "repository": {
@@ -9,18 +21,6 @@
     "url": "https://github.com/kenzo-pj/unifast",
     "directory": "packages/highlight"
   },
-  "homepage": "https://kenzo-pj.github.io/unifast/",
-  "bugs": {
-    "url": "https://github.com/kenzo-pj/unifast/issues"
-  },
-  "keywords": [
-    "unifast",
-    "markdown",
-    "syntax-highlighting",
-    "highlight.js",
-    "lowlight",
-    "hast"
-  ],
   "files": [
     "dist"
   ],

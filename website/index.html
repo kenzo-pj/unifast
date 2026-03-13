@@ -15,12 +15,18 @@
     <!--head-meta-->
     <script>
       (function () {
+        document.documentElement.classList.add("no-transition");
         var theme = localStorage.getItem("theme");
         if (theme === "dark") {
           document.documentElement.setAttribute("data-theme", "dark");
         } else if (theme !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            document.documentElement.classList.remove("no-transition");
+          });
+        });
       })();
     </script>
   </head>

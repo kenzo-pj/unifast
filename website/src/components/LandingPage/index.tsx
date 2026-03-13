@@ -2,13 +2,14 @@ import { Avatar } from "@base-ui/react/avatar";
 import { Tabs } from "@base-ui/react/tabs";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight01Icon } from "hugeicons-react";
-import { lazy, Suspense } from "react";
 
 import { CopyButton } from "~/components/CopyButton";
 import { Footer } from "~/components/Footer";
 import { GitHubIcon } from "~/components/GitHubIcon";
 import { LanguageSwitcher } from "~/components/LanguageSwitcher";
+import { MobileMenu } from "~/components/MobileMenu";
 import { PackageInstall } from "~/components/PackageInstall";
+import { SearchDialog } from "~/components/SearchDialog";
 import { ThemeToggle } from "~/components/ThemeToggle";
 import sponsorsJson from "~/data/sponsors.json";
 import { useTranslation, localePath } from "~/i18n";
@@ -22,13 +23,6 @@ interface Sponsor {
 }
 
 const sponsors = sponsorsJson as Sponsor[];
-
-const SearchDialog = lazy(() =>
-  import("~/components/SearchDialog").then((m) => ({ default: m.SearchDialog })),
-);
-const MobileMenu = lazy(() =>
-  import("~/components/MobileMenu").then((m) => ({ default: m.MobileMenu })),
-);
 
 const BENCH_TABS = [
   {
@@ -329,9 +323,7 @@ export function LandingPage() {
             unifast
           </Link>
           <div className={styles.headerActions}>
-            <Suspense>
-              <SearchDialog />
-            </Suspense>
+            <SearchDialog />
             <span className={styles.desktopOnly}>
               <LanguageSwitcher />
             </span>
@@ -349,9 +341,7 @@ export function LandingPage() {
                 <GitHubIcon size={20} />
               </a>
             </span>
-            <Suspense>
-              <MobileMenu />
-            </Suspense>
+            <MobileMenu />
           </div>
         </header>
       </div>

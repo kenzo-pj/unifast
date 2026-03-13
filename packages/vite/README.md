@@ -25,9 +25,9 @@ Then import Markdown files directly:
 ```ts
 import post from "./content/hello.md";
 
-console.log(post.html);         // Compiled HTML string
-console.log(post.frontmatter);  // { title: "Hello", ... }
-console.log(post.toc);          // [{ depth: 1, text: "...", slug: "..." }]
+console.log(post.html); // Compiled HTML string
+console.log(post.frontmatter); // { title: "Hello", ... }
+console.log(post.toc); // [{ depth: 1, text: "...", slug: "..." }]
 ```
 
 ### With Options
@@ -55,19 +55,19 @@ Default export. Returns a Vite plugin.
 
 **Options:**
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `md` | `CompileOptions` | Options for `.md` files |
-| `mdx` | `CompileOptions` | Options for `.mdx` files |
+| Option | Type             | Description              |
+| ------ | ---------------- | ------------------------ |
+| `md`   | `CompileOptions` | Options for `.md` files  |
+| `mdx`  | `CompileOptions` | Options for `.mdx` files |
 
 **Module exports from imported `.md`/`.mdx` files:**
 
-| Export | Type | Description |
-|--------|------|-------------|
-| `html` | `string` | Compiled HTML |
-| `frontmatter` | `Record<string, unknown>` | Extracted metadata |
-| `toc` | `TocEntry[]` | Table of contents |
-| `default` | `{ html, frontmatter, toc }` | All exports as default |
+| Export        | Type                         | Description            |
+| ------------- | ---------------------------- | ---------------------- |
+| `html`        | `string`                     | Compiled HTML          |
+| `frontmatter` | `Record<string, unknown>`    | Extracted metadata     |
+| `toc`         | `TocEntry[]`                 | Table of contents      |
+| `default`     | `{ html, frontmatter, toc }` | All exports as default |
 
 Supports HMR — edits to Markdown files trigger hot updates.
 

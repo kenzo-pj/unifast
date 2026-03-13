@@ -1,20 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { memo, lazy, Suspense, type ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 import { GitHubIcon } from "~/components/GitHubIcon";
 import { LanguageSwitcher } from "~/components/LanguageSwitcher";
+import { MobileMenu } from "~/components/MobileMenu";
+import { SearchDialog } from "~/components/SearchDialog";
+import { Sidebar } from "~/components/Sidebar";
 import { ThemeToggle } from "~/components/ThemeToggle";
 import { useTranslation, localePath } from "~/i18n";
 
 import styles from "./Layout.module.css";
-
-const Sidebar = lazy(() => import("~/components/Sidebar").then((m) => ({ default: m.Sidebar })));
-const SearchDialog = lazy(() =>
-  import("~/components/SearchDialog").then((m) => ({ default: m.SearchDialog })),
-);
-const MobileMenu = lazy(() =>
-  import("~/components/MobileMenu").then((m) => ({ default: m.MobileMenu })),
-);
 
 const Header = memo(function Header() {
   const { locale } = useTranslation();
@@ -26,9 +21,7 @@ const Header = memo(function Header() {
           unifast
         </Link>
         <div className={styles.headerActions}>
-          <Suspense>
-            <SearchDialog />
-          </Suspense>
+          <SearchDialog />
           <span className={styles.desktopOnly}>
             <LanguageSwitcher />
           </span>
@@ -46,9 +39,7 @@ const Header = memo(function Header() {
               <GitHubIcon size={20} />
             </a>
           </span>
-          <Suspense>
-            <MobileMenu />
-          </Suspense>
+          <MobileMenu />
         </div>
       </header>
     </div>
@@ -65,9 +56,7 @@ export function Layout({ children }: LayoutProps) {
       <Header />
       <div className={styles.body}>
         <aside className={styles.sidebar}>
-          <Suspense>
-            <Sidebar hideLogo />
-          </Suspense>
+          <Sidebar hideLogo />
         </aside>
         <main className={styles.main}>{children}</main>
       </div>

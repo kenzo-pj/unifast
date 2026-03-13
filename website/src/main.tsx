@@ -32,8 +32,4 @@ const app = (
   </StrictMode>
 );
 
-if (root.innerHTML.trim()) {
-  ReactDOM.hydrateRoot(root, app);
-} else {
-  ReactDOM.createRoot(root).render(app);
-}
+ReactDOM.createRoot(root).render(app);

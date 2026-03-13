@@ -32,7 +32,7 @@ const result = compile(source, {
 });
 
 console.log(result.frontmatter); // { title: "My Post", ... }
-console.log(result.html);        // Rendered HTML with GFM + highlighting
+console.log(result.html); // Rendered HTML with GFM + highlighting
 ```
 
 ## API
@@ -46,15 +46,15 @@ Compile a Markdown or MDX string.
 
 Returns a `CompileResult`:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `output` | `string \| object` | Compiled output (HTML, HAST, MDAST, or MDX-JS) |
-| `frontmatter` | `Record<string, unknown>` | Extracted frontmatter metadata |
-| `diagnostics` | `Diagnostic[]` | Compilation warnings and errors |
-| `stats` | `{ parseMs, transformMs, emitMs }` | Performance timing |
-| `toc` | `TocEntry[]` | Table of contents entries |
-| `readingTime` | `{ minutes, words }` | Estimated reading time |
-| `excerpt` | `string` | Content before `<!-- more -->` marker |
+| Property      | Type                               | Description                                    |
+| ------------- | ---------------------------------- | ---------------------------------------------- |
+| `output`      | `string \| object`                 | Compiled output (HTML, HAST, MDAST, or MDX-JS) |
+| `frontmatter` | `Record<string, unknown>`          | Extracted frontmatter metadata                 |
+| `diagnostics` | `Diagnostic[]`                     | Compilation warnings and errors                |
+| `stats`       | `{ parseMs, transformMs, emitMs }` | Performance timing                             |
+| `toc`         | `TocEntry[]`                       | Table of contents entries                      |
+| `readingTime` | `{ minutes, words }`               | Estimated reading time                         |
+| `excerpt`     | `string`                           | Content before `<!-- more -->` marker          |
 
 ### Built-in Plugins
 
