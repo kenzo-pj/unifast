@@ -85,7 +85,8 @@
     "dist/**",
     "node_modules/**",
     "target/**",
-    "*.gen.ts"
+    "*.gen.ts",
+    "**/PostHog.astro"
   ],
   "overrides": [
     {
