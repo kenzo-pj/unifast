@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import PostHog from "../components/PostHog.astro";
 
 interface Props {
   title?: string;
@@ -34,6 +35,7 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     {description && <meta property="og:description" content={description} />}
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalUrl.href} />
+    <PostHog />
     <script is:inline>
       (function initTheme() {
         var theme = localStorage.getItem("theme");
