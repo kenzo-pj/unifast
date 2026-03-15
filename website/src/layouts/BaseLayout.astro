@@ -9,7 +9,6 @@ interface Props {
 }
 
 const { title = "unifast", description = "", lang = "en", noindex = false } = Astro.props;
-const basePath = import.meta.env.CI ? "/unifast" : "";
 const fullTitle = title === "unifast" ? "unifast" : `${title} - unifast`;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 ---
@@ -28,8 +27,8 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <meta name="color-scheme" content="light dark" />
     <meta name="format-detection" content="telephone=no" />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
-    <link rel="icon" href={`${basePath}/favicon.svg`} type="image/svg+xml" />
-    <link rel="sitemap" href={`${basePath}/sitemap.xml`} type="application/xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap.xml" type="application/xml" />
     <link rel="canonical" href={canonicalUrl.href} />
     <meta property="og:title" content={fullTitle} />
     {description && <meta property="og:description" content={description} />}

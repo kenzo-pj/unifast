@@ -1,6 +1,6 @@
 # @unifast/vite
 
-[Vite](https://vite.dev/) plugin for [unifast](https://kenzo-pj.github.io/unifast/) — import `.md` and `.mdx` files as JS modules.
+[Vite](https://vite.dev/) plugin for [unifast](https://unifast.dev) — import `.md` and `.mdx` files as JS modules.
 
 ## Install
 

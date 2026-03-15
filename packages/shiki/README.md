@@ -1,6 +1,6 @@
 # @unifast/shiki
 
-[Shiki](https://shiki.style/) syntax highlighting plugin for [unifast](https://kenzo-pj.github.io/unifast/).
+[Shiki](https://shiki.style/) syntax highlighting plugin for [unifast](https://unifast.dev).
 
 Transforms code blocks in the HAST output using Shiki's TextMate grammar-based highlighter with support for dual themes (light/dark).
 

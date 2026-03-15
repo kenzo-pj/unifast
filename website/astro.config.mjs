@@ -37,11 +37,9 @@ const exampleCompileOptions = {
   ],
 };
 
-const basePath = process.env.CI ? "/unifast" : "";
-
 export default defineConfig({
-  site: "https://kenzo-pj.github.io",
-  base: basePath || "/",
+  site: "https://unifast.dev",
+  base: "/",
   output: "static",
   integrations: [
     react({

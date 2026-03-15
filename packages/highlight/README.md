@@ -1,6 +1,6 @@
 # @unifast/highlight
 
-[highlight.js](https://highlightjs.org/) (via [lowlight](https://github.com/wooorm/lowlight)) syntax highlighting plugin for [unifast](https://kenzo-pj.github.io/unifast/).
+[highlight.js](https://highlightjs.org/) (via [lowlight](https://github.com/wooorm/lowlight)) syntax highlighting plugin for [unifast](https://unifast.dev).
 
 ## Install
 

@@ -2,7 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/unifast-cli)](https://crates.io/crates/unifast-cli)
 
-Command-line interface for [unifast](https://kenzo-pj.github.io/unifast/) — a high-performance Markdown/MDX compiler.
+Command-line interface for [unifast](https://unifast.dev) — a high-performance Markdown/MDX compiler.
 
 ## Install
 

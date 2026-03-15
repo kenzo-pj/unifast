@@ -1,6 +1,6 @@
 # @unifast/node
 
-Node.js binding for [unifast](https://kenzo-pj.github.io/unifast/) — a high-performance Markdown/MDX compiler with a Rust core.
+Node.js binding for [unifast](https://unifast.dev) — a high-performance Markdown/MDX compiler with a Rust core.
 
 One call compiles Markdown to HTML with all features applied. No JS plugin chain overhead.
 

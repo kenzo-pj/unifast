@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/unifast-core)](https://crates.io/crates/unifast-core)
 [![docs.rs](https://docs.rs/unifast-core/badge.svg)](https://docs.rs/unifast-core)
 
-The Rust core of [unifast](https://kenzo-pj.github.io/unifast/) — a high-performance Markdown/MDX compiler.
+The Rust core of [unifast](https://unifast.dev) — a high-performance Markdown/MDX compiler.
 
 This crate provides the parser, AST types, transformation passes, and emit stages. Everything from parsing Markdown to producing HTML runs natively in Rust.
 

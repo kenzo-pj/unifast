@@ -1,6 +1,6 @@
 # @unifast/react
 
-Convert [unifast](https://kenzo-pj.github.io/unifast/) compilation output to React elements.
+Convert [unifast](https://unifast.dev) compilation output to React elements.
 
 ## Install
 

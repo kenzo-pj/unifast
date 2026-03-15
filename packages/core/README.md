@@ -1,6 +1,6 @@
 # @unifast/core
 
-Shared TypeScript type definitions and HAST utilities for [unifast](https://kenzo-pj.github.io/unifast/) — a high-performance Markdown/MDX compiler with a Rust core.
+Shared TypeScript type definitions and HAST utilities for [unifast](https://unifast.dev) — a high-performance Markdown/MDX compiler with a Rust core.
 
 ## Install
 
