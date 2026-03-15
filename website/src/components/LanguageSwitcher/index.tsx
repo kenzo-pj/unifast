@@ -23,8 +23,7 @@ export const LanguageSwitcher = memo(function LanguageSwitcher() {
   const handleValueChange = useCallback(
     (nextLocale: LocaleCode | null) => {
       if (!nextLocale || nextLocale === locale) return;
-      const currentPathname =
-        typeof globalThis !== "undefined" ? globalThis.location.pathname : "/";
+      const currentPathname = globalThis.location?.pathname ?? "/";
       const { restPath } = parseLocaleFromPath(currentPathname);
       const targetPath = nextLocale === DEFAULT_LOCALE ? restPath : `/${nextLocale}${restPath}`;
       globalThis.location.href = targetPath;

@@ -18,8 +18,7 @@ export function MobileMenu({
   locale?: LocaleCode;
 } = {}) {
   const [open, setOpen] = useState(false);
-  const pathname =
-    pathnameProp ?? (typeof globalThis !== "undefined" ? globalThis.location.pathname : "");
+  const pathname = pathnameProp ?? globalThis.location?.pathname ?? "";
   const pathnameRef = useRef(pathname);
 
   useEffect(() => {

@@ -52,8 +52,7 @@ interface LayoutProps {
 }
 
 export function Layout({ children, locale, pathname }: LayoutProps) {
-  const resolvedPathname =
-    pathname ?? (typeof globalThis !== "undefined" ? globalThis.location.pathname : "/");
+  const resolvedPathname = pathname ?? globalThis.location?.pathname ?? "/";
   return (
     <div className={styles.layout}>
       <Header locale={locale} />
