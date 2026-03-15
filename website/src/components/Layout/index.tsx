@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { memo, type ReactNode } from "react";
 
 import { GitHubIcon } from "~/components/GitHubIcon";
@@ -7,19 +6,19 @@ import { MobileMenu } from "~/components/MobileMenu";
 import { SearchDialog } from "~/components/SearchDialog";
 import { Sidebar } from "~/components/Sidebar";
 import { ThemeToggle } from "~/components/ThemeToggle";
-import { useTranslation, localePath } from "~/i18n";
+import { useTranslation, localePath, type LocaleCode } from "~/i18n";
 
 import styles from "./Layout.module.css";
 
-const Header = memo(function Header() {
-  const { locale } = useTranslation();
+const Header = memo(function Header({ locale }: { locale: LocaleCode }) {
+  useTranslation(locale);
 
   return (
     <div className={styles.headerBar}>
       <header className={styles.header}>
-        <Link to={localePath("/", locale)} className={styles.logo}>
+        <a href={localePath("/", locale)} className={styles.logo}>
           unifast
-        </Link>
+        </a>
         <div className={styles.headerActions}>
           <SearchDialog />
           <span className={styles.desktopOnly}>
@@ -48,15 +47,19 @@ const Header = memo(function Header() {
 
 interface LayoutProps {
   children: ReactNode;
+  locale: LocaleCode;
+  pathname?: string;
 }
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, locale, pathname }: LayoutProps) {
+  const resolvedPathname =
+    pathname ?? (typeof globalThis !== "undefined" ? globalThis.location.pathname : "/");
   return (
     <div className={styles.layout}>
-      <Header />
+      <Header locale={locale} />
       <div className={styles.body}>
         <aside className={styles.sidebar}>
-          <Sidebar hideLogo />
+          <Sidebar hideLogo locale={locale} pathname={resolvedPathname} />
         </aside>
         <main className={styles.main}>{children}</main>
       </div>

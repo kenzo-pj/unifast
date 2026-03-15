@@ -18,7 +18,7 @@
       "ignoreDependencies": ["@unifast/node"]
     },
     "website": {
-      "entry": ["src/entry-server.tsx", "plugins/*.ts"],
+      "entry": ["plugins/*.ts"],
       "ignore": [
         "src/components/Example/**",
         "src/components/ParamTable/**",
@@ -26,10 +26,8 @@
         "content/**/*-example.ts"
       ],
       "ignoreDependencies": [
-        "babel-plugin-react-compiler",
         "katex",
-        "@types/katex",
-        "lightningcss"
+        "@types/katex"
       ]
     }
   }

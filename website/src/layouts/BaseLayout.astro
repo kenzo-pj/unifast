@@ -1,0 +1,58 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  lang?: string;
+  noindex?: boolean;
+}
+
+const { title = "unifast", description = "", lang = "en", noindex = false } = Astro.props;
+const basePath = import.meta.env.CI ? "/unifast" : "";
+const fullTitle = title === "unifast" ? "unifast" : `${title} - unifast`;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <meta name="author" content="unifast" />
+    <meta name="generator" content="unifast" />
+    <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="format-detection" content="telephone=no" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" href={`${basePath}/favicon.svg`} type="image/svg+xml" />
+    <link rel="sitemap" href={`${basePath}/sitemap.xml`} type="application/xml" />
+    <link rel="canonical" href={canonicalUrl.href} />
+    <meta property="og:title" content={fullTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl.href} />
+    <script is:inline>
+      (function initTheme() {
+        var theme = localStorage.getItem("theme");
+        document.documentElement.classList.add("no-transition");
+        if (theme === "dark") {
+          document.documentElement.dataset.theme = "dark";
+        } else if (theme !== "light" && globalThis.matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.dataset.theme = "dark";
+        }
+        requestAnimationFrame(function applyTransition() {
+          requestAnimationFrame(function enableTransition() {
+            document.documentElement.classList.remove("no-transition");
+          });
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

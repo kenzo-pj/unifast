@@ -1,5 +1,4 @@
 import { Select } from "@base-ui/react/select";
-import { useRouter } from "@tanstack/react-router";
 import { LanguageSquareIcon } from "hugeicons-react";
 import { memo, useCallback } from "react";
 
@@ -20,16 +19,17 @@ const LOCALE_ITEMS = SUPPORTED_LOCALES.map((loc) => ({
 
 export const LanguageSwitcher = memo(function LanguageSwitcher() {
   const { locale } = useTranslation();
-  const router = useRouter();
 
   const handleValueChange = useCallback(
     (nextLocale: LocaleCode | null) => {
       if (!nextLocale || nextLocale === locale) return;
-      const { restPath } = parseLocaleFromPath(router.state.location.pathname);
+      const currentPathname =
+        typeof globalThis !== "undefined" ? globalThis.location.pathname : "/";
+      const { restPath } = parseLocaleFromPath(currentPathname);
       const targetPath = nextLocale === DEFAULT_LOCALE ? restPath : `/${nextLocale}${restPath}`;
-      router.navigate({ to: targetPath });
+      globalThis.location.href = targetPath;
     },
-    [locale, router],
+    [locale],
   );
 
   return (

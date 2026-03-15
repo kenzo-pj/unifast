@@ -1,9 +1,8 @@
 import { Collapsible } from "@base-ui/react/collapsible";
-import { Link } from "@tanstack/react-router";
 import { memo } from "react";
 import translationStatus from "virtual:translation-status";
 
-import { useTranslation, localePath, DEFAULT_LOCALE } from "~/i18n";
+import { useTranslation, localePath, DEFAULT_LOCALE, type LocaleCode } from "~/i18n";
 import { NAV, type NavItem, type NavSection } from "~/navigation";
 
 import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
@@ -28,21 +27,24 @@ const StatusBadge = memo(function StatusBadge({ status }: { status?: Translation
   return <span className={className}>{label}</span>;
 });
 
-const NavItemLink = memo(function NavItemLink({ item }: { item: NavItem }) {
+const NavItemLink = memo(function NavItemLink({
+  item,
+  pathname,
+}: {
+  item: NavItem;
+  pathname: string;
+}) {
   const { t, locale } = useTranslation();
   const href = localePath(item.href, locale);
+  const isActive = pathname === href;
   const status =
     locale !== DEFAULT_LOCALE && item.slug ? translationStatus[item.slug]?.status : undefined;
 
   return (
     <li className={styles.navItemRow}>
-      <Link
-        to={href}
-        activeProps={{ className: styles.navLinkActive }}
-        inactiveProps={{ className: styles.navLink }}
-      >
+      <a href={href} className={isActive ? styles.navLinkActive : styles.navLink}>
         {t(`nav.${item.labelKey}`)}
-      </Link>
+      </a>
       <StatusBadge status={status} />
     </li>
   );
@@ -53,7 +55,13 @@ function useSortedItems(items: NavItem[]) {
   return [...items].sort((a, b) => t(`nav.${a.labelKey}`).localeCompare(t(`nav.${b.labelKey}`)));
 }
 
-const SectionWithItems = memo(function SectionWithItems({ section }: { section: NavSection }) {
+const SectionWithItems = memo(function SectionWithItems({
+  section,
+  pathname,
+}: {
+  section: NavSection;
+  pathname: string;
+}) {
   const { t } = useTranslation();
   const sorted = useSortedItems(section.items!);
 
@@ -66,7 +74,7 @@ const SectionWithItems = memo(function SectionWithItems({ section }: { section: 
       <Collapsible.Panel className={styles.sectionPanel}>
         <ul className={styles.sectionList}>
           {sorted.map((item) => (
-            <NavItemLink key={item.href} item={item} />
+            <NavItemLink key={item.href} item={item} pathname={pathname} />
           ))}
         </ul>
       </Collapsible.Panel>
@@ -74,18 +82,30 @@ const SectionWithItems = memo(function SectionWithItems({ section }: { section: 
   );
 });
 
-const SortedGroupItems = memo(function SortedGroupItems({ items }: { items: NavItem[] }) {
+const SortedGroupItems = memo(function SortedGroupItems({
+  items,
+  pathname,
+}: {
+  items: NavItem[];
+  pathname: string;
+}) {
   const sorted = useSortedItems(items);
   return (
     <ul className={styles.groupList}>
       {sorted.map((item) => (
-        <NavItemLink key={item.href} item={item} />
+        <NavItemLink key={item.href} item={item} pathname={pathname} />
       ))}
     </ul>
   );
 });
 
-const SectionWithGroups = memo(function SectionWithGroups({ section }: { section: NavSection }) {
+const SectionWithGroups = memo(function SectionWithGroups({
+  section,
+  pathname,
+}: {
+  section: NavSection;
+  pathname: string;
+}) {
   const { t } = useTranslation();
 
   return (
@@ -98,7 +118,7 @@ const SectionWithGroups = memo(function SectionWithGroups({ section }: { section
             <ChevronIcon className={styles.chevron} />
           </Collapsible.Trigger>
           <Collapsible.Panel className={styles.sectionPanel}>
-            <SortedGroupItems items={group.items} />
+            <SortedGroupItems items={group.items} pathname={pathname} />
           </Collapsible.Panel>
         </Collapsible.Root>
       ))}
@@ -108,21 +128,28 @@ const SectionWithGroups = memo(function SectionWithGroups({ section }: { section
 
 interface SidebarProps {
   hideLogo?: boolean;
+  locale?: LocaleCode;
+  pathname?: string;
 }
 
-export const Sidebar = memo(function Sidebar({ hideLogo }: SidebarProps = {}) {
+export const Sidebar = memo(function Sidebar({
+  hideLogo,
+  locale,
+  pathname = "",
+}: SidebarProps = {}) {
+  useTranslation(locale);
   return (
     <nav className={styles.sidebar}>
       {!hideLogo && (
         <div className={styles.logo}>
-          <Link to="/">unifast</Link>
+          <a href="/">unifast</a>
         </div>
       )}
       {NAV.map((section) =>
         section.groups ? (
-          <SectionWithGroups key={section.labelKey} section={section} />
+          <SectionWithGroups key={section.labelKey} section={section} pathname={pathname} />
         ) : (
-          <SectionWithItems key={section.labelKey} section={section} />
+          <SectionWithItems key={section.labelKey} section={section} pathname={pathname} />
         ),
       )}
     </nav>

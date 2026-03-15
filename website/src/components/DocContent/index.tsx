@@ -1,11 +1,10 @@
-import { Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft01Icon, ArrowRight01Icon, PencilEdit01Icon } from "hugeicons-react";
 import { useCallback, useEffect, useRef, type ComponentType } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { CopyButton } from "~/components/CopyButton";
 import { TableOfContents } from "~/components/TableOfContents";
-import { useTranslation, DEFAULT_LOCALE } from "~/i18n";
+import { useTranslation, DEFAULT_LOCALE, type LocaleCode } from "~/i18n";
 
 import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
 import { mdxComponents } from "./mdxComponents";
@@ -26,6 +25,7 @@ interface DocContentProps {
   slug?: string;
   prevPage?: PageLink;
   nextPage?: PageLink;
+  locale?: LocaleCode;
 }
 
 export function DocContent({
@@ -37,32 +37,29 @@ export function DocContent({
   slug,
   prevPage,
   nextPage,
+  locale: localeProp,
 }: DocContentProps) {
-  const { t, locale } = useTranslation();
-  const router = useRouter();
+  const { t, locale } = useTranslation(localeProp);
   const title = frontmatter.title as string | undefined;
   const description = frontmatter.description as string | undefined;
-  const handleContentClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const target = e.target as HTMLElement;
-      const anchor = target.closest("a[href]");
-      if (anchor) {
-        const href = anchor.getAttribute("href");
-        if (href && href.startsWith("/") && !anchor.getAttribute("target")) {
-          e.preventDefault();
-          router.navigate({ to: href });
-          return;
-        }
+  const handleContentClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest("a[href]");
+    if (anchor) {
+      const href = anchor.getAttribute("href");
+      if (href && href.startsWith("/") && !anchor.getAttribute("target")) {
+        e.preventDefault();
+        globalThis.location.href = href;
+        return;
       }
-      const heading = target.closest("h1[id], h2[id], h3[id]");
-      if (heading) {
-        const id = heading.getAttribute("id")!;
-        history.replaceState(null, "", `#${id}`);
-        heading.scrollIntoView({ behavior: "smooth" });
-      }
-    },
-    [router],
-  );
+    }
+    const heading = target.closest("h1[id], h2[id], h3[id]");
+    if (heading) {
+      const id = heading.getAttribute("id")!;
+      history.replaceState(null, "", `#${id}`);
+      heading.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -147,19 +144,19 @@ export function DocContent({
           {(prevPage || nextPage) && (
             <nav className={styles.pageNav}>
               {prevPage ? (
-                <Link to={prevPage.href} className={styles.pageNavCard}>
+                <a href={prevPage.href} className={styles.pageNavCard}>
                   <span className={styles.pageNavDirection}>{t("nav.previous")}</span>
                   <span className={styles.pageNavTitle}>
                     <ArrowLeft01Icon size={16} className={styles.pageNavArrow} />
                     {prevPage.label}
                   </span>
-                </Link>
+                </a>
               ) : (
                 <span />
               )}
               {nextPage ? (
-                <Link
-                  to={nextPage.href}
+                <a
+                  href={nextPage.href}
                   className={`${styles.pageNavCard} ${styles.pageNavCardNext}`}
                 >
                   <span className={styles.pageNavDirection}>{t("nav.next")}</span>
@@ -167,7 +164,7 @@ export function DocContent({
                     {nextPage.label}
                     <ArrowRight01Icon size={16} className={styles.pageNavArrow} />
                   </span>
-                </Link>
+                </a>
               ) : (
                 <span />
               )}

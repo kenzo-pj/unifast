@@ -53,13 +53,13 @@ jobs:
           GH_SPONSORS_TOKEN: ${{ secrets.GH_SPONSORS_TOKEN }}
           VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
       - name: 📄 Add .nojekyll
-        run: touch website/dist/client/.nojekyll
+        run: touch website/dist/.nojekyll
 
       - name: 📤 Upload artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: website/dist/client
+          path: website/dist
 
   deploy:
     name: 🚀 Deploy

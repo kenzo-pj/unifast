@@ -1,17 +1,15 @@
-import { Link } from "@tanstack/react-router";
-
-import { useTranslation, localePath } from "~/i18n";
+import { useTranslation, localePath, type LocaleCode } from "~/i18n";
 
 import styles from "./Footer.module.css";
 
-export function Footer() {
-  const { locale } = useTranslation();
+export function Footer({ locale }: { locale?: LocaleCode } = {}) {
+  const { locale: resolvedLocale } = useTranslation(locale);
 
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.links}>
-          <Link to={localePath("/docs/introduction/what-is-unifast/", locale)}>Docs</Link>
+          <a href={localePath("/docs/introduction/what-is-unifast/", resolvedLocale)}>Docs</a>
           <a href="https://github.com/kenzo-pj/unifast" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>

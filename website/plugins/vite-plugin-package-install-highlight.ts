@@ -17,7 +17,7 @@ export default function packageInstallHighlightPlugin({ compile, plugins }: Opti
     name: "vite-plugin-package-install-highlight",
     enforce: "post" as const,
 
-    transform(code, id) {
+    transform(code: string, id: string) {
       if (!/\.(?:mdx|tsx?)$/.test(id)) return null;
 
       const pattern = /(\{\s*package:\s*)"([^"]+)"(\s*\})/g;

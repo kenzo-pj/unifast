@@ -11,6 +11,9 @@ pnpm-debug.log*
 # Turborepo
 .turbo/
 
+# Astro cache / generated types
+.astro/
+
 # css-modules-kit generated type definitions
 website/generated/
 

@@ -1,5 +1,4 @@
 import { Dialog } from "@base-ui/react/dialog";
-import { useNavigate } from "@tanstack/react-router";
 import { Search01Icon } from "hugeicons-react";
 import { useState, useEffect, useCallback } from "react";
 
@@ -13,7 +12,6 @@ export function SearchDialog() {
   const [open, setOpen] = useState(false);
   const { query, results, loading, search, reset } = useSearch();
   const [activeIndex, setActiveIndex] = useState(-1);
-  const navigate = useNavigate();
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -42,9 +40,9 @@ export function SearchDialog() {
       setOpen(false);
       reset();
       setActiveIndex(-1);
-      navigate({ to: url });
+      globalThis.location.href = url;
     },
-    [navigate, reset],
+    [reset],
   );
 
   const handleInputKeyDown = useCallback(

@@ -1,0 +1,117 @@
+---
+import fs from "node:fs";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { DocsPageShell } from "../../../components/DocsPageShell";
+import { compileMd } from "../../../compile";
+import { getTranslation, localePath, SUPPORTED_LOCALES, DEFAULT_LOCALE, type LocaleCode } from "../../../i18n";
+import { flattenNav } from "../../../navigation";
+import type { Locale } from "../../../i18n/locales/en";
+import type { TranslationStatus } from "../../../../plugins/vite-plugin-translation-status";
+
+const { locale, slug } = Astro.params as { locale: LocaleCode; slug: string | undefined };
+const { pathname } = Astro.url;
+
+if (!slug) return Astro.redirect(`/${locale}/`);
+
+const localeContentDir = path.resolve(process.cwd(), `content/${locale}`);
+const enContentDir = path.resolve(process.cwd(), "content/en");
+const gitRoot = path.resolve(process.cwd(), "..");
+
+const localeMdPath = path.join(localeContentDir, `${slug}.md`);
+const localeMdxPath = path.join(localeContentDir, `${slug}.mdx`);
+const enMdPath = path.join(enContentDir, `${slug}.md`);
+const enMdxPath = path.join(enContentDir, `${slug}.mdx`);
+
+const hasLocaleMd = fs.existsSync(localeMdPath);
+const hasLocaleMdx = fs.existsSync(localeMdxPath);
+const hasEnMd = fs.existsSync(enMdPath);
+const hasEnMdx = fs.existsSync(enMdxPath);
+
+const filePath = hasLocaleMdx ? localeMdxPath : hasLocaleMd ? localeMdPath : hasEnMdx ? enMdxPath : hasEnMd ? enMdPath : null;
+
+if (!filePath) return Astro.redirect("/404");
+
+function getGitTimestamp(absPath: string): number | null {
+  try {
+    const rel = path.relative(gitRoot, absPath);
+    const result = execFileSync("git", ["log", "-1", "--format=%ct", "--", rel], {
+      cwd: gitRoot, encoding: "utf8",
+    }).trim();
+    return result ? parseInt(result, 10) : null;
+  } catch { return null; }
+}
+
+let translationStatus: TranslationStatus | undefined;
+if (!(hasLocaleMd || hasLocaleMdx)) {
+  translationStatus = "missing";
+} else {
+  const enPath = hasEnMdx ? enMdxPath : enMdPath;
+  const localePath_ = hasLocaleMdx ? localeMdxPath : localeMdPath;
+  const enTs = getGitTimestamp(enPath);
+  const localeTs = getGitTimestamp(localePath_);
+  if (enTs && localeTs && enTs > localeTs) {
+    translationStatus = "outdated";
+  }
+}
+
+const source = fs.readFileSync(filePath, "utf8");
+const compiled = compileMd(source);
+
+const { frontmatter, toc, html } = compiled;
+const title = (frontmatter.title as string) ?? "unifast";
+const description = (frontmatter.description as string) ?? "";
+
+const allPages = flattenNav();
+const currentIndex = allPages.findIndex((p) => p.slug === slug);
+const prevPage = currentIndex > 0 ? allPages[currentIndex - 1] : undefined;
+const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1] : undefined;
+const { t } = getTranslation(locale);
+
+const prevPageData = prevPage
+  ? { label: t(`nav.${prevPage.labelKey}` as `nav.${keyof Locale["nav"]}`), href: localePath(prevPage.href, locale) }
+  : undefined;
+const nextPageData = nextPage
+  ? { label: t(`nav.${nextPage.labelKey}` as `nav.${keyof Locale["nav"]}`), href: localePath(nextPage.href, locale) }
+  : undefined;
+
+export function getStaticPaths() {
+  const contentDir = path.resolve(process.cwd(), "content/en");
+  const nonDefaultLocales = SUPPORTED_LOCALES.filter((l) => l !== DEFAULT_LOCALE);
+  const paths: Array<{ params: { locale: string; slug: string } }> = [];
+
+  function walk(dir: string, prefix: string) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        walk(path.join(dir, entry.name), `${prefix}${entry.name}/`);
+      } else if (entry.name.endsWith(".md") || entry.name.endsWith(".mdx")) {
+        const docSlug = `${prefix}${entry.name.replace(/\.(md|mdx)$/, "")}`;
+        if (docSlug !== "index") {
+          for (const loc of nonDefaultLocales) {
+            paths.push({ params: { locale: loc, slug: docSlug } });
+          }
+        }
+      }
+    }
+  }
+
+  walk(contentDir, "");
+  return paths;
+}
+---
+
+<BaseLayout title={title} description={description} lang={locale}>
+  <DocsPageShell
+    client:load
+    locale={locale}
+    pathname={pathname}
+    html={html}
+    frontmatter={frontmatter}
+    toc={toc}
+    translationStatus={translationStatus}
+    slug={slug!}
+    prevPage={prevPageData}
+    nextPage={nextPageData}
+  />
+</BaseLayout>

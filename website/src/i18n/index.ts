@@ -38,8 +38,7 @@ function getByPath<P extends DotPath<Locale>>(dict: Locale, path: P): DotValue<L
   return current as DotValue<Locale, P>;
 }
 
-export function useTranslation() {
-  const { locale } = useContext(I18nContext);
+export function getTranslation(locale: LocaleCode) {
   const dict = dictionaries[locale];
 
   function t<P extends DotPath<Locale>>(path: P): DotValue<Locale, P> {
@@ -47,6 +46,11 @@ export function useTranslation() {
   }
 
   return { t, locale };
+}
+
+export function useTranslation(localeProp?: LocaleCode) {
+  const contextLocale = useContext(I18nContext).locale;
+  return getTranslation(localeProp ?? contextLocale);
 }
 
 export function localePath(basePath: string, locale: LocaleCode): string {

@@ -1,0 +1,78 @@
+---
+import fs from "node:fs";
+import path from "node:path";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { DocsPageShell } from "../../components/DocsPageShell";
+import { compileMd } from "../../compile";
+import { getTranslation, localePath } from "../../i18n";
+import { flattenNav } from "../../navigation";
+import type { Locale } from "../../i18n/locales/en";
+
+const locale = "en";
+const { slug } = Astro.params;
+const { pathname } = Astro.url;
+
+if (!slug) return Astro.redirect("/");
+
+const contentDir = path.resolve(process.cwd(), "content/en");
+const mdPath = path.join(contentDir, `${slug}.md`);
+const mdxPath = path.join(contentDir, `${slug}.mdx`);
+
+const hasMd = fs.existsSync(mdPath);
+const hasMdx = fs.existsSync(mdxPath);
+
+if (!hasMd && !hasMdx) return Astro.redirect("/404");
+
+const source = fs.readFileSync(hasMdx ? mdxPath : mdPath, "utf8");
+const compiled = compileMd(source);
+
+const { frontmatter, toc, html } = compiled;
+const title = (frontmatter.title as string) ?? "unifast";
+const description = (frontmatter.description as string) ?? "";
+
+const allPages = flattenNav();
+const currentIndex = allPages.findIndex((p) => p.slug === slug);
+const prevPage = currentIndex > 0 ? allPages[currentIndex - 1] : undefined;
+const nextPage = currentIndex < allPages.length - 1 ? allPages[currentIndex + 1] : undefined;
+const { t } = getTranslation(locale);
+
+const prevPageData = prevPage
+  ? { label: t(`nav.${prevPage.labelKey}` as `nav.${keyof Locale["nav"]}`), href: localePath(prevPage.href, locale) }
+  : undefined;
+const nextPageData = nextPage
+  ? { label: t(`nav.${nextPage.labelKey}` as `nav.${keyof Locale["nav"]}`), href: localePath(nextPage.href, locale) }
+  : undefined;
+
+export function getStaticPaths() {
+  const enDir = path.resolve(process.cwd(), "content/en");
+  const paths: Array<{ params: { slug: string } }> = [];
+
+  function walk(dir: string, prefix: string) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        walk(path.join(dir, entry.name), `${prefix}${entry.name}/`);
+      } else if (entry.name.endsWith(".md") || entry.name.endsWith(".mdx")) {
+        const docSlug = `${prefix}${entry.name.replace(/\.(md|mdx)$/, "")}`;
+        if (docSlug !== "index") paths.push({ params: { slug: docSlug } });
+      }
+    }
+  }
+
+  walk(enDir, "");
+  return paths;
+}
+---
+
+<BaseLayout title={title} description={description}>
+  <DocsPageShell
+    client:load
+    locale={locale}
+    pathname={pathname}
+    html={html}
+    frontmatter={frontmatter}
+    toc={toc}
+    slug={slug!}
+    prevPage={prevPageData}
+    nextPage={nextPageData}
+  />
+</BaseLayout>

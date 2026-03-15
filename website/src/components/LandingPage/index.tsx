@@ -1,6 +1,5 @@
 import { Avatar } from "@base-ui/react/avatar";
 import { Tabs } from "@base-ui/react/tabs";
-import { Link } from "@tanstack/react-router";
 import { ArrowRight01Icon } from "hugeicons-react";
 
 import { CopyButton } from "~/components/CopyButton";
@@ -12,7 +11,7 @@ import { PackageInstall } from "~/components/PackageInstall";
 import { SearchDialog } from "~/components/SearchDialog";
 import { ThemeToggle } from "~/components/ThemeToggle";
 import sponsorsJson from "~/data/sponsors.json";
-import { useTranslation, localePath } from "~/i18n";
+import { I18nContext, useTranslation, localePath, type LocaleCode } from "~/i18n";
 
 import styles from "./LandingPage.module.css";
 
@@ -312,153 +311,155 @@ function ShowcaseSection() {
   );
 }
 
-export function LandingPage() {
-  const { locale } = useTranslation();
+export function LandingPage({ locale }: { locale: LocaleCode }) {
+  useTranslation(locale);
 
   return (
-    <div className={styles.page}>
-      <div className={styles.headerBar}>
-        <header className={styles.header}>
-          <Link to={localePath("/", locale)} className={styles.logo}>
-            unifast
-          </Link>
-          <div className={styles.headerActions}>
-            <SearchDialog />
-            <span className={styles.desktopOnly}>
-              <LanguageSwitcher />
-            </span>
-            <span className={styles.desktopOnly}>
-              <ThemeToggle />
-            </span>
-            <span className={styles.desktopOnly}>
-              <a
-                href="https://github.com/kenzo-pj/unifast"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.githubLink}
-                aria-label="GitHub"
-              >
-                <GitHubIcon size={20} />
-              </a>
-            </span>
-            <MobileMenu />
-          </div>
-        </header>
-      </div>
-
-      <section className={styles.hero}>
-        <h1 className={styles.title}>
-          Blazing <span className={styles.accent}>fast</span> Markdown compiler
-        </h1>
-        <p className={styles.subtitle}>
-          High-performance Markdown / MDX compiler built with Rust.
-          <br />
-          Up to <strong>25x faster</strong> than unified.
-        </p>
-        <div className={styles.actions}>
-          <Link
-            to={localePath("/docs/introduction/what-is-unifast/", locale)}
-            className={styles.primaryBtn}
-          >
-            Get Started
-          </Link>
-          <a
-            href="https://github.com/kenzo-pj/unifast"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondaryBtn}
-          >
-            <GitHubIcon size={16} />
-            GitHub
-          </a>
-        </div>
-        <div className={styles.install}>
-          <PackageInstall package="@unifast/node" />
-        </div>
-      </section>
-
-      <BenchmarkSection />
-
-      <ShowcaseSection />
-
-      <section className={styles.section}>
-        <div className={styles.sectionInner}>
-          <h2 className={styles.sectionTitle}>Features</h2>
-          <div className={styles.features}>
-            {FEATURES.map((feat) => (
-              <div key={feat.title} className={styles.featureCard}>
-                <h3 className={styles.featureTitle}>
-                  <span className={styles.featureEmoji}>{feat.emoji}</span>
-                  {feat.title}
-                </h3>
-                <p className={styles.featureDescription}>{feat.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {sponsors.length > 0 && (
-        <section className={styles.section}>
-          <div className={styles.sectionInner}>
-            <h2 className={styles.sectionTitle}>Sponsors</h2>
-            <div className={styles.sponsors}>
-              {sponsors.map((sp) => (
+    <I18nContext.Provider value={{ locale }}>
+      <div className={styles.page}>
+        <div className={styles.headerBar}>
+          <header className={styles.header}>
+            <a href={localePath("/", locale)} className={styles.logo}>
+              unifast
+            </a>
+            <div className={styles.headerActions}>
+              <SearchDialog />
+              <span className={styles.desktopOnly}>
+                <LanguageSwitcher />
+              </span>
+              <span className={styles.desktopOnly}>
+                <ThemeToggle />
+              </span>
+              <span className={styles.desktopOnly}>
                 <a
-                  key={sp.login}
-                  href={sp.url}
+                  href="https://github.com/kenzo-pj/unifast"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={styles.sponsorLink}
-                  title={sp.login}
+                  className={styles.githubLink}
+                  aria-label="GitHub"
                 >
-                  <Avatar.Root className={styles.sponsorAvatar}>
-                    <Avatar.Image src={sp.avatarUrl} alt={sp.login} width={48} height={48} />
-                    <Avatar.Fallback>{sp.login.slice(0, 2).toUpperCase()}</Avatar.Fallback>
-                  </Avatar.Root>
+                  <GitHubIcon size={20} />
                 </a>
+              </span>
+              <MobileMenu />
+            </div>
+          </header>
+        </div>
+
+        <section className={styles.hero}>
+          <h1 className={styles.title}>
+            Blazing <span className={styles.accent}>fast</span> Markdown compiler
+          </h1>
+          <p className={styles.subtitle}>
+            High-performance Markdown / MDX compiler built with Rust.
+            <br />
+            Up to <strong>25x faster</strong> than unified.
+          </p>
+          <div className={styles.actions}>
+            <a
+              href={localePath("/docs/introduction/what-is-unifast/", locale)}
+              className={styles.primaryBtn}
+            >
+              Get Started
+            </a>
+            <a
+              href="https://github.com/kenzo-pj/unifast"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.secondaryBtn}
+            >
+              <GitHubIcon size={16} />
+              GitHub
+            </a>
+          </div>
+          <div className={styles.install}>
+            <PackageInstall package="@unifast/node" />
+          </div>
+        </section>
+
+        <BenchmarkSection />
+
+        <ShowcaseSection />
+
+        <section className={styles.section}>
+          <div className={styles.sectionInner}>
+            <h2 className={styles.sectionTitle}>Features</h2>
+            <div className={styles.features}>
+              {FEATURES.map((feat) => (
+                <div key={feat.title} className={styles.featureCard}>
+                  <h3 className={styles.featureTitle}>
+                    <span className={styles.featureEmoji}>{feat.emoji}</span>
+                    {feat.title}
+                  </h3>
+                  <p className={styles.featureDescription}>{feat.description}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
-      )}
 
-      <section className={styles.cta}>
-        <div className={styles.ctaInner}>
-          <h2 className={styles.ctaTitle}>Ready to compile?</h2>
-          <p className={styles.ctaDescription}>
-            Explore the documentation or dive into the API reference.
-          </p>
-          <div className={styles.ctaCards}>
-            <Link
-              to={localePath("/docs/introduction/what-is-unifast/", locale)}
-              className={styles.ctaCard}
-            >
-              <span className={styles.ctaCardText}>
-                <span className={styles.ctaCardTitle}>Documentation</span>
-                <span className={styles.ctaCardDescription}>
-                  Learn how to install and use unifast in your project.
+        {sponsors.length > 0 && (
+          <section className={styles.section}>
+            <div className={styles.sectionInner}>
+              <h2 className={styles.sectionTitle}>Sponsors</h2>
+              <div className={styles.sponsors}>
+                {sponsors.map((sp) => (
+                  <a
+                    key={sp.login}
+                    href={sp.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.sponsorLink}
+                    title={sp.login}
+                  >
+                    <Avatar.Root className={styles.sponsorAvatar}>
+                      <Avatar.Image src={sp.avatarUrl} alt={sp.login} width={48} height={48} />
+                      <Avatar.Fallback>{sp.login.slice(0, 2).toUpperCase()}</Avatar.Fallback>
+                    </Avatar.Root>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className={styles.cta}>
+          <div className={styles.ctaInner}>
+            <h2 className={styles.ctaTitle}>Ready to compile?</h2>
+            <p className={styles.ctaDescription}>
+              Explore the documentation or dive into the API reference.
+            </p>
+            <div className={styles.ctaCards}>
+              <a
+                href={localePath("/docs/introduction/what-is-unifast/", locale)}
+                className={styles.ctaCard}
+              >
+                <span className={styles.ctaCardText}>
+                  <span className={styles.ctaCardTitle}>Documentation</span>
+                  <span className={styles.ctaCardDescription}>
+                    Learn how to install and use unifast in your project.
+                  </span>
                 </span>
-              </span>
-              <ArrowRight01Icon size={16} className={styles.ctaCardArrow} />
-            </Link>
-            <Link
-              to={localePath("/docs/packages/node/overview/", locale)}
-              className={styles.ctaCard}
-            >
-              <span className={styles.ctaCardText}>
-                <span className={styles.ctaCardTitle}>API Reference</span>
-                <span className={styles.ctaCardDescription}>
-                  Explore @unifast/node APIs, plugins, and options.
+                <ArrowRight01Icon size={16} className={styles.ctaCardArrow} />
+              </a>
+              <a
+                href={localePath("/docs/packages/node/overview/", locale)}
+                className={styles.ctaCard}
+              >
+                <span className={styles.ctaCardText}>
+                  <span className={styles.ctaCardTitle}>API Reference</span>
+                  <span className={styles.ctaCardDescription}>
+                    Explore @unifast/node APIs, plugins, and options.
+                  </span>
                 </span>
-              </span>
-              <ArrowRight01Icon size={16} className={styles.ctaCardArrow} />
-            </Link>
+                <ArrowRight01Icon size={16} className={styles.ctaCardArrow} />
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </I18nContext.Provider>
   );
 }

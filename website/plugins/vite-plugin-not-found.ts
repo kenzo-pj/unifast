@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { Plugin } from "vite";
+import type { Plugin, ResolvedConfig, ViteDevServer, PreviewServer } from "vite";
+import type { IncomingMessage, ServerResponse } from "node:http";
 
 const LOCALES = ["en", "ja"];
 const DEFAULT_LOCALE = "en";
@@ -40,12 +41,12 @@ export default function notFoundPlugin(): Plugin {
 
   return {
     name: "vite-plugin-not-found",
-    configResolved(config) {
+    configResolved(config: ResolvedConfig) {
       contentDir = path.resolve(config.root, "content");
       knownRoutes = collectRoutes(contentDir);
     },
-    configureServer(server) {
-      server.middlewares.use((req, _res, next) => {
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use((req: IncomingMessage, _res: ServerResponse, next: () => void) => {
         knownRoutes = collectRoutes(contentDir);
         const url = req.url?.split("?")[0]?.replace(/\/$/, "") || "/";
         const normalized = url === "" ? "/" : url;
@@ -55,7 +56,7 @@ export default function notFoundPlugin(): Plugin {
           !knownRoutes.has(normalized)
         ) {
           const origWriteHead = _res.writeHead.bind(_res);
-          _res.writeHead = function (statusCode: number, ...args: any[]) {
+          _res.writeHead = function (_statusCode: number, ...args: any[]) {
             return origWriteHead(404, ...args);
           } as typeof _res.writeHead;
         }
@@ -63,8 +64,8 @@ export default function notFoundPlugin(): Plugin {
         next();
       });
     },
-    configurePreviewServer(server) {
-      server.middlewares.use((req, _res, next) => {
+    configurePreviewServer(server: PreviewServer) {
+      server.middlewares.use((req: IncomingMessage, _res: ServerResponse, next: () => void) => {
         const url = req.url?.split("?")[0]?.replace(/\/$/, "") || "/";
         const normalized = url === "" ? "/" : url;
 
@@ -73,7 +74,7 @@ export default function notFoundPlugin(): Plugin {
           !knownRoutes.has(normalized)
         ) {
           const origWriteHead = _res.writeHead.bind(_res);
-          _res.writeHead = function (statusCode: number, ...args: any[]) {
+          _res.writeHead = function (_statusCode: number, ...args: any[]) {
             return origWriteHead(404, ...args);
           } as typeof _res.writeHead;
         }

@@ -1,10 +1,10 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
     "declaration": false,
     "resolveJsonModule": true,
     "jsx": "react-jsx",
-    "types": ["vite/client"],
+    "jsxImportSource": "react",
     "outDir": "dist",
     "baseUrl": ".",
     "rootDirs": [".", "generated"],
@@ -12,7 +12,7 @@
       "~/*": ["./src/*"]
     }
   },
-  "include": ["src", "plugins", "scripts", "*.ts"],
+  "include": ["src", "plugins", "scripts", "*.ts", ".astro"],
   "cmkOptions": {
     "enabled": true
   }

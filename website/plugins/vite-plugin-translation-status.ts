@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import type { Plugin, ResolvedConfig } from "vite";
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
@@ -82,7 +82,7 @@ export default function translationStatusPlugin(): Plugin {
   return {
     name: "vite-plugin-translation-status",
 
-    configResolved(config) {
+    configResolved(config: ResolvedConfig) {
       const root = config.root;
       contentDir = path.resolve(root, "content");
       let dir = root;
@@ -96,11 +96,11 @@ export default function translationStatusPlugin(): Plugin {
       if (!gitRoot) gitRoot = root;
     },
 
-    resolveId(id) {
+    resolveId(id: string) {
       if (id === VIRTUAL_MODULE_ID) return RESOLVED_VIRTUAL_MODULE_ID;
     },
 
-    load(id) {
+    load(id: string) {
       if (id === RESOLVED_VIRTUAL_MODULE_ID) {
         const manifest = buildManifest(contentDir, gitRoot);
         return `export default ${JSON.stringify(manifest)};`;

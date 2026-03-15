@@ -1,5 +1,4 @@
 import { Dialog } from "@base-ui/react/dialog";
-import { useRouterState } from "@tanstack/react-router";
 import { Menu01Icon, Cancel01Icon } from "hugeicons-react";
 import { useState, useCallback, useEffect, useRef } from "react";
 
@@ -7,12 +6,20 @@ import { GitHubIcon } from "~/components/GitHubIcon";
 import { LanguageSwitcher } from "~/components/LanguageSwitcher";
 import { Sidebar } from "~/components/Sidebar";
 import { ThemeToggle } from "~/components/ThemeToggle";
+import type { LocaleCode } from "~/i18n";
 
 import styles from "./MobileMenu.module.css";
 
-export function MobileMenu() {
+export function MobileMenu({
+  pathname: pathnameProp,
+  locale: _locale,
+}: {
+  pathname?: string;
+  locale?: LocaleCode;
+} = {}) {
   const [open, setOpen] = useState(false);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname =
+    pathnameProp ?? (typeof globalThis !== "undefined" ? globalThis.location.pathname : "");
   const pathnameRef = useRef(pathname);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import type { Plugin } from "vite";
+import type { Plugin, HmrContext } from "vite";
 import type { CompileOptions, CompileResult } from "@unifast/node";
 import fs from "node:fs";
 import path from "node:path";
@@ -33,14 +33,14 @@ export default function examplePlugin(options: ExamplePluginOptions): Plugin {
     name: "vite-plugin-example",
     enforce: "pre",
 
-    resolveId(source, importer) {
+    resolveId(source: string, importer: string | undefined) {
       if (!source.endsWith(QUERY)) return null;
       const base = source.slice(0, -QUERY.length);
       const dir = importer ? path.dirname(importer) : process.cwd();
       return path.resolve(dir, base) + QUERY;
     },
 
-    load(id) {
+    load(id: string) {
       if (!id.endsWith(QUERY)) return null;
       const filePath = id.slice(0, -QUERY.length);
       const source = fs.readFileSync(filePath, "utf-8");
@@ -76,7 +76,7 @@ export default function examplePlugin(options: ExamplePluginOptions): Plugin {
       ].join("\n");
     },
 
-    handleHotUpdate({ file, server }) {
+    handleHotUpdate({ file, server }: HmrContext) {
       if (!file.endsWith(".md") && !file.endsWith(".ts")) return;
       const mdPath = file.endsWith(".ts") ? file.replace(/\.ts$/, ".md") : file;
       const exampleId = mdPath + QUERY;
