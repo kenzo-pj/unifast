@@ -19,10 +19,10 @@ const compileOptions = {
   ],
 };
 
-export function compileMd(source: string) {
+export function compileDoc(source: string, inputKind: "md" | "mdx" = "md") {
   const result = unifast.compile(source, {
     ...compileOptions,
-    inputKind: "md",
+    inputKind,
     outputKind: "html",
   });
   return {

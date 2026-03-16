@@ -1,5 +1,3 @@
-import type { ComponentType } from "react";
-
 import { DocContent } from "~/components/DocContent";
 import { Layout } from "~/components/Layout";
 import { I18nContext, type LocaleCode } from "~/i18n";
@@ -15,7 +13,7 @@ interface DocsPageShellProps {
   locale: LocaleCode;
   pathname: string;
   html?: string;
-  MdxContent?: ComponentType<{ components?: Record<string, ComponentType> }>;
+  mdxModulePath?: string;
   frontmatter: Record<string, unknown>;
   toc: Array<{ depth: number; text: string; slug: string }>;
   translationStatus?: TranslationStatus;
@@ -28,7 +26,7 @@ export function DocsPageShell({
   locale,
   pathname,
   html,
-  MdxContent,
+  mdxModulePath,
   frontmatter,
   toc,
   translationStatus,
@@ -41,7 +39,7 @@ export function DocsPageShell({
       <Layout locale={locale} pathname={pathname}>
         <DocContent
           html={html}
-          MdxContent={MdxContent}
+          mdxModulePath={mdxModulePath}
           frontmatter={frontmatter}
           toc={toc}
           translationStatus={translationStatus}

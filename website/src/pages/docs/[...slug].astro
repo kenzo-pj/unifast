@@ -3,7 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { DocsPageShell } from "../../components/DocsPageShell";
-import { compileMd } from "../../compile";
+import { compileDoc } from "../../compile";
+import { resolveDocMdxModulePath } from "../../docs";
 import { getTranslation, localePath } from "../../i18n";
 import { flattenNav } from "../../navigation";
 import type { Locale } from "../../i18n/locales/en";
@@ -23,8 +24,11 @@ const hasMdx = fs.existsSync(mdxPath);
 
 if (!hasMd && !hasMdx) return Astro.redirect("/404");
 
-const source = fs.readFileSync(hasMdx ? mdxPath : mdPath, "utf8");
-const compiled = compileMd(source);
+const filePath = hasMdx ? mdxPath : mdPath;
+const isMdx = hasMdx;
+const source = fs.readFileSync(filePath, "utf8");
+const compiled = compileDoc(source, isMdx ? "mdx" : "md");
+const mdxModulePath = isMdx ? resolveDocMdxModulePath(`en/${slug}.mdx`) : undefined;
 
 const { frontmatter, toc, html } = compiled;
 const title = (frontmatter.title as string) ?? "unifast";
@@ -69,6 +73,7 @@ export function getStaticPaths() {
     locale={locale}
     pathname={pathname}
     html={html}
+    mdxModulePath={mdxModulePath}
     frontmatter={frontmatter}
     toc={toc}
     slug={slug!}

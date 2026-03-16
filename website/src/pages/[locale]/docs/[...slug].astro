@@ -4,7 +4,8 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { DocsPageShell } from "../../../components/DocsPageShell";
-import { compileMd } from "../../../compile";
+import { compileDoc } from "../../../compile";
+import { resolveDocMdxModulePath } from "../../../docs";
 import { getTranslation, localePath, SUPPORTED_LOCALES, DEFAULT_LOCALE, type LocaleCode } from "../../../i18n";
 import { flattenNav } from "../../../navigation";
 import type { Locale } from "../../../i18n/locales/en";
@@ -30,6 +31,8 @@ const hasEnMd = fs.existsSync(enMdPath);
 const hasEnMdx = fs.existsSync(enMdxPath);
 
 const filePath = hasLocaleMdx ? localeMdxPath : hasLocaleMd ? localeMdPath : hasEnMdx ? enMdxPath : hasEnMd ? enMdPath : null;
+const sourceLocale = hasLocaleMdx || hasLocaleMd ? locale : DEFAULT_LOCALE;
+const isMdx = hasLocaleMdx || (!hasLocaleMd && hasEnMdx);
 
 if (!filePath) return Astro.redirect("/404");
 
@@ -57,7 +60,8 @@ if (!(hasLocaleMd || hasLocaleMdx)) {
 }
 
 const source = fs.readFileSync(filePath, "utf8");
-const compiled = compileMd(source);
+const compiled = compileDoc(source, isMdx ? "mdx" : "md");
+const mdxModulePath = isMdx ? resolveDocMdxModulePath(`${sourceLocale}/${slug}.mdx`) : undefined;
 
 const { frontmatter, toc, html } = compiled;
 const title = (frontmatter.title as string) ?? "unifast";
@@ -107,6 +111,7 @@ export function getStaticPaths() {
     locale={locale}
     pathname={pathname}
     html={html}
+    mdxModulePath={mdxModulePath}
     frontmatter={frontmatter}
     toc={toc}
     translationStatus={translationStatus}

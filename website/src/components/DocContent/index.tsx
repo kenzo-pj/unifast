@@ -1,9 +1,10 @@
 import { ArrowLeft01Icon, ArrowRight01Icon, PencilEdit01Icon } from "hugeicons-react";
-import { useCallback, useEffect, useRef, type ComponentType } from "react";
+import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { CopyButton } from "~/components/CopyButton";
 import { TableOfContents } from "~/components/TableOfContents";
+import { loadDocMdxModule } from "~/docs";
 import { useTranslation, DEFAULT_LOCALE, type LocaleCode } from "~/i18n";
 
 import type { TranslationStatus } from "../../../plugins/vite-plugin-translation-status";
@@ -18,7 +19,7 @@ interface PageLink {
 
 interface DocContentProps {
   html?: string;
-  MdxContent?: ComponentType<{ components?: Record<string, ComponentType> }>;
+  mdxModulePath?: string;
   frontmatter: Record<string, unknown>;
   toc: Array<{ depth: number; text: string; slug: string }>;
   translationStatus?: TranslationStatus;
@@ -30,7 +31,7 @@ interface DocContentProps {
 
 export function DocContent({
   html,
-  MdxContent,
+  mdxModulePath,
   frontmatter,
   toc,
   translationStatus,
@@ -42,6 +43,9 @@ export function DocContent({
   const { t, locale } = useTranslation(localeProp);
   const title = frontmatter.title as string | undefined;
   const description = frontmatter.description as string | undefined;
+  const [MdxContent, setMdxContent] = useState<ComponentType<{
+    components?: Record<string, ComponentType>;
+  }> | null>(null);
   const handleContentClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     const anchor = target.closest("a[href]");
@@ -64,8 +68,33 @@ export function DocContent({
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!mdxModulePath) {
+      setMdxContent(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    void loadDocMdxModule(mdxModulePath)
+      .then((mod) => {
+        if (!cancelled) {
+          setMdxContent(() => mod.default);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMdxContent(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mdxModulePath]);
+
+  useEffect(() => {
     const container = contentRef.current;
-    if (!container || !html) return;
+    if (!container || !html || MdxContent) return;
 
     container.querySelectorAll("table").forEach((table) => {
       if (table.parentElement?.classList.contains(styles.tableWrapper)) return;
@@ -93,7 +122,7 @@ export function DocContent({
     });
 
     return () => roots.forEach((root) => setTimeout(() => root.unmount(), 0));
-  }, [html]);
+  }, [html, MdxContent]);
 
   const showBanner =
     locale !== DEFAULT_LOCALE && translationStatus && translationStatus !== "translated";
@@ -133,7 +162,7 @@ export function DocContent({
           {slug && (
             <a
               className={styles.editLink}
-              href={`https://github.com/kenzo-pj/unifast/edit/main/website/content/en/${slug}${MdxContent ? ".mdx" : ".md"}`}
+              href={`https://github.com/kenzo-pj/unifast/edit/main/website/content/en/${slug}${mdxModulePath ? ".mdx" : ".md"}`}
               target="_blank"
               rel="noopener noreferrer"
             >
