@@ -1,0 +1,93 @@
+---
+title: "Vite インテグレーション"
+description: "@unifast/vite を使って Markdown や MDX ファイルをビルド時にコンパイルし、Vite アプリケーションで直接インポートします。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite` は、Markdown および MDX ファイルをビルド時にコンパイルする Vite プラグインを提供します。`.md` と `.mdx` ファイルをアプリケーションから直接インポートできます。
+
+### インストール
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### セットアップ
+
+Vite の設定にプラグインを追加します。
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // Optional: pass compile options
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### Markdown のインポート
+
+設定が完了したら、`.md` ファイルを直接インポートできます。
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Compiled HTML string
+console.log(content.frontmatter);  // Parsed frontmatter
+console.log(content.toc);          // Table of contents
+```
+
+インポートしたモジュールは次のプロパティを提供します。
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `html` | `string` | コンパイル済みの HTML 出力 |
+| `frontmatter` | `Record<string, unknown>` | パース済みの frontmatter メタデータ |
+| `toc` | `TocEntry[]` | 抽出された目次 |
+
+### プラグインと組み合わせる
+
+Vite プラグインのオプションを通じてプラグインを渡せます。
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+プロジェクト内のすべての Markdown/MDX のインポートでこれらのプラグインが自動的に適用されます。
+
+### MDX のサポート
+
+MDX ファイルはデフォルトで React コンポーネントをエクスポートする JavaScript モジュールにコンパイルされます。
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### ホットモジュールリプレースメント
+
+Vite プラグインは HMR に対応しています。`.md` または `.mdx` ファイルを編集すると、フルリロードなしでページが更新されます。
+
+### 関連項目
+
+- [compile()](/docs/packages/node/compile) - 基盤となる compile API
+- [React インテグレーション](/docs/guides/react) - コンパイル済みコンテンツを React でレンダリングする

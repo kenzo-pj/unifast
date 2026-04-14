@@ -1,0 +1,53 @@
+---
+title: "autolinkHeadings()"
+description: "Fügt Überschriften automatisch Anker-Links hinzu."
+---
+
+import { Example } from "~/components/Example"
+import example from "./autolink-headings-example.md?example"
+
+```ts
+import { autolinkHeadings } from "@unifast/node";
+```
+
+## Signatur
+
+```ts
+function autolinkHeadings(options?: AutolinkHeadingsOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfiguration für das Verhalten der Überschriften-Links
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|----------|------|---------|-------------|
+| `behavior` | `"prepend" \| "append" \| "wrap"` | `"prepend"` | Position des Anker-Links relativ zum Überschrifteninhalt |
+
+## Verwendung
+
+```ts
+import { compile, autolinkHeadings } from "@unifast/node";
+
+const md = `# Introduction
+
+## Getting Started
+
+### Installation`;
+
+const result = compile(md, {
+  plugins: [
+    autolinkHeadings({
+      behavior: "prepend", // "prepend" | "append" | "wrap"
+    }),
+  ],
+});
+```
+
+## Beispiele
+
+### Überschriften mit Anker-Links
+
+<Example data={example} />

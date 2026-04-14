@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "Создаёт плагин GFM, включающий расширения GitHub Flavored Markdown."
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## Параметры
+
+### options?
+
+Конфигурация отдельных возможностей GFM
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | Включить таблицы с синтаксисом на \| |
+| `taskList` | `boolean` | `true` | Включить чекбоксы списков задач - [x] / - [ ] |
+| `strikethrough` | `boolean` | `true` | Включить синтаксис зачёркивания ~~удалено~~ |
+| `footnotes` | `boolean` | `true` | Включить сноски [^1] и их определения |
+| `autolink` | `boolean` | `true` | Автоматически превращать чистые URL в ссылки |
+
+## Использование
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## Примеры
+
+### Таблицы
+
+<Example data={tableExample} />
+
+### Списки задач
+
+<Example data={taskListExample} />
+
+### Зачёркивание и автоссылки
+
+<Example data={strikethroughExample} />
+
+### Сноски
+
+<Example data={footnoteExample} />

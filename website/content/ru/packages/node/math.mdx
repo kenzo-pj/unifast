@@ -1,0 +1,87 @@
+---
+title: "math()"
+description: "Включает математические выражения с inline- и display-синтаксисом."
+---
+
+import { Example } from "~/components/Example"
+import example from "./math-example.md?example"
+
+```ts
+import { math } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function math(): UnifastPlugin
+```
+
+## Параметры
+
+Отсутствуют.
+
+## Использование
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+Einstein's famous equation: $E = mc^2$
+
+The sum of integers from 1 to n:
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+## Примеры
+
+### Математические выражения
+
+<Example data={example} renderMath />
+
+### Inline-математика
+
+Используйте одиночные разделители `$` для инлайн-математических выражений.
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ and is used to solve quadratic equations.
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### Display-математика
+
+Используйте разделители `$$` или блок кода с языком `math` для display-математики.
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+$$
+\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### Подключение CSS KaTeX
+
+Плагин преобразует математический синтаксис в соответствующую HTML-структуру, но для корректного отображения в браузере необходимо отдельно подключить CSS KaTeX.
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+```

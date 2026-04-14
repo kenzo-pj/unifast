@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "Mengimpor kode dari file eksternal ke dalam fenced code block."
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfigurasi untuk perilaku import kode
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `rootDir` | `string` | — | Direktori root untuk meresolusikan path file. Jika dihilangkan, path akan diresolusi relatif terhadap direktori kerja saat ini. |
+
+## Penggunaan
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// The code block is replaced with the contents of ./src/example.ts
+```
+
+## Contoh
+
+### Import file dasar
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+Konten code block diganti dengan isi file, dengan tetap mempertahankan bahasa untuk syntax highlighting.
+
+### Dengan rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// File paths are resolved relative to rootDir
+```
+
+### Tanpa rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// File paths are resolved relative to the current working directory
+```

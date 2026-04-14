@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "Definisi tipe TypeScript, utilitas HAST, dan kelas error yang dibagikan di seluruh paket runtime unifast"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Ikhtisar
+
+`@unifast/core` menyediakan definisi tipe TypeScript bersama untuk opsi compile, hasil, node HAST (HTML Abstract Syntax Tree), antarmuka plugin, dan kelas error. Paket ini merupakan dependensi dari paket runtime seperti `@unifast/node` — Anda biasanya **tidak** perlu menginstalnya secara langsung.
+
+Untuk compiler dan plugin bawaan, gunakan [`@unifast/node`](/docs/packages/node/overview).
+
+## Instalasi
+
+<PackageInstall package="@unifast/core" />
+
+## Definisi Tipe
+
+### CompileOptions
+
+Konfigurasi untuk fungsi `compile()`.
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | Format input |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | Format output |
+| `gfm` | `object` | - | Pengaturan GitHub Flavored Markdown |
+| `gfm.tables` | `boolean` | - | Mengaktifkan tabel GFM |
+| `gfm.taskList` | `boolean` | - | Mengaktifkan checkbox task list |
+| `gfm.strikethrough` | `boolean` | - | Mengaktifkan `~~strikethrough~~` |
+| `gfm.footnotes` | `boolean` | - | Mengaktifkan footnote |
+| `gfm.autolink` | `boolean` | - | Mengaktifkan auto-linking URL |
+| `frontmatter` | `object` | - | Pengaturan parsing frontmatter |
+| `frontmatter.yaml` | `boolean` | - | Mem-parse frontmatter YAML |
+| `frontmatter.toml` | `boolean` | - | Mem-parse frontmatter TOML |
+| `frontmatter.json` | `boolean` | - | Mem-parse frontmatter JSON |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | Cara menangani HTML mentah di sumber |
+| `sanitize` | `object` | - | Pengaturan sanitasi HTML |
+| `sanitize.enabled` | `boolean` | - | Mengaktifkan sanitasi |
+| `sanitize.schema` | `SanitizeSchema` | - | Aturan sanitasi kustom |
+| `highlight` | `object` | - | Pengaturan syntax highlighting |
+| `highlight.enabled` | `boolean` | - | Mengaktifkan syntax highlighting |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | Engine highlighting |
+| `slug` | `object` | - | Pengaturan generasi slug heading |
+| `slug.mode` | `"github" \| "unicode"` | - | Algoritma generasi slug |
+| `toc` | `object` | - | Pengaturan daftar isi |
+| `toc.enabled` | `boolean` | - | Mengaktifkan ekstraksi TOC |
+| `toc.maxDepth` | `number` | - | Kedalaman heading maksimum yang disertakan |
+| `diagnostics` | `object` | - | Pengaturan output diagnostic |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | Format diagnostic |
+| `cache` | `object` | - | Pengaturan caching |
+| `cache.enabled` | `boolean` | - | Mengaktifkan caching hasil |
+| `cache.dir` | `string` | - | Path direktori cache |
+| `plugins` | `UnifastPlugin[]` | `[]` | Array plugin yang akan diterapkan |
+
+### CompileResult
+
+Dikembalikan oleh fungsi `compile()`.
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `output` | `string \| object` | Output kompilasi (string HTML, JSON HAST, atau JSON MDAST tergantung pada `outputKind`) |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter yang sudah di-parse |
+| `diagnostics` | `Diagnostic[]` | Array peringatan dan error |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Rincian timing dalam milidetik |
+| `toc` | `TocEntry[]` | Entri daftar isi yang diekstrak |
+
+### Diagnostic
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `level` | `"error" \| "warn"` | Tingkat severity |
+| `message` | `string` | Pesan yang dapat dibaca manusia |
+| `start` | `number \| undefined` | Offset byte awal di sumber |
+| `end` | `number \| undefined` | Offset byte akhir di sumber |
+| `line` | `number \| undefined` | Nomor baris (berbasis 1) |
+| `column` | `number \| undefined` | Nomor kolom (berbasis 1) |
+
+### TocEntry
+
+Sebuah heading tunggal yang diekstrak untuk daftar isi.
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `depth` | `number` | Level heading (1-6) |
+| `text` | `string` | Konten teks polos dari heading |
+| `slug` | `string` | Slug yang dihasilkan untuk anchor link |
+
+### SanitizeSchema
+
+Aturan sanitasi kustom.
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | Tag HTML yang diizinkan |
+| `allowedAttributes` | `Record<string, string[]>` | Atribut yang diizinkan per tag |
+| `allowedProtocols` | `Record<string, string[]>` | Protokol URL yang diizinkan per atribut |
+
+### UnifastPlugin
+
+Antarmuka plugin untuk memperluas unifast.
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `name` | `string` | Nama plugin yang unik |
+| `options?` | `Partial<CompileOptions>` | Opsi yang akan digabungkan ke opsi compile |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | Mentransformasi pohon HAST setelah kompilasi |
+
+### Tipe Node HAST
+
+| Tipe | Field `type` | Properti | Deskripsi |
+|------|-------------|------------|-------------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | Node root dari pohon |
+| `HastElement` | `"element"` | `tagName`, `properties`, `children` | Sebuah elemen HTML |
+| `HastText` | `"text"` | `value: string` | Sebuah text node |
+| `HastRaw` | `"raw"` | `value: string` | Passthrough HTML mentah |
+| `HastComment` | `"comment"` | `value: string` | Sebuah komentar HTML |
+| `HastDoctype` | `"doctype"` | - | Sebuah node `<!DOCTYPE html>` |
+
+`HastNode` adalah union type: `HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## Kelas Error
+
+| Kelas | Mewarisi | Properti | Deskripsi |
+|-------|---------|------------|-------------|
+| `UnifastError` | `Error` | `code?: string`, `span?: { start, end }` | Kelas error dasar untuk semua error unifast |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | Dilempar ketika input Markdown/MDX tidak dapat di-parse |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | Dilempar ketika kompilasi gagal setelah parsing |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... compile something
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## Ringkasan Export
+
+| Export | Jenis | Deskripsi |
+|--------|------|-------------|
+| `CompileOptions` | type | Konfigurasi kompilasi |
+| `CompileResult` | type | Hasil kompilasi |
+| `TocEntry` | type | Entri daftar isi |
+| `SanitizeSchema` | type | Aturan sanitasi |
+| `UnifastPlugin` | type | Antarmuka plugin |
+| `HastNode` | type | Union dari semua tipe node HAST |
+| `HastRoot` | type | Node root HAST |
+| `HastElement` | type | Node elemen HAST |
+| `HastText` | type | Node teks HAST |
+| `HastRaw` | type | Node HTML mentah HAST |
+| `HastComment` | type | Node komentar HAST |
+| `HastDoctype` | type | Node doctype HAST |
+| `hastToHtml` | function | Serializer HAST-ke-HTML |
+| `escapeHtml` | function | Escape karakter spesial HTML (`&`, `<`, `>`, `"`) |
+| `extractLang` | function | Mengekstrak identifier bahasa dari elemen `<code>` HAST |
+| `extractText` | function | Mengekstrak konten teks polos dari node HAST |
+| `findCodeChild` | function | Menemukan elemen anak `<code>` di dalam elemen `<pre>` |
+| `visitHast` | function | Utilitas visitor pattern untuk berjalan di pohon HAST |
+| `UnifastError` | class | Kelas error dasar |
+| `ParseError` | class | Kelas error parse |
+| `CompileError` | class | Kelas error compile |

@@ -1,0 +1,79 @@
+---
+title: "Быстрый старт"
+description: "Установите unifast и скомпилируйте свой первый документ Markdown меньше чем за минуту."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+Установите unifast и скомпилируйте свой первый документ Markdown меньше чем за минуту.
+
+### Установка
+
+<PackageInstall package="@unifast/node" />
+
+### Базовое использование
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, unifast!\n\nThis is **Markdown**.");
+
+console.log(result.html);
+// <h1>Hello, unifast!</h1>
+// <p>This is <strong>Markdown</strong>.</p>
+```
+
+Вот и всё. Один импорт, один вызов функции, HTML на выходе.
+
+### Добавление плагинов
+
+Плагины расширяют компилятор дополнительными возможностями. Большинство плагинов входит в состав `@unifast/node` и настраивает встроенные проходы.
+
+```ts
+import { compile, frontmatter, gfm } from "@unifast/node";
+
+const source = `---
+title: My Post
+date: 2025-01-15
+---
+
+# My Post
+
+A table:
+
+| Feature | Status |
+|---------|--------|
+| GFM     | Yes    |
+
+- [x] Task complete
+- [ ] Task pending
+`;
+
+const result = compile(source, {
+  plugins: [frontmatter(), gfm()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Post", date: "2025-01-15" }
+
+console.log(result.html);
+// Отрендеренный HTML с таблицей GFM и списком задач
+```
+
+### Добавление подсветки синтаксиса
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```js\nconsole.log("highlighted");\n```',
+  { plugins: [syntect()] }
+);
+// Блок кода с классами подсветки синтаксиса
+```
+
+### Что дальше
+
+- [Ключевые концепции](/docs/introduction/key-concepts) — изучите конвейер компиляции и архитектуру.
+- [Подсветка синтаксиса](/docs/guides/syntax-highlighting) — подробная настройка подсветки блоков кода.
+- [compile()](/docs/packages/node/compile) — полный справочник API функции compile.

@@ -4,6 +4,7 @@ const require = createRequire(import.meta.url);
 const unifast = require("@unifast/node");
 
 const compileOptions = {
+  slug: { mode: "unicode" },
   toc: { enabled: true, maxDepth: 3 },
   lineNumbers: { enabled: true },
   plugins: [

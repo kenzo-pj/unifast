@@ -1,0 +1,77 @@
+---
+title: "highlight()"
+description: "lowlight を利用して HAST 変換でフェンスドコードブロックをハイライトする highlight.js のプラグインを生成します。"
+---
+
+```ts
+import { highlight } from "@unifast/highlight";
+```
+
+## シグネチャ
+
+```ts
+function highlight(): UnifastPlugin
+```
+
+## パラメータ
+
+なし。
+
+## 使い方
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// <pre><code class="language-typescript hljs">
+//   <span class="hljs-keyword">const</span> ...
+// </code></pre>
+```
+
+## 使用例
+
+### 複数の言語を使う
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`python
+def hello():
+    print("Hello, world!")
+\`\`\`
+
+\`\`\`css
+.container {
+  display: flex;
+}
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [highlight()] });
+// Both code blocks are highlighted with appropriate highlight.js classes
+```
+
+### 他のプラグインと組み合わせて使う
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), highlight()],
+});
+```

@@ -1,0 +1,58 @@
+---
+title: "directive()"
+description: "Mendukung container directive dengan sintaks `:::name`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./directive-example.md?example"
+
+```ts
+import { directive } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function directive(): UnifastPlugin
+```
+
+## Parameter
+
+Tidak ada.
+
+## Penggunaan
+
+```ts
+import { compile, directive } from "@unifast/node";
+
+const result = compile(md, { plugins: [directive()] });
+```
+
+## Contoh
+
+### Container directive
+
+<Example data={example} />
+
+Anda dapat memberi style pada container ini dengan CSS menggunakan class `.directive-note`, `.directive-warning`, mirip dengan GitHub Alert tetapi dengan nama yang sepenuhnya kustom.
+
+### Container dengan atribut
+
+```md
+:::warning title="Deprecation Notice"
+This API will be removed in the next major version.
+:::
+```
+
+### Konten bersarang
+
+Directive mendukung Markdown penuh di dalamnya, termasuk list, code block, dan formatting inline.
+
+```md
+:::note
+You can include **bold**, *italic*, and other Markdown inside containers.
+
+- List items work too
+- As does `inline code`
+:::
+```

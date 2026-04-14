@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "Плагин подсветки синтаксиса на основе Shiki для unifast с HAST-преобразованиями"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Обзор
+
+`@unifast/shiki` предоставляет подсветку синтаксиса на базе [Shiki](https://shiki.style/) с поддержкой 200+ языков и широкого набора тем. В отличие от встроенного плагина подсветки, Shiki работает как HAST-преобразование в JavaScript, заменяя блоки `<pre><code>` богато стилизованным выводом.
+
+Плагин автоматически отключает встроенный подсветчик на Rust, чтобы избежать двойной обработки.
+
+## Установка
+
+<PackageInstall package="@unifast/shiki" />
+
+## Определения типов
+
+### ShikiTransformerOptions
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Темы Shiki для загрузки |
+| `defaultTheme` | `BundledTheme` | Первая тема в `themes` | Тема по умолчанию для отрисовки |
+| `langs` | `BundledLanguage[]` | `[]` | Языки для загрузки. Подсвечиваются только загруженные языки. |
+
+> `BundledTheme` и `BundledLanguage` — это типы из пакета `shiki`.
+
+### ShikiTransformer
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | Применяет подсветку Shiki ко всем блокам `<pre><code class="language-*">` |
+
+## Сводка экспортов
+
+| Экспорт | Вид | Описание |
+|--------|------|-------------|
+| `createShikiPlugin` | функция | Создаёт Shiki UnifastPlugin (асинхронно) |
+| `createShikiTransformer` | функция | Создаёт автономный трансформер Shiki (асинхронно) |
+| `ShikiTransformerOptions` | тип | Параметры конфигурации Shiki |
+| `ShikiTransformer` | тип | Интерфейс трансформера |
+| `hastToHtml` | функция | Сериализатор HAST в HTML (реэкспорт) |
+| `HastNode`, `HastRoot`, и др. | типы | Типы узлов HAST (реэкспорт) |

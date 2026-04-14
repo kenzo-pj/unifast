@@ -1,0 +1,94 @@
+---
+title: "Uso de MDX"
+description: "Compila MDX con unifast para usar expresiones JSX y sentencias import dentro de Markdown, renderizadas con React u otros runtimes JSX."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+MDX te permite usar expresiones JSX y sentencias import dentro de Markdown. unifast compila MDX a módulos JavaScript que pueden renderizarse con React u otros runtimes JSX.
+
+### Instalación
+
+<PackageInstall package="@unifast/node" />
+
+### Uso básico
+
+```ts
+import { compile } from "@unifast/node";
+
+const source = `
+# Hello
+
+<Counter initial={0} />
+
+export const meta = { title: "My Page" };
+`;
+
+const result = compile(source, { inputKind: "mdx" });
+// result.output is a JavaScript module string
+```
+
+### Cómo funciona MDX
+
+MDX extiende Markdown con dos capacidades:
+
+1. **Expresiones JSX** - Usa componentes en línea dentro de tu contenido.
+2. **Imports/exports ESM** - Importa componentes y exporta metadatos.
+
+El compilador procesa MDX en estos pasos:
+
+```
+MDX source
+  → Parse (Markdown + JSX + ESM)
+  → MdAst with JSX/ESM nodes
+  → Lower to HAst
+  → Emit as JavaScript module
+```
+
+La salida es un módulo JavaScript con una función de export por defecto que acepta una prop `components` para la inyección de componentes.
+
+### Uso con React
+
+```ts
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const source = `# Hello\n\nThis is **MDX**.`;
+
+const result = compile(source, { inputKind: "mdx" });
+const Component = compileToReact(result);
+
+// Render in your React app
+<Component components={{ h1: MyHeading }} />
+```
+
+### Frontmatter en MDX
+
+Combina MDX con el plugin de frontmatter para extraer metadatos:
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const source = `---
+title: My Article
+author: Jane
+---
+
+# {frontmatter.title}
+
+Written by {frontmatter.author}.
+`;
+
+const result = compile(source, {
+  inputKind: "mdx",
+  plugins: [frontmatter()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Article", author: "Jane" }
+```
+
+### Véase también
+
+- [compile()](/docs/packages/node/compile) - Referencia completa de la API
+- [Integración con React](/docs/guides/react) - Renderizando MDX con React

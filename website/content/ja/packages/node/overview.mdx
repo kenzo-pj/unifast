@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "ネイティブ Rust で動作する unifast Markdown/MDX コンパイラの Node.js バインディングです。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概要
+
+`@unifast/node` は、Node.js で unifast を使うためのメインのエントリポイントです。napi-rs を経由してネイティブ Rust コンパイラを呼び出す [`compile()`](/docs/packages/node/compile) 関数を提供し、最大限のパフォーマンスを実現します。プラグインシステムにも対応しており、Rust のコンパイル処理の後に JavaScript で HAST 変換を適用できます。
+
+## インストール
+
+<PackageInstall package="@unifast/node" />
+
+> ネイティブの Rust アドオンは事前にビルドされている必要があります。ネイティブバイナリが利用できない場合は `cargo build -p unifast-bindings-node --release` を実行してください。
+
+## クイックスタート
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong></h1>
+```
+
+## プラグインパイプライン
+
+プラグインが指定されると、`compile()` は次のパイプラインを実行します。
+
+1. **プラグインの抽出** - `plugins` をそれ以外のオプションから分離します
+2. **オプションのマージ** - 各プラグインの `options` を compile オプションに深くマージします
+3. **HAST の強制** - いずれかのプラグインが `hastTransform` を持つ場合、ネイティブ呼び出しで `outputKind: "hast"` を使用します
+4. **ネイティブコンパイル** - napi-rs を経由して Rust コンパイラを呼び出します
+5. **HAST 変換** - 各プラグインの `hastTransform` を順番に適用します
+6. **出力の変換** - ユーザーが HAST 出力を要求していない場合、`hastToHtml` で HTML に戻します
+
+## 組み込みプラグイン
+
+次のプラグインファクトリ関数が同梱されており、別途のインストールは不要です。
+
+`gfm`、`frontmatter`、`sanitize`、`syntect`、`treeSitter`、`toc`、`externalLinks`、`autolinkHeadings`、`smartypants`、`wikiLink`、`codeImport`、`emoji`、`breaks`、`math`、`githubAlert`、`sectionize`、`directive`、`definitionList`、`rubyAnnotation`、`cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## エクスポート一覧
+
+| エクスポート | 種類 | 説明 |
+|--------|------|-------------|
+| `compile` | function | Markdown/MDX を HTML または他のフォーマットにコンパイルする |
+| `gfm`, `frontmatter`, ... | function | 組み込みプラグインファクトリ (合計 20 種類) |
+| `hastToHtml` | function | HAST から HTML へのシリアライザ (`@unifast/core` から再エクスポート) |
+| `CompileOptions` | type | コンパイル設定 |
+| `CompileResult` | type | コンパイル結果 |
+| `UnifastPlugin` | type | プラグインインターフェース |
+| `TocEntry` | type | 目次のエントリ |
+| `HastRoot` | type | HAST ルートノード |
+| `HastElement` | type | HAST 要素ノード |
+| `HastText` | type | HAST テキストノード |
+| `HastNode` | type | すべての HAST ノード型のユニオン |
+| `UnifastError` | class | 基底エラークラス |
+| `ParseError` | class | パースエラークラス |
+| `CompileError` | class | コンパイルエラークラス |

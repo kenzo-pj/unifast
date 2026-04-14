@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "Các định nghĩa kiểu TypeScript, tiện ích HAST và lớp lỗi được dùng chung giữa các gói runtime của unifast"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Tổng quan
+
+`@unifast/core` cung cấp các định nghĩa kiểu TypeScript dùng chung cho tùy chọn biên dịch, kết quả, các nút HAST (HTML Abstract Syntax Tree), interface plugin và các lớp lỗi. Nó là dependency của các gói runtime như `@unifast/node` — bạn thường **không** cần cài đặt trực tiếp.
+
+Để sử dụng trình biên dịch và các plugin tích hợp sẵn, hãy dùng [`@unifast/node`](/docs/packages/node/overview).
+
+## Cài đặt
+
+<PackageInstall package="@unifast/core" />
+
+## Định nghĩa kiểu
+
+### CompileOptions
+
+Cấu hình cho hàm `compile()`.
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | Định dạng đầu vào |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | Định dạng đầu ra |
+| `gfm` | `object` | - | Các thiết lập GitHub Flavored Markdown |
+| `gfm.tables` | `boolean` | - | Bật bảng GFM |
+| `gfm.taskList` | `boolean` | - | Bật checkbox danh sách tác vụ |
+| `gfm.strikethrough` | `boolean` | - | Bật `~~strikethrough~~` |
+| `gfm.footnotes` | `boolean` | - | Bật chú thích cuối |
+| `gfm.autolink` | `boolean` | - | Bật auto-link cho URL |
+| `frontmatter` | `object` | - | Các thiết lập parsing frontmatter |
+| `frontmatter.yaml` | `boolean` | - | Parse frontmatter YAML |
+| `frontmatter.toml` | `boolean` | - | Parse frontmatter TOML |
+| `frontmatter.json` | `boolean` | - | Parse frontmatter JSON |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | Cách xử lý HTML thô trong source |
+| `sanitize` | `object` | - | Thiết lập sanitization HTML |
+| `sanitize.enabled` | `boolean` | - | Bật sanitization |
+| `sanitize.schema` | `SanitizeSchema` | - | Quy tắc sanitization tùy chỉnh |
+| `highlight` | `object` | - | Thiết lập syntax highlighting |
+| `highlight.enabled` | `boolean` | - | Bật syntax highlighting |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | Engine highlight |
+| `slug` | `object` | - | Thiết lập sinh slug cho tiêu đề |
+| `slug.mode` | `"github" \| "unicode"` | - | Thuật toán sinh slug |
+| `toc` | `object` | - | Thiết lập mục lục |
+| `toc.enabled` | `boolean` | - | Bật trích xuất TOC |
+| `toc.maxDepth` | `number` | - | Độ sâu tiêu đề tối đa được bao gồm |
+| `diagnostics` | `object` | - | Thiết lập đầu ra diagnostic |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | Định dạng diagnostic |
+| `cache` | `object` | - | Thiết lập cache |
+| `cache.enabled` | `boolean` | - | Bật cache kết quả |
+| `cache.dir` | `string` | - | Đường dẫn thư mục cache |
+| `plugins` | `UnifastPlugin[]` | `[]` | Mảng plugin được áp dụng |
+
+### CompileResult
+
+Giá trị trả về của hàm `compile()`.
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `output` | `string \| object` | Đầu ra đã biên dịch (chuỗi HTML, HAST JSON, hoặc MDAST JSON tùy thuộc vào `outputKind`) |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter đã được parse |
+| `diagnostics` | `Diagnostic[]` | Mảng cảnh báo và lỗi |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Thống kê thời gian theo mili-giây |
+| `toc` | `TocEntry[]` | Các mục của bảng mục lục đã được trích xuất |
+
+### Diagnostic
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `level` | `"error" \| "warn"` | Mức độ nghiêm trọng |
+| `message` | `string` | Thông điệp dễ đọc cho con người |
+| `start` | `number \| undefined` | Offset byte bắt đầu trong source |
+| `end` | `number \| undefined` | Offset byte kết thúc trong source |
+| `line` | `number \| undefined` | Số dòng (bắt đầu từ 1) |
+| `column` | `number \| undefined` | Số cột (bắt đầu từ 1) |
+
+### TocEntry
+
+Một tiêu đề được trích xuất cho bảng mục lục.
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `depth` | `number` | Cấp độ tiêu đề (1-6) |
+| `text` | `string` | Nội dung văn bản thuần của tiêu đề |
+| `slug` | `string` | Slug đã sinh để dùng làm anchor link |
+
+### SanitizeSchema
+
+Các quy tắc sanitization tùy chỉnh.
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | Các thẻ HTML được phép |
+| `allowedAttributes` | `Record<string, string[]>` | Các thuộc tính được phép cho từng thẻ |
+| `allowedProtocols` | `Record<string, string[]>` | Các protocol URL được phép cho từng thuộc tính |
+
+### UnifastPlugin
+
+Interface plugin để mở rộng unifast.
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `name` | `string` | Tên plugin duy nhất |
+| `options?` | `Partial<CompileOptions>` | Các tùy chọn sẽ được gộp vào tùy chọn biên dịch |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | Biến đổi cây HAST sau khi biên dịch |
+
+### Các loại nút HAST
+
+| Kiểu | Trường `type` | Thuộc tính | Mô tả |
+|------|-------------|------------|-------------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | Nút gốc của cây |
+| `HastElement` | `"element"` | `tagName`, `properties`, `children` | Một phần tử HTML |
+| `HastText` | `"text"` | `value: string` | Một nút văn bản |
+| `HastRaw` | `"raw"` | `value: string` | Đi qua HTML thô |
+| `HastComment` | `"comment"` | `value: string` | Một comment HTML |
+| `HastDoctype` | `"doctype"` | - | Một nút `<!DOCTYPE html>` |
+
+`HastNode` là kiểu union: `HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## Các lớp lỗi
+
+| Lớp | Kế thừa | Thuộc tính | Mô tả |
+|-------|---------|------------|-------------|
+| `UnifastError` | `Error` | `code?: string`, `span?: { start, end }` | Lớp lỗi cơ sở cho tất cả lỗi của unifast |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | Được ném ra khi không thể parse đầu vào Markdown/MDX |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | Được ném ra khi biên dịch thất bại sau khi parse |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... compile something
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## Tổng hợp các export
+
+| Export | Loại | Mô tả |
+|--------|------|-------------|
+| `CompileOptions` | type | Cấu hình biên dịch |
+| `CompileResult` | type | Kết quả biên dịch |
+| `TocEntry` | type | Mục của bảng mục lục |
+| `SanitizeSchema` | type | Quy tắc sanitization |
+| `UnifastPlugin` | type | Interface plugin |
+| `HastNode` | type | Union của tất cả các loại nút HAST |
+| `HastRoot` | type | Nút gốc HAST |
+| `HastElement` | type | Nút phần tử HAST |
+| `HastText` | type | Nút văn bản HAST |
+| `HastRaw` | type | Nút HTML thô HAST |
+| `HastComment` | type | Nút comment HAST |
+| `HastDoctype` | type | Nút doctype HAST |
+| `hastToHtml` | function | Bộ tuần tự hóa HAST-to-HTML |
+| `escapeHtml` | function | Escape các ký tự đặc biệt của HTML (`&`, `<`, `>`, `"`) |
+| `extractLang` | function | Trích xuất định danh ngôn ngữ từ phần tử HAST `<code>` |
+| `extractText` | function | Trích xuất nội dung văn bản thuần từ một nút HAST |
+| `findCodeChild` | function | Tìm phần tử con `<code>` bên trong phần tử `<pre>` |
+| `visitHast` | function | Tiện ích visitor pattern để duyệt cây HAST |
+| `UnifastError` | class | Lớp lỗi cơ sở |
+| `ParseError` | class | Lớp lỗi parse |
+| `CompileError` | class | Lớp lỗi biên dịch |

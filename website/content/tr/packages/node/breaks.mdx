@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "Metindeki satır sonlarını `<br>` elemanlarına dönüştürür."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Parametreler
+
+Yok.
+
+## Kullanım
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Her satır sonu bir <br> elemanına dönüşür
+```
+
+## Örnekler
+
+### Satır sonlarından satır kesmelerine
+
+`breaks()` olmadan, bu üç satır tek bir paragrafta birleşirdi. Plugin etkinken her satır sonu bir `<br>` olur:
+
+<Example data={example} />

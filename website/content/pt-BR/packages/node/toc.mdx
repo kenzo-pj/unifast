@@ -1,0 +1,117 @@
+---
+title: "toc()"
+description: "Cria um plugin TOC que extrai headings do Markdown/MDX e popula CompileResult.toc."
+---
+
+```ts
+import { toc } from "@unifast/node";
+```
+
+## Assinatura
+
+```ts
+function toc(options?: TocPluginOptions): UnifastPlugin
+```
+
+## Parâmetros
+
+### options?
+
+Configuração da extração de TOC
+
+| Propriedade | Tipo | Padrão | Descrição |
+|----------|------|---------|-------------|
+| `maxDepth` | `number` | `3` | Profundidade máxima de heading a incluir (1-6). Um valor de 3 inclui h1, h2 e h3. |
+
+## Uso
+
+```ts
+import { compile, toc } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    toc({
+      maxDepth: 3,
+    }),
+  ],
+});
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Getting Started", slug: "getting-started" },
+//   { depth: 3, text: "Installation", slug: "installation" },
+// ]
+```
+
+## Exemplos
+
+### Extração básica de heading
+
+```ts
+import { compile, toc } from "@unifast/node";
+
+const md = `# Introduction
+
+## Getting Started
+
+### Installation
+
+## API Reference
+
+### compile()
+
+### hastToHtml()`;
+
+const result = compile(md, { plugins: [toc()] });
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Getting Started", slug: "getting-started" },
+//   { depth: 3, text: "Installation", slug: "installation" },
+//   { depth: 2, text: "API Reference", slug: "api-reference" },
+//   { depth: 3, text: "compile()", slug: "compile" },
+//   { depth: 3, text: "hastToHtml()", slug: "hasttohtml" },
+// ]
+```
+
+### Limitar profundidade
+
+```ts
+import { compile, toc } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [toc({ maxDepth: 2 })],
+});
+
+console.log(result.toc);
+// Only h1 and h2 headings are included
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Getting Started", slug: "getting-started" },
+//   { depth: 2, text: "API Reference", slug: "api-reference" },
+// ]
+```
+
+### Renderizar uma navegação de TOC
+
+```tsx
+import { compile, toc } from "@unifast/node";
+
+const result = compile(md, { plugins: [toc()] });
+
+function TableOfContents() {
+  return (
+    <nav>
+      <ul>
+        {result.toc.map((entry) => (
+          <li key={entry.slug} style={{ marginLeft: (entry.depth - 1) * 16 }}>
+            <a href={`#${entry.slug}`}>{entry.text}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+```

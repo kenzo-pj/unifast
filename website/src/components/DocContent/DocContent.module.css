@@ -97,6 +97,7 @@
   background: var(--color-code-bg);
   padding: var(--gap-xs) var(--gap-sm);
   border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
   font-size: 0.9375em;
 }
 .content pre {
@@ -106,6 +107,7 @@
   border: 1px solid var(--color-border);
   overflow-x: auto;
   margin: var(--gap-xl) 0;
+  font-family: var(--font-mono);
   font-size: 0.9375rem;
 }
 .content pre code {

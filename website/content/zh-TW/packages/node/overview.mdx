@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "以原生 Rust 驅動的 unifast Markdown/MDX 編譯器 Node.js 繫結"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概觀
+
+`@unifast/node` 是在 Node.js 中使用 unifast 的主要進入點。它提供 [`compile()`](/docs/packages/node/compile) 函式，透過 napi-rs 呼叫原生 Rust 編譯器以達成最佳效能。它也支援外掛系統，允許在 Rust 編譯步驟完成後，以 JavaScript 套用 HAST 轉換。
+
+## 安裝
+
+<PackageInstall package="@unifast/node" />
+
+> 原生 Rust 附加套件必須事先建置完成。若尚未備妥原生二進位檔，請執行 `cargo build -p unifast-bindings-node --release`。
+
+## 快速開始
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## 外掛管線
+
+當提供外掛時，`compile()` 會執行以下管線：
+
+1. **擷取外掛** - 將 `plugins` 與其餘選項分開
+2. **合併選項** - 將每個外掛的 `options` 以深層合併方式併入 compile 選項
+3. **強制使用 HAST** - 若有任何外掛具備 `hastTransform`，原生呼叫會改用 `outputKind: "hast"`
+4. **原生編譯** - 透過 napi-rs 呼叫 Rust 編譯器
+5. **套用 HAST 轉換** - 依序執行每個外掛的 `hastTransform`
+6. **轉換輸出** - 若使用者未要求 HAST 輸出，透過 `hastToHtml` 轉回 HTML
+
+## 內建外掛
+
+下列外掛工廠函式皆已內建，不需另外安裝：
+
+`gfm`、`frontmatter`、`sanitize`、`syntect`、`treeSitter`、`toc`、`externalLinks`、`autolinkHeadings`、`smartypants`、`wikiLink`、`codeImport`、`emoji`、`breaks`、`math`、`githubAlert`、`sectionize`、`directive`、`definitionList`、`rubyAnnotation`、`cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## 匯出列表
+
+| 匯出名稱 | 類別 | 說明 |
+|--------|------|-------------|
+| `compile` | function | 將 Markdown/MDX 編譯為 HTML 或其他格式 |
+| `gfm`、`frontmatter`、... | function | 內建的外掛工廠函式（共 20 個） |
+| `hastToHtml` | function | HAST 轉 HTML 序列化器（從 `@unifast/core` 重新匯出） |
+| `CompileOptions` | type | 編譯設定 |
+| `CompileResult` | type | 編譯結果 |
+| `UnifastPlugin` | type | 外掛介面 |
+| `TocEntry` | type | 目錄項目 |
+| `HastRoot` | type | HAST 根節點 |
+| `HastElement` | type | HAST 元素節點 |
+| `HastText` | type | HAST 文字節點 |
+| `HastNode` | type | 所有 HAST 節點型別的聯集 |
+| `UnifastError` | class | 基底錯誤類別 |
+| `ParseError` | class | 解析錯誤類別 |
+| `CompileError` | class | 編譯錯誤類別 |

@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "Плагин подсветки синтаксиса на основе highlight.js для unifast через HAST-преобразования"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Обзор
+
+`@unifast/highlight` предоставляет подсветку синтаксиса на основе [lowlight](https://github.com/wooorm/lowlight) (обёртка над highlight.js). В отличие от встроенных плагинов `syntect()` и `treeSitter()`, которые выполняют подсветку в Rust, этот пакет применяет подсветку как HAST-преобразование на JavaScript после компиляции — предоставляя доступ к обширной экосистеме языков и тем highlight.js.
+
+## Установка
+
+<PackageInstall package="@unifast/highlight" />
+
+## Быстрый старт
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// Блоки кода подсвечены с помощью CSS-классов highlight.js
+```
+
+## Как это работает
+
+1. Компилятор на Rust создаёт HAST-вывод с неподсвеченными блоками `<pre><code>`
+2. `hastTransform` плагина `highlight()` обходит HAST-дерево
+3. Для каждого элемента `<code>` с классом `language-*` lowlight подсвечивает код
+4. Подсвеченные HAST-узлы заменяют исходных потомков
+
+Поскольку это работает как HAST-преобразование, нативная подсветка Rust (`syntect` / `treeSitter`) должна быть отключена. Плагин автоматически устанавливает `highlight.enabled: false` в параметрах компиляции.
+
+## Сводка экспортов
+
+| Экспорт | Вид | Описание |
+|--------|------|-------------|
+| `highlight` | функция | Создаёт HAST-плагин подсветки на основе highlight.js |

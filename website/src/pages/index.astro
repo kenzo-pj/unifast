@@ -1,8 +1,13 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { LandingPage } from "../components/LandingPage";
+import { getTranslation, DEFAULT_LOCALE } from "../i18n";
+
+const { t } = getTranslation(DEFAULT_LOCALE);
+const title = t("landing.metaTitle");
+const description = t("landing.metaDescription");
 ---
 
-<BaseLayout title="unifast - High-performance Markdown / MDX compiler built with Rust." description="High-performance Markdown / MDX compiler built with Rust. Up to 25x faster than unified.">
+<BaseLayout title={title} description={description}>
   <LandingPage client:load locale="en" />
 </BaseLayout>

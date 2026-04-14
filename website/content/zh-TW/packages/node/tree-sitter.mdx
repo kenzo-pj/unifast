@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "建立 Tree-sitter 外掛，透過 Tree-sitter 解析函式庫為圍籬式程式碼區塊啟用語法高亮。"
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## 參數
+
+### options?
+
+高亮引擎設定
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | `"treeSitter"` 會使用 Tree-sitter 高亮器；`"none"` 則會停用高亮 |
+
+## 用法
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## 範例
+
+### 啟用語法高亮
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### 停用高亮
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

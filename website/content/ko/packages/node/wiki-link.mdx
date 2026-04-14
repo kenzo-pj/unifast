@@ -1,0 +1,52 @@
+---
+title: "wikiLink()"
+description: "별칭(alias)을 지원하는 위키 스타일의 `[[links]]`를 지원합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./wiki-link-example.md?example"
+
+```ts
+import { wikiLink } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function wikiLink(options?: WikiLinkPluginOptions): UnifastPlugin
+```
+
+## 매개변수
+
+### options?
+
+위키 링크 동작 설정
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `hrefTemplate` | `string` | `"/wiki/${slug}"` | 링크 URL 생성 템플릿. 슬러그화된 페이지 이름 자리에 ${slug}를 사용합니다. |
+
+## 사용법
+
+```ts
+import { compile, wikiLink } from "@unifast/node";
+
+const md = `Check out [[Getting Started]] for an introduction.`;
+
+const result = compile(md, {
+  plugins: [
+    wikiLink({
+      hrefTemplate: "/docs/${slug}",
+    }),
+  ],
+});
+
+console.log(result.output);
+// <p>Check out <a href="/docs/getting-started">Getting Started</a> for an introduction.</p>
+```
+
+## 예시
+
+### 위키 스타일 링크
+
+<Example data={example} />

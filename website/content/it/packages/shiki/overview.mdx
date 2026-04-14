@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "Plugin di evidenziazione della sintassi basato su Shiki per unifast con trasformazioni HAST"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Panoramica
+
+`@unifast/shiki` fornisce l'evidenziazione della sintassi basata su [Shiki](https://shiki.style/), con supporto per oltre 200 linguaggi e un'ampia varietà di temi. A differenza del plugin di evidenziazione integrato, Shiki viene eseguito come trasformazione HAST in JavaScript, sostituendo i blocchi `<pre><code>` con un output riccamente stilizzato.
+
+Il plugin disabilita automaticamente l'highlighter Rust integrato per evitare una doppia elaborazione.
+
+## Installazione
+
+<PackageInstall package="@unifast/shiki" />
+
+## Definizioni dei tipi
+
+### ShikiTransformerOptions
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Temi Shiki da caricare |
+| `defaultTheme` | `BundledTheme` | Primo tema di `themes` | Tema predefinito per il rendering |
+| `langs` | `BundledLanguage[]` | `[]` | Linguaggi da caricare. Verranno evidenziati solo i linguaggi caricati. |
+
+> `BundledTheme` e `BundledLanguage` sono tipi del pacchetto `shiki`.
+
+### ShikiTransformer
+
+| Proprietà | Tipo | Descrizione |
+|-----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | Applica l'evidenziazione Shiki a tutti i blocchi `<pre><code class="language-*">` |
+
+## Riepilogo degli export
+
+| Export | Tipo | Descrizione |
+|--------|------|-------------|
+| `createShikiPlugin` | function | Crea un UnifastPlugin basato su Shiki (async) |
+| `createShikiTransformer` | function | Crea un transformer Shiki autonomo (async) |
+| `ShikiTransformerOptions` | type | Opzioni di configurazione di Shiki |
+| `ShikiTransformer` | type | Interfaccia del transformer |
+| `hastToHtml` | function | Serializzatore da HAST a HTML (riesportato) |
+| `HastNode`, `HastRoot`, ecc. | types | Tipi di nodo HAST (riesportati) |

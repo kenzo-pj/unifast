@@ -1,0 +1,2 @@
+- [GitHub](https://github.com) — link ngoài, mở trong tab mới
+- [Bắt đầu nhanh](/en/docs/introduction/quick-start) — link nội bộ, giữ nguyên

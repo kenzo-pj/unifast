@@ -45,6 +45,11 @@
   --transition-fast: 0.1s;
   --transition-normal: 0.15s;
   --transition-slow: 0.2s;
+
+  --font-mono:
+    ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", "Hiragino Sans",
+    "Yu Gothic", "Noto Sans CJK JP", "Microsoft YaHei", "PingFang SC", "PingFang TC",
+    "Apple SD Gothic Neo", "Malgun Gothic", monospace;
 }
 
 [data-theme="dark"] {

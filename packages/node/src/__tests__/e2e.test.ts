@@ -423,7 +423,7 @@ describe("plugin e2e round-trip", () => {
           },
         ],
       });
-      expect(called).toBe(false);
+      expect(called).toBeFalsy();
       expect(result.output).toBeDefined();
       expect(result.output.length).toBeGreaterThan(0);
     });

@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "component mapping के साथ unifast HAST output को React elements में convert करें"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## अवलोकन
+
+`@unifast/react` unifast HAST (HTML Abstract Syntax Tree) output को React elements में convert करता है। यह दो main functions प्रदान करता है:
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) - High-level: Markdown/MDX compile करें और सीधे React elements return करें
+- [`hastToReact()`](/docs/packages/react/hast-to-react) - Low-level: एक HAST tree को React elements में convert करें
+
+Package अपने आप HTML-to-React property renaming (`class` से `className`, `for` से `htmlFor`, आदि) और CSS style string parsing handle करता है।
+
+## इंस्टॉलेशन
+
+<PackageInstall package="@unifast/react" />
+
+Peer dependency: `compileToReact` के लिए `@unifast/node` आवश्यक है।
+
+## Type Definitions
+
+### CompileToReactOptions
+
+React-specific fields के साथ `CompileOptions` को extend करता है।
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React का `createElement` function |
+| `Fragment` | `unknown` | React का `Fragment` component |
+| `components?` | `ComponentMap` | HTML tag names का React components पर map |
+| *(सभी CompileOptions)* | - | `CompileOptions` से Inherited |
+
+### CompileToReactResult
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `element` | `unknown` | root React element |
+| `frontmatter` | `Record<string, unknown>` | Parsed frontmatter metadata |
+| `diagnostics` | `Diagnostic[]` | Warnings और errors |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Timing breakdown (ms) |
+| `toc` | `TocEntry[]` | निकाला गया table of contents |
+
+### HastToReactOptions
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React का `createElement` function |
+| `Fragment` | `unknown` | React का `Fragment` component |
+| `components?` | `ComponentMap` | HTML tag names का custom React components पर map |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### Property Conversion
+
+| HTML Attribute | React Prop |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+CSS `style` strings अपने आप React style objects में parse होती हैं (जैसे, `"font-size: 16px"` `{ fontSize: "16px" }` बन जाता है)।
+
+## Exports सारांश
+
+| Export | Kind | विवरण |
+|--------|------|-------------|
+| `compileToReact` | function | Markdown/MDX को React elements में compile करें |
+| `hastToReact` | function | HAST को React elements में convert करें |
+| `CompileToReactOptions` | type | `compileToReact` के लिए Options |
+| `CompileToReactResult` | type | `compileToReact` का Result |
+| `HastToReactOptions` | type | `hastToReact` के लिए Options |
+| `CreateElement` | type | React createElement signature |
+| `ComponentMap` | type | HTML tag से component map |

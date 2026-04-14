@@ -1,0 +1,58 @@
+---
+title: "directive()"
+description: "`:::name` sözdizimiyle kapsayıcı directive'leri destekler."
+---
+
+import { Example } from "~/components/Example"
+import example from "./directive-example.md?example"
+
+```ts
+import { directive } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function directive(): UnifastPlugin
+```
+
+## Parametreler
+
+Yok.
+
+## Kullanım
+
+```ts
+import { compile, directive } from "@unifast/node";
+
+const result = compile(md, { plugins: [directive()] });
+```
+
+## Örnekler
+
+### Kapsayıcı directive'leri
+
+<Example data={example} />
+
+Bunları `.directive-note`, `.directive-warning` sınıflarını kullanarak GitHub Alerts'e benzer ancak tamamen özel adlara sahip CSS ile stillendirebilirsiniz.
+
+### Öznitelikli kapsayıcılar
+
+```md
+:::warning title="Deprecation Notice"
+This API will be removed in the next major version.
+:::
+```
+
+### İç içe içerik
+
+Directive'ler, listeler, kod blokları ve satır içi biçimlendirme dahil tam Markdown'u içlerinde destekler.
+
+```md
+:::note
+You can include **bold**, *italic*, and other Markdown inside containers.
+
+- List items work too
+- As does `inline code`
+:::
+```

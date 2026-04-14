@@ -1,21 +1,13 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { LandingPage } from "../../components/LandingPage";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type LocaleCode } from "../../i18n";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, getTranslation, type LocaleCode } from "../../i18n";
 
 const { locale } = Astro.params as { locale: LocaleCode };
+const { t } = getTranslation(locale);
 
-const siteMetadata: Record<string, { title: string; description: string }> = {
-  ja: {
-    title: "unifast - Rustで構築された高性能Markdown / MDXコンパイラ",
-    description: "Rustで構築された高性能Markdown / MDXコンパイラ。unifiedより最大25倍高速。",
-  },
-};
-
-const meta = siteMetadata[locale] ?? {
-  title: "unifast - High-performance Markdown / MDX compiler built with Rust.",
-  description: "High-performance Markdown / MDX compiler built with Rust. Up to 25x faster than unified.",
-};
+const title = t("landing.metaTitle");
+const description = t("landing.metaDescription");
 
 export function getStaticPaths() {
   return SUPPORTED_LOCALES
@@ -24,6 +16,6 @@ export function getStaticPaths() {
 }
 ---
 
-<BaseLayout title={meta.title} description={meta.description} lang={locale}>
+<BaseLayout title={title} description={description} lang={locale}>
   <LandingPage client:load locale={locale} />
 </BaseLayout>

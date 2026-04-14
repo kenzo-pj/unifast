@@ -1,0 +1,86 @@
+---
+title: "syntect()"
+description: "建立 syntect 外掛，為圍籬式程式碼區塊啟用原生 Rust 語法高亮。採用 Sublime Text 的語法定義，支援超過 100 種語言。"
+---
+
+```ts
+import { syntect } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function syntect(options?: SyntectPluginOptions): UnifastPlugin
+```
+
+## 參數
+
+### options?
+
+高亮引擎設定
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "syntect"` | `"syntect"` | `"syntect"` 會使用 syntect 高亮器；`"none"` 則會停用高亮 |
+
+## 用法
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    syntect({
+      engine: "syntect",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## 範例
+
+### 啟用語法高亮
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [syntect()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### 停用高亮
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [syntect({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

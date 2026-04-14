@@ -1,0 +1,121 @@
+---
+title: "React Entegrasyonu"
+description: "unifast çıktısını React uygulamalarında @unifast/react ile render edin; basit HTML render'dan tam MDX bileşen eşlemesine kadar."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/react`, unifast çıktısını React uygulamalarında render etmek için yardımcı araçlar sağlar; basit HTML render'dan tam MDX bileşen eşlemesine kadar.
+
+### Kurulum
+
+<PackageInstall package="@unifast/node @unifast/react" />
+
+### hastToReact Kullanımı
+
+HAst'i (HTML AST) React elemanlarına dönüştürün. Bu, ham HTML enjeksiyonu olmadan HTML elemanlarını özel React bileşenlerine eşlemenize olanak tanır.
+
+```tsx
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+const result = compile(source, { outputKind: "hast" });
+const elements = hastToReact(result.output, {
+  components: {
+    h1: (props) => <h1 className="heading" {...props} />,
+    a: (props) => <a className="link" target="_blank" {...props} />,
+    pre: CodeBlock,
+  },
+});
+
+function Page() {
+  return <article>{elements}</article>;
+}
+```
+
+Bu yaklaşım varsayılan olarak güvenlidir; AST, ham HTML olmadan React elemanlarına dönüştürülür.
+
+### MDX Render Etme
+
+MDX içerikleri için, doğrudan bir React bileşeni almak üzere `compileToReact` kullanın:
+
+```tsx
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const result = compile(source, { inputKind: "mdx" });
+const Content = compileToReact(result);
+
+function Page() {
+  return (
+    <Content
+      components={{
+        Alert: MyAlertComponent,
+        CodeBlock: MyCodeBlock,
+      }}
+    />
+  );
+}
+```
+
+### Bileşen Eşleme
+
+Hem `hastToReact` hem de `compileToReact`, bir `components` eşlemesi kabul eder. Varsayılan HTML elemanlarını özel React bileşenleriyle değiştirmek için bunu kullanın:
+
+```tsx
+const components = {
+  // Başlıkları değiştir
+  h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
+
+  // Özel kod blokları
+  pre: ({ children, ...props }) => <CodeBlock {...props}>{children}</CodeBlock>,
+
+  // Dış bağlantılar yeni sekmede açılır
+  a: ({ href, children }) => (
+    <a href={href} target={href?.startsWith("http") ? "_blank" : undefined}>
+      {children}
+    </a>
+  ),
+};
+```
+
+### Sunucu Tarafı Render
+
+unifast derlemesi senkrondur ve Node.js'te çalışır, bu da onu SSR için ideal kılar:
+
+```tsx
+// server.tsx
+import { compile, frontmatter } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+export async function getStaticProps() {
+  const source = await readFile("content/post.md", "utf8");
+  const result = compile(source, {
+    plugins: [frontmatter()],
+    outputKind: "hast",
+  });
+
+  return {
+    props: {
+      hast: result.output,
+      meta: result.frontmatter,
+    },
+  };
+}
+
+function Post({ hast, meta }) {
+  const content = hastToReact(hast);
+  return (
+    <article>
+      <h1>{meta.title}</h1>
+      {content}
+    </article>
+  );
+}
+```
+
+### Ayrıca Bakın
+
+- [compileToReact()](/docs/packages/react/compile-to-react) - API referansı
+- [hastToReact()](/docs/packages/react/hast-to-react) - API referansı
+- [MDX Kullanımı](/docs/guides/mdx) - MDX derleme kılavuzu

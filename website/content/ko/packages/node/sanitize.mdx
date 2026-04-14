@@ -1,0 +1,139 @@
+---
+title: "sanitize()"
+description: "컴파일 결과에서 위험한 HTML 태그, 속성, URL 프로토콜을 제거하는 새니타이즈 플러그인을 생성합니다."
+---
+
+```ts
+import { sanitize } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function sanitize(options?: SanitizePluginOptions): UnifastPlugin
+```
+
+## 매개변수
+
+### options?
+
+새니타이즈 설정
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `enabled` | `boolean` | `true` | 새니타이즈 활성화 여부 |
+| `schema` | `SanitizeSchema` | — | 커스텀 새니타이즈 스키마 |
+
+#### SanitizeSchema
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | 허용할 HTML 태그 이름(그 외는 모두 제거) |
+| `allowedAttributes` | `Record<string, string[]>` | 태그 이름에서 허용 속성 이름으로의 매핑 |
+| `allowedProtocols` | `Record<string, string[]>` | 속성 이름에서 허용 URL 프로토콜로의 매핑 |
+
+## 사용법
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      enabled: true,
+      schema: {
+        allowedTags: ["h1", "h2", "h3", "p", "a", "strong", "em", "code", "pre", "img", "ul", "ol", "li", "blockquote", "table", "thead", "tbody", "tr", "th", "td"],
+        allowedAttributes: {
+          a: ["href", "title", "target"],
+          img: ["src", "alt", "width", "height"],
+          code: ["class"],
+          pre: ["class"],
+        },
+        allowedProtocols: {
+          href: ["https", "http", "mailto"],
+          src: ["https", "http"],
+        },
+      },
+    }),
+  ],
+});
+```
+
+## 예시
+
+### 위험한 HTML 제거
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const untrustedMd = `
+# Hello
+
+<script>alert("xss")</script>
+
+<img src="x" onerror="alert('xss')">
+
+[Click me](javascript:alert('xss'))
+`;
+
+const result = compile(untrustedMd, {
+  plugins: [sanitize()],
+});
+
+console.log(result.output);
+// <script> 태그, onerror 속성, javascript: URL이 제거됩니다
+```
+
+### 커스텀 허용 태그
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      schema: {
+        allowedTags: ["p", "a", "strong", "em", "code", "pre"],
+      },
+    }),
+  ],
+});
+
+console.log(result.output);
+// 지정한 태그만 남고, 나머지는 모두 제거됩니다
+```
+
+### URL 프로토콜 제한
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      schema: {
+        allowedProtocols: {
+          href: ["https", "mailto"],
+          src: ["https"],
+        },
+      },
+    }),
+  ],
+});
+
+console.log(result.output);
+// https:와 mailto: 링크만 허용됩니다
+```
+
+### 새니타이즈 비활성화
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [sanitize({ enabled: false })],
+});
+
+console.log(result.output);
+// 새니타이즈가 적용되지 않습니다 — 신뢰할 수 있는 입력에만 사용하세요
+```

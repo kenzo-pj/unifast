@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "Binding Node.js untuk compiler Markdown/MDX unifast yang ditenagai oleh Rust native"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Ikhtisar
+
+`@unifast/node` adalah entry point utama untuk menggunakan unifast di Node.js. Ia menyediakan fungsi [`compile()`](/docs/packages/node/compile) yang memanggil compiler Rust native melalui napi-rs untuk performa maksimal. Ia juga mendukung sistem plugin, memungkinkan transform HAST untuk diterapkan di JavaScript setelah langkah kompilasi Rust.
+
+## Instalasi
+
+<PackageInstall package="@unifast/node" />
+
+> Addon Rust native harus sudah dibangun sebelumnya. Jalankan `cargo build -p unifast-bindings-node --release` jika binary native belum tersedia.
+
+## Panduan Cepat
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## Pipeline Plugin
+
+Ketika plugin disediakan, `compile()` mengeksekusi pipeline berikut:
+
+1. **Ekstraksi plugin** - Memisahkan `plugins` dari opsi lainnya
+2. **Penggabungan opsi** - Melakukan deep-merge `options` dari setiap plugin ke dalam opsi compile
+3. **Memaksa HAST** - Jika ada plugin yang memiliki `hastTransform`, panggilan native menggunakan `outputKind: "hast"`
+4. **Kompilasi native** - Memanggil compiler Rust melalui napi-rs
+5. **Transform HAST** - Menerapkan setiap `hastTransform` plugin secara berurutan
+6. **Konversi output** - Jika pengguna tidak meminta output HAST, mengonversi kembali ke HTML melalui `hastToHtml`
+
+## Plugin Bawaan
+
+Fungsi factory plugin berikut ini sudah disertakan — tidak perlu instalasi terpisah:
+
+`gfm`, `frontmatter`, `sanitize`, `syntect`, `treeSitter`, `toc`, `externalLinks`, `autolinkHeadings`, `smartypants`, `wikiLink`, `codeImport`, `emoji`, `breaks`, `math`, `githubAlert`, `sectionize`, `directive`, `definitionList`, `rubyAnnotation`, `cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## Ringkasan Export
+
+| Export | Jenis | Deskripsi |
+|--------|------|-------------|
+| `compile` | function | Meng-compile Markdown/MDX menjadi HTML atau format lain |
+| `gfm`, `frontmatter`, ... | function | Factory plugin bawaan (total 20) |
+| `hastToHtml` | function | Serializer HAST-ke-HTML (di-re-export dari `@unifast/core`) |
+| `CompileOptions` | type | Konfigurasi kompilasi |
+| `CompileResult` | type | Hasil kompilasi |
+| `UnifastPlugin` | type | Antarmuka plugin |
+| `TocEntry` | type | Entri daftar isi |
+| `HastRoot` | type | Node root HAST |
+| `HastElement` | type | Node elemen HAST |
+| `HastText` | type | Node teks HAST |
+| `HastNode` | type | Union dari semua tipe node HAST |
+| `UnifastError` | class | Kelas error dasar |
+| `ParseError` | class | Kelas error parse |
+| `CompileError` | class | Kelas error compile |

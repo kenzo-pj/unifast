@@ -1,0 +1,141 @@
+---
+title: "compile()"
+description: "主要的編譯函式。使用原生 Rust 編譯器將 Markdown 或 MDX 轉換為 HTML 或其他輸出格式。"
+---
+
+```ts
+import { compile } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function compile(input: string, options?: CompileOptions): CompileResult
+```
+
+## 參數
+
+### input
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Markdown 或 MDX 原始碼字串 |
+
+### options?
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `options?` | `CompileOptions` | — | 包含外掛在內的編譯設定 |
+
+## 回傳值
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `output` | `string \| object` | 編譯後的輸出。預設為 HTML 字串；HAST/MDAST 時則為 JSON 字串。 |
+| `frontmatter` | `Record<string, unknown>` | 已解析的 frontmatter 後設資料（若無則為空的 `{}`） |
+| `diagnostics` | `Diagnostic[]` | `{ level, message, start?, end? }` 陣列 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 各階段耗時（毫秒） |
+| `toc` | `TocEntry[]` | 擷取而得的目錄（停用 TOC 時為空的 `[]`） |
+
+## 用法
+
+```ts
+import { compile, gfm, frontmatter, toc, sanitize } from "@unifast/node";
+
+const md = `---
+title: My Document
+---
+
+# Hello, **world**!
+
+| Column A | Column B |
+|----------|----------|
+| Cell 1   | Cell 2   |
+`;
+
+const result = compile(md, {
+  inputKind: "md",       // "md" | "mdx"
+  outputKind: "html",    // "html" | "hast" | "mdast" | "mdxJs"
+  plugins: [gfm(), frontmatter(), toc({ maxDepth: 3 }), sanitize()],
+});
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+// <table>...</table>
+
+console.log(result.frontmatter);
+// { title: "My Document" }
+
+console.log(result.toc);
+// [{ depth: 1, text: "Hello, world!", slug: "hello-world" }]
+
+console.log(result.stats);
+// { parseMs: 0.12, transformMs: 0.08, emitMs: 0.05 }
+```
+
+## 範例
+
+### 基本的 Markdown 轉 HTML
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+### MDX 輸入
+
+```ts
+import { compile } from "@unifast/node";
+
+const mdx = `
+import { Alert } from "./components";
+
+# Hello
+
+<Alert type="info">This is MDX!</Alert>
+`;
+
+const result = compile(mdx, { inputKind: "mdx" });
+```
+
+### HAST 輸出
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "hast" });
+const hast = JSON.parse(result.output as string);
+
+console.log(hast);
+// { type: "root", children: [{ type: "element", tagName: "h1", ... }] }
+```
+
+### MDAST 輸出
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "mdast" });
+const mdast = JSON.parse(result.output as string);
+
+console.log(mdast);
+// { type: "root", children: [{ type: "heading", depth: 1, ... }] }
+```
+
+### MDX JS 輸出
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile(mdxSource, {
+  inputKind: "mdx",
+  outputKind: "mdxJs",
+});
+
+console.log(result.output);
+// JavaScript module string with MDX compiled to JSX
+```

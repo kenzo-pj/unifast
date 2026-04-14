@@ -1,0 +1,77 @@
+---
+title: "highlight()"
+description: "Tạo plugin syntax highlighting bằng highlight.js, highlight các khối mã fenced thông qua các phép biến đổi HAST bằng lowlight."
+---
+
+```ts
+import { highlight } from "@unifast/highlight";
+```
+
+## Chữ ký
+
+```ts
+function highlight(): UnifastPlugin
+```
+
+## Tham số
+
+Không có.
+
+## Cách dùng
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// <pre><code class="language-typescript hljs">
+//   <span class="hljs-keyword">const</span> ...
+// </code></pre>
+```
+
+## Ví dụ
+
+### Với nhiều ngôn ngữ
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`python
+def hello():
+    print("Hello, world!")
+\`\`\`
+
+\`\`\`css
+.container {
+  display: flex;
+}
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [highlight()] });
+// Both code blocks are highlighted with appropriate highlight.js classes
+```
+
+### Kết hợp với các plugin khác
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), highlight()],
+});
+```

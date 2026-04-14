@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "Plugin syntax highlighting dựa trên Shiki cho unifast với các phép biến đổi HAST"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Tổng quan
+
+`@unifast/shiki` cung cấp khả năng syntax highlighting được hỗ trợ bởi [Shiki](https://shiki.style/), với hỗ trợ hơn 200 ngôn ngữ và rất nhiều theme khác nhau. Khác với plugin highlight tích hợp sẵn, Shiki chạy dưới dạng một phép biến đổi HAST trong JavaScript, thay thế các khối `<pre><code>` bằng đầu ra được tô màu phong phú.
+
+Plugin sẽ tự động tắt highlighter Rust tích hợp sẵn để tránh xử lý trùng lặp.
+
+## Cài đặt
+
+<PackageInstall package="@unifast/shiki" />
+
+## Định nghĩa kiểu
+
+### ShikiTransformerOptions
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Các theme Shiki cần load |
+| `defaultTheme` | `BundledTheme` | Theme đầu tiên trong `themes` | Theme mặc định để render |
+| `langs` | `BundledLanguage[]` | `[]` | Các ngôn ngữ cần load. Chỉ những ngôn ngữ đã load mới được highlight. |
+
+> `BundledTheme` và `BundledLanguage` là các kiểu từ gói `shiki`.
+
+### ShikiTransformer
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | Áp dụng Shiki highlighting lên tất cả các khối `<pre><code class="language-*">` |
+
+## Tổng hợp các export
+
+| Export | Loại | Mô tả |
+|--------|------|-------------|
+| `createShikiPlugin` | function | Tạo một UnifastPlugin Shiki (async) |
+| `createShikiTransformer` | function | Tạo một transformer Shiki độc lập (async) |
+| `ShikiTransformerOptions` | type | Các tùy chọn cấu hình Shiki |
+| `ShikiTransformer` | type | Interface transformer |
+| `hastToHtml` | function | Bộ tuần tự hóa HAST-to-HTML (re-export) |
+| `HastNode`, `HastRoot`, v.v. | types | Các loại nút HAST (re-export) |

@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "Harici dosyalardan kodu fenced kod bloklarına aktarır."
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## Parametreler
+
+### options?
+
+Kod içe aktarma davranışı yapılandırması
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `rootDir` | `string` | — | Dosya yollarını çözmek için kök dizin. Belirtilmediğinde yollar geçerli çalışma dizinine göre çözülür. |
+
+## Kullanım
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Kod bloğu ./src/example.ts içeriğiyle değiştirilir
+```
+
+## Örnekler
+
+### Temel dosya içe aktarma
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+Kod bloğu içeriği, sözdizimi vurgulama için dili koruyarak dosya içeriğiyle değiştirilir.
+
+### rootDir ile
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// Dosya yolları rootDir'a göre çözülür
+```
+
+### rootDir olmadan
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// Dosya yolları geçerli çalışma dizinine göre çözülür
+```

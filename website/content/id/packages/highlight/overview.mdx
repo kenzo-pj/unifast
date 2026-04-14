@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "Plugin syntax highlighting berbasis highlight.js untuk unifast melalui transform HAST"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Ikhtisar
+
+`@unifast/highlight` menyediakan syntax highlighting yang ditenagai oleh [lowlight](https://github.com/wooorm/lowlight) (sebuah wrapper highlight.js). Tidak seperti plugin bawaan `syntect()` dan `treeSitter()` yang menjalankan highlighting di Rust, paket ini menerapkan highlighting sebagai transform HAST JavaScript setelah kompilasi — memberi Anda akses ke ekosistem bahasa dan tema highlight.js yang luas.
+
+## Instalasi
+
+<PackageInstall package="@unifast/highlight" />
+
+## Panduan Cepat
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with highlight.js CSS classes
+```
+
+## Cara Kerja
+
+1. Compiler Rust menghasilkan output HAST dengan blok `<pre><code>` yang belum ter-highlight
+2. `hastTransform` dari plugin `highlight()` berjalan di pohon HAST
+3. Untuk setiap elemen `<code>` dengan class `language-*`, lowlight melakukan highlight pada kode tersebut
+4. Node HAST yang sudah ter-highlight menggantikan anak-anak yang asli
+
+Karena ini berjalan sebagai transform HAST, highlighting native Rust (`syntect` / `treeSitter`) harus dinonaktifkan. Plugin secara otomatis menetapkan `highlight.enabled: false` pada opsi compile.
+
+## Ringkasan Export
+
+| Export | Jenis | Deskripsi |
+|--------|------|-------------|
+| `highlight` | function | Membuat plugin transform HAST highlight.js |

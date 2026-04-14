@@ -1,0 +1,86 @@
+---
+title: "syntect()"
+description: "Cria um plugin syntect que habilita syntax highlighting nativo em Rust para code blocks fenced. Usa definições de sintaxe do Sublime Text com suporte a mais de 100 linguagens."
+---
+
+```ts
+import { syntect } from "@unifast/node";
+```
+
+## Assinatura
+
+```ts
+function syntect(options?: SyntectPluginOptions): UnifastPlugin
+```
+
+## Parâmetros
+
+### options?
+
+Configuração da engine de highlighting
+
+| Propriedade | Tipo | Padrão | Descrição |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "syntect"` | `"syntect"` | "syntect" usa o highlighter syntect; "none" desabilita o highlighting |
+
+## Uso
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    syntect({
+      engine: "syntect",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## Exemplos
+
+### Habilitar syntax highlighting
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [syntect()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Desabilitar highlighting
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [syntect({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

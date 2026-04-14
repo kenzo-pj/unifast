@@ -1,0 +1,99 @@
+---
+title: "createShikiPlugin()"
+description: "Shiki로 구동되는 구문 강조 플러그인을 생성합니다. Shiki 하이라이터를 초기화한 뒤 HAST 변환을 포함한 UnifastPlugin을 반환하는 비동기 함수입니다."
+---
+
+```ts
+import { createShikiPlugin } from "@unifast/shiki";
+```
+
+## 시그니처
+
+```ts
+async function createShikiPlugin(
+  options?: ShikiTransformerOptions,
+): Promise<UnifastPlugin>
+```
+
+## 매개변수
+
+### options?
+
+Shiki 설정 (테마, 언어)
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | 로드할 Shiki 테마 |
+| `defaultTheme` | `BundledTheme` | `themes`의 첫 번째 | 렌더링에 사용할 기본 테마 |
+| `langs` | `BundledLanguage[]` | `[]` | 로드할 언어. 로드된 언어만 강조됩니다. |
+
+## 사용법
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark", "github-light"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "json", "html", "css"],
+});
+
+const result = compile(md, {
+  plugins: [shiki],
+});
+
+console.log(result.output);
+// Shiki가 생성한 <span> 요소들로 강조된 코드 블록
+```
+
+## 예시
+
+### 단일 테마
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile("```ts\nconst x = 1;\n```", {
+  plugins: [shiki],
+});
+
+console.log(result.output);
+// Shiki로 강조된 <span> 요소가 포함된 <pre>
+```
+
+### 여러 테마
+
+```ts
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark", "github-light", "dracula"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "python"],
+});
+
+// compile()과 함께 사용 — defaultTheme이 코드 블록에 적용됩니다
+```
+
+### 다른 플러그인과 함께
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, {
+  plugins: [gfm(), frontmatter(), shiki],
+});
+```

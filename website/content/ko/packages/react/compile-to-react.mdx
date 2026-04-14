@@ -1,0 +1,158 @@
+---
+title: "compileToReact()"
+description: "Markdown 또는 MDX 입력을 컴파일하여 React 엘리먼트를 곧바로 반환합니다. frontmatter, diagnostics, stats, TOC도 함께 제공합니다."
+---
+
+```ts
+import { compileToReact } from "@unifast/react";
+```
+
+## 시그니처
+
+```ts
+function compileToReact(
+  input: string,
+  options: CompileToReactOptions,
+): CompileToReactResult
+```
+
+## 매개변수
+
+### input
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Markdown 또는 MDX 소스 |
+
+### options
+
+compile 옵션에 React 관련 설정이 추가됩니다.
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | React의 createElement 함수 |
+| `Fragment` | `unknown` | — | React의 Fragment 컴포넌트 |
+| `components?` | `ComponentMap` | — | HTML 태그 이름과 React 컴포넌트의 매핑 |
+
+> [`CompileOptions`](/docs/packages/core/overview)을 확장합니다. 그 밖의 모든 compile 옵션을 그대로 받을 수 있습니다.
+
+## 반환값
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `element` | `unknown` | 루트 React 엘리먼트 |
+| `frontmatter` | `Record<string, unknown>` | 파싱된 frontmatter 메타데이터 |
+| `diagnostics` | `Diagnostic[]` | 경고와 오류 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 단계별 소요 시간(ms) |
+| `toc` | `TocEntry[]` | 추출된 목차 |
+
+## 사용법
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { gfm, frontmatter, toc } from "@unifast/node";
+
+const { element, frontmatter: fm, toc: tocEntries, diagnostics, stats } = compileToReact(
+  md,
+  {
+    createElement,
+    Fragment,
+    components: {
+      h1: ({ children, ...props }) => <h1 className="title" {...props}>{children}</h1>,
+      a: ({ children, ...props }) => <a target="_blank" {...props}>{children}</a>,
+    },
+    plugins: [gfm(), frontmatter(), toc()],
+  },
+);
+```
+
+## 예시
+
+### 기본 사용법
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(
+  "# Hello, **world**!",
+  { createElement, Fragment },
+);
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### 커스텀 컴포넌트와 함께
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, {
+  createElement,
+  Fragment,
+  components: {
+    h1: ({ children, ...props }) => (
+      <h1 className="text-4xl font-bold" {...props}>{children}</h1>
+    ),
+    a: ({ children, ...props }) => (
+      <a className="text-blue-500 underline" target="_blank" {...props}>{children}</a>
+    ),
+    code: ({ children, ...props }) => (
+      <code className="bg-gray-100 rounded px-1" {...props}>{children}</code>
+    ),
+  },
+});
+```
+
+### 서버 사이드 렌더링
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// SSR을 위한 HTML 문자열
+```
+
+### frontmatter와 TOC 사용
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { frontmatter, toc } from "@unifast/node";
+
+const md = `---
+title: My Page
+---
+
+# Introduction
+
+## Setup
+
+## Usage
+`;
+
+const result = compileToReact(md, {
+  createElement,
+  Fragment,
+  plugins: [frontmatter(), toc()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page" }
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Setup", slug: "setup" },
+//   { depth: 2, text: "Usage", slug: "usage" },
+// ]
+```

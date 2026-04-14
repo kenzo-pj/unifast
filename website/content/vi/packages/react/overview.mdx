@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "Chuyển đầu ra HAST của unifast thành các React element với khả năng ánh xạ component"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Tổng quan
+
+`@unifast/react` chuyển đổi đầu ra HAST (HTML Abstract Syntax Tree) của unifast thành các React element. Nó cung cấp hai hàm chính:
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) - Cấp cao: biên dịch Markdown/MDX và trả về trực tiếp các React element
+- [`hastToReact()`](/docs/packages/react/hast-to-react) - Cấp thấp: chuyển cây HAST thành các React element
+
+Gói này tự động xử lý việc đổi tên thuộc tính từ HTML sang React (`class` thành `className`, `for` thành `htmlFor`, v.v.) và parse chuỗi CSS style.
+
+## Cài đặt
+
+<PackageInstall package="@unifast/react" />
+
+Peer dependency: `@unifast/node` là cần thiết cho `compileToReact`.
+
+## Định nghĩa kiểu
+
+### CompileToReactOptions
+
+Kế thừa `CompileOptions` và bổ sung thêm các trường dành riêng cho React.
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | Hàm `createElement` của React |
+| `Fragment` | `unknown` | Component `Fragment` của React |
+| `components?` | `ComponentMap` | Map từ tên thẻ HTML sang React component |
+| *(tất cả CompileOptions)* | - | Kế thừa từ `CompileOptions` |
+
+### CompileToReactResult
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `element` | `unknown` | React element gốc |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter đã được parse |
+| `diagnostics` | `Diagnostic[]` | Cảnh báo và lỗi |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Thống kê thời gian (ms) |
+| `toc` | `TocEntry[]` | Mục lục đã được trích xuất |
+
+### HastToReactOptions
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | Hàm `createElement` của React |
+| `Fragment` | `unknown` | Component `Fragment` của React |
+| `components?` | `ComponentMap` | Map từ tên thẻ HTML sang React component tùy chỉnh |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### Chuyển đổi thuộc tính
+
+| Thuộc tính HTML | Prop React |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+Các chuỗi CSS `style` được tự động parse thành các đối tượng style của React (ví dụ, `"font-size: 16px"` trở thành `{ fontSize: "16px" }`).
+
+## Tổng hợp các export
+
+| Export | Loại | Mô tả |
+|--------|------|-------------|
+| `compileToReact` | function | Biên dịch Markdown/MDX thành các React element |
+| `hastToReact` | function | Chuyển HAST thành các React element |
+| `CompileToReactOptions` | type | Tùy chọn cho `compileToReact` |
+| `CompileToReactResult` | type | Kết quả của `compileToReact` |
+| `HastToReactOptions` | type | Tùy chọn cho `hastToReact` |
+| `CreateElement` | type | Chữ ký của React createElement |
+| `ComponentMap` | type | Map từ thẻ HTML sang component |

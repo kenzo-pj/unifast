@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Tırnak işaretleri, tireler ve üç nokta için tipografik değiştirmeler uygular."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Parametreler
+
+### options?
+
+Hangi değiştirmelerin uygulanacağı yapılandırması
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `quotes` | `boolean` | `true` | Düz tırnakları kıvrık tırnaklarla değiştir |
+| `dashes` | `boolean` | `true` | -- için en-dash ve --- için em-dash ile değiştir |
+| `ellipses` | `boolean` | `true` | ... için üç nokta karakteriyle değiştir |
+
+## Kullanım
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Örnekler
+
+### Tipografik değiştirmeler
+
+<Example data={example} />
+
+| Kaynak | Sonuç |
+|--------|-------|
+| `"Hello"` | kıvrık çift tırnaklar |
+| `'Hi'` | kıvrık tek tırnaklar |
+| `--` | en-dash (–) |
+| `---` | em-dash (—) |
+| `...` | üç nokta (…) |

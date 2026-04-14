@@ -69,7 +69,7 @@ describe("JavaScript highlighting", () => {
     expect(code.tagName).toBe("code");
     expect(code.properties.className).toStrictEqual(["language-javascript", "hljs"]);
     const hasSpan = code.children.some((c) => c.type === "element" && c.tagName === "span");
-    expect(hasSpan).toBeTruthy();
+    expect(hasSpan).toBe(true);
   });
 });
 
@@ -83,7 +83,7 @@ describe("Python highlighting", () => {
     const code = pre.children[0] as HastElement;
     expect(code.properties.className).toStrictEqual(["language-python", "hljs"]);
     const hasSpan = code.children.some((c) => c.type === "element" && c.tagName === "span");
-    expect(hasSpan).toBeTruthy();
+    expect(hasSpan).toBe(true);
   });
 });
 
@@ -211,7 +211,7 @@ describe("nested elements for text extraction", () => {
     const resultCode = pre.children[0] as HastElement;
     expect(resultCode.properties.className).toStrictEqual(["language-javascript", "hljs"]);
     const hasSpan = resultCode.children.some((c) => c.type === "element" && c.tagName === "span");
-    expect(hasSpan).toBeTruthy();
+    expect(hasSpan).toBe(true);
   });
 });
 
@@ -350,7 +350,7 @@ describe("recursive transformation", () => {
     const code = pre.children[0] as HastElement;
     expect(code.properties.className).toStrictEqual(["language-javascript", "hljs"]);
     const hasSpan = code.children.some((c) => c.type === "element" && c.tagName === "span");
-    expect(hasSpan).toBeTruthy();
+    expect(hasSpan).toBe(true);
   });
 });
 
@@ -379,7 +379,7 @@ describe("deeply nested structure", () => {
     const code = pre.children[0] as HastElement;
     expect(code.properties.className).toStrictEqual(["language-python", "hljs"]);
     const hasSpan = code.children.some((c) => c.type === "element" && c.tagName === "span");
-    expect(hasSpan).toBeTruthy();
+    expect(hasSpan).toBe(true);
   });
 });
 

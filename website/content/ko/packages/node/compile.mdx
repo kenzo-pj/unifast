@@ -1,0 +1,141 @@
+---
+title: "compile()"
+description: "주요 컴파일 함수입니다. Markdown 또는 MDX를 네이티브 Rust 컴파일러로 HTML이나 기타 출력 형식으로 변환합니다."
+---
+
+```ts
+import { compile } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function compile(input: string, options?: CompileOptions): CompileResult
+```
+
+## 매개변수
+
+### input
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Markdown 또는 MDX 소스 문자열 |
+
+### options?
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `options?` | `CompileOptions` | — | 플러그인을 포함한 컴파일 설정 |
+
+## 반환값
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `output` | `string \| object` | 컴파일된 결과. 기본값은 HTML 문자열이며, HAST/MDAST의 경우 JSON 문자열입니다. |
+| `frontmatter` | `Record<string, unknown>` | 파싱된 frontmatter 메타데이터 (없으면 `{}`) |
+| `diagnostics` | `Diagnostic[]` | `{ level, message, start?, end? }` 형태의 배열 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 단계별 소요 시간(ms) |
+| `toc` | `TocEntry[]` | 추출된 목차 (TOC 비활성화 시 `[]`) |
+
+## 사용법
+
+```ts
+import { compile, gfm, frontmatter, toc, sanitize } from "@unifast/node";
+
+const md = `---
+title: My Document
+---
+
+# Hello, **world**!
+
+| Column A | Column B |
+|----------|----------|
+| Cell 1   | Cell 2   |
+`;
+
+const result = compile(md, {
+  inputKind: "md",       // "md" | "mdx"
+  outputKind: "html",    // "html" | "hast" | "mdast" | "mdxJs"
+  plugins: [gfm(), frontmatter(), toc({ maxDepth: 3 }), sanitize()],
+});
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+// <table>...</table>
+
+console.log(result.frontmatter);
+// { title: "My Document" }
+
+console.log(result.toc);
+// [{ depth: 1, text: "Hello, world!", slug: "hello-world" }]
+
+console.log(result.stats);
+// { parseMs: 0.12, transformMs: 0.08, emitMs: 0.05 }
+```
+
+## 예시
+
+### 기본 Markdown을 HTML로
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+### MDX 입력
+
+```ts
+import { compile } from "@unifast/node";
+
+const mdx = `
+import { Alert } from "./components";
+
+# Hello
+
+<Alert type="info">This is MDX!</Alert>
+`;
+
+const result = compile(mdx, { inputKind: "mdx" });
+```
+
+### HAST 출력
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "hast" });
+const hast = JSON.parse(result.output as string);
+
+console.log(hast);
+// { type: "root", children: [{ type: "element", tagName: "h1", ... }] }
+```
+
+### MDAST 출력
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "mdast" });
+const mdast = JSON.parse(result.output as string);
+
+console.log(mdast);
+// { type: "root", children: [{ type: "heading", depth: 1, ... }] }
+```
+
+### MDX JS 출력
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile(mdxSource, {
+  inputKind: "mdx",
+  outputKind: "mdxJs",
+});
+
+console.log(result.output);
+// MDX가 JSX로 컴파일된 JavaScript 모듈 문자열
+```

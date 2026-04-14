@@ -1,0 +1,99 @@
+---
+title: "createShikiPlugin()"
+description: "Tạo plugin syntax highlighting được hỗ trợ bởi Shiki. Một hàm async khởi tạo Shiki highlighter và trả về một UnifastPlugin với phép biến đổi HAST."
+---
+
+```ts
+import { createShikiPlugin } from "@unifast/shiki";
+```
+
+## Chữ ký
+
+```ts
+async function createShikiPlugin(
+  options?: ShikiTransformerOptions,
+): Promise<UnifastPlugin>
+```
+
+## Tham số
+
+### options?
+
+Cấu hình Shiki (theme, ngôn ngữ)
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Các theme Shiki cần load |
+| `defaultTheme` | `BundledTheme` | Theme đầu tiên trong themes | Theme mặc định để render |
+| `langs` | `BundledLanguage[]` | `[]` | Các ngôn ngữ cần load. Chỉ những ngôn ngữ đã load mới được highlight. |
+
+## Cách dùng
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark", "github-light"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "json", "html", "css"],
+});
+
+const result = compile(md, {
+  plugins: [shiki],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with Shiki-generated <span> elements
+```
+
+## Ví dụ
+
+### Một theme duy nhất
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile("```ts\nconst x = 1;\n```", {
+  plugins: [shiki],
+});
+
+console.log(result.output);
+// <pre> with Shiki-highlighted <span> elements
+```
+
+### Nhiều theme
+
+```ts
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark", "github-light", "dracula"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "python"],
+});
+
+// Use with compile() — defaultTheme is applied to code blocks
+```
+
+### Kết hợp với các plugin khác
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, {
+  plugins: [gfm(), frontmatter(), shiki],
+});
+```

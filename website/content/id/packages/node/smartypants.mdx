@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Menerapkan penggantian tipografis untuk tanda kutip, dash, dan ellipsis."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfigurasi penggantian apa saja yang akan diterapkan
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | Mengganti tanda kutip lurus dengan tanda kutip melengkung |
+| `dashes` | `boolean` | `true` | Mengganti -- dengan en-dash dan --- dengan em-dash |
+| `ellipses` | `boolean` | `true` | Mengganti ... dengan karakter ellipsis |
+
+## Penggunaan
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Contoh
+
+### Penggantian tipografis
+
+<Example data={example} />
+
+| Sumber | Hasil |
+|--------|--------|
+| `"Hello"` | tanda kutip ganda melengkung |
+| `'Hi'` | tanda kutip tunggal melengkung |
+| `--` | en-dash (–) |
+| `---` | em-dash (—) |
+| `...` | ellipsis (…) |

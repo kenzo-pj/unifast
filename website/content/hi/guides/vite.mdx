@@ -1,0 +1,93 @@
+---
+title: "Vite Integration"
+description: "build time पर Markdown और MDX फ़ाइलों को कंपाइल करने और उन्हें सीधे अपने Vite application में import करने के लिए @unifast/vite का उपयोग करें।"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite` एक Vite plugin प्रदान करता है जो build time पर Markdown और MDX फ़ाइलों को कंपाइल करता है। अपने application में `.md` और `.mdx` फ़ाइलों को सीधे import करें।
+
+### इंस्टॉलेशन
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### सेटअप
+
+अपने Vite config में plugin जोड़ें:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // Optional: compile options pass करें
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### Markdown Import करना
+
+एक बार configure हो जाने पर, `.md` फ़ाइलों को सीधे import करें:
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Compiled HTML string
+console.log(content.frontmatter);  // Parsed frontmatter
+console.log(content.toc);          // Table of contents
+```
+
+imported module निम्नलिखित प्रदान करता है:
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `html` | `string` | Compiled HTML output |
+| `frontmatter` | `Record<string, unknown>` | Parsed frontmatter metadata |
+| `toc` | `TocEntry[]` | निकाला गया table of contents |
+
+### Plugins के साथ
+
+Vite plugin options के माध्यम से plugins pass करें:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+आपके project में सभी Markdown/MDX imports इन plugins का अपने आप उपयोग करेंगे।
+
+### MDX सपोर्ट
+
+MDX फ़ाइलें JavaScript modules में कंपाइल होती हैं जिनका default React component export होता है:
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### Hot Module Replacement
+
+Vite plugin HMR को सपोर्ट करता है। जब आप किसी `.md` या `.mdx` फ़ाइल को edit करते हैं, तो page पूर्ण reload के बिना update हो जाता है।
+
+### यह भी देखें
+
+- [compile()](/docs/packages/node/compile) - Underlying compile API
+- [React Integration](/docs/guides/react) - compiled content को React में render करना

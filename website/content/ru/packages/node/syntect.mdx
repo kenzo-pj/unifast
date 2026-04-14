@@ -1,0 +1,86 @@
+---
+title: "syntect()"
+description: "Создаёт плагин syntect, включающий нативную подсветку синтаксиса на Rust для огороженных блоков кода. На основе определений синтаксиса Sublime Text с поддержкой 100+ языков."
+---
+
+```ts
+import { syntect } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function syntect(options?: SyntectPluginOptions): UnifastPlugin
+```
+
+## Параметры
+
+### options?
+
+Конфигурация движка подсветки
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "syntect"` | `"syntect"` | "syntect" использует подсветку syntect; "none" отключает подсветку |
+
+## Использование
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    syntect({
+      engine: "syntect",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Блоки кода подсвечены элементами <span> и CSS-классами
+```
+
+## Примеры
+
+### Включение подсветки синтаксиса
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [syntect()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Отключение подсветки
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [syntect({ engine: "none" })],
+});
+
+console.log(result.output);
+// Блоки кода отрисовываются без подсветки синтаксиса
+```

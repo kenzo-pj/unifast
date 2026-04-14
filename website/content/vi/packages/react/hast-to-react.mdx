@@ -1,0 +1,123 @@
+---
+title: "hastToReact()"
+description: "Chuyển một nút gốc HAST thành các React element. Hàm cấp thấp dùng khi bạn cần kiểm soát đầy đủ pipeline biên dịch."
+---
+
+```ts
+import { hastToReact } from "@unifast/react";
+```
+
+## Chữ ký
+
+```ts
+function hastToReact(
+  hast: HastRoot,
+  options: HastToReactOptions,
+): unknown
+```
+
+## Tham số
+
+### hast
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `type` | `"root"` | — | Định danh loại nút |
+| `children` | `HastNode[]` | — | Các nút con của cây |
+
+### options
+
+Cấu hình tạo React element
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | Hàm createElement của React |
+| `Fragment` | `unknown` | — | Component Fragment của React |
+| `components?` | `ComponentMap` | — | Map từ tên thẻ HTML sang React component tùy chỉnh |
+
+## Cách dùng
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+
+const element = hastToReact(hast, {
+  createElement,
+  Fragment,
+  components: {
+    pre: ({ children, ...props }) => <pre className="code-block" {...props}>{children}</pre>,
+    a: ({ children, ...props }) => <a target="_blank" rel="noopener" {...props}>{children}</a>,
+  },
+});
+```
+
+## Ví dụ
+
+### Cách dùng cơ bản
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile("# Hello, **world**!", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Kết hợp với HAST đã được Shiki highlight
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```
+
+### Server-side rendering
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+## Hành vi
+
+- **Đổi tên thuộc tính:** Các thuộc tính HTML được đổi tên sang dạng tương đương trong React (`class` thành `className`, `for` thành `htmlFor`, v.v.)
+- **Parse style:** Các chuỗi CSS style được parse thành đối tượng style của React
+- **Mảng className:** Mảng `className` của HAST được nối bằng dấu cách
+- **Thuộc tính boolean:** `true` sẽ render thuộc tính, `false`/`null`/`undefined` bị bỏ qua
+- **Nút raw:** Được render dưới dạng HTML inline - hãy sử dụng plugin `sanitize` (từ `@unifast/node`) khi xử lý đầu vào không đáng tin cậy
+- **Comment và doctype:** Bị bỏ qua (trả về `null`)

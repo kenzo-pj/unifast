@@ -1,0 +1,87 @@
+---
+title: "math()"
+description: "支持行内和展示两种语法的数学表达式。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./math-example.md?example"
+
+```ts
+import { math } from "@unifast/node";
+```
+
+## 签名
+
+```ts
+function math(): UnifastPlugin
+```
+
+## 参数
+
+无。
+
+## 用法
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+Einstein's famous equation: $E = mc^2$
+
+The sum of integers from 1 to n:
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+## 示例
+
+### 数学表达式
+
+<Example data={example} renderMath />
+
+### 行内数学公式
+
+使用单个 `$` 分隔符即可编写行内数学表达式。
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ and is used to solve quadratic equations.
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### 展示型数学公式
+
+使用 `$$` 分隔符，或使用语言为 `math` 的代码块，即可编写展示型数学公式。
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+$$
+\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### 引入 KaTeX CSS
+
+该插件会将数学语法转换为相应的 HTML 结构，但要在浏览器中正确渲染，你还需要单独引入 KaTeX 的 CSS。
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+```

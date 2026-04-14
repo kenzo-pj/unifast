@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "Crea un plugin Tree-sitter che abilita l'evidenziazione della sintassi per i blocchi di codice recintati utilizzando la libreria di parsing Tree-sitter."
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## Parametri
+
+### options?
+
+Configurazione del motore di evidenziazione
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | "treeSitter" utilizza l'highlighter Tree-sitter; "none" disabilita l'evidenziazione |
+
+## Utilizzo
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## Esempi
+
+### Abilitare l'evidenziazione della sintassi
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Disabilitare l'evidenziazione
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

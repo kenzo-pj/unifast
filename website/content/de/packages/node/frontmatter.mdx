@@ -1,0 +1,103 @@
+---
+title: "frontmatter()"
+description: "Erstellt ein Frontmatter-Plugin, das das Parsen von YAML-, TOML- oder JSON-Metadatenblöcken am Anfang von Markdown-/MDX-Dokumenten ermöglicht."
+---
+
+```ts
+import { frontmatter } from "@unifast/node";
+```
+
+## Signatur
+
+```ts
+function frontmatter(options?: FrontmatterPluginOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfiguration der Frontmatter-Formate
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|----------|------|---------|-------------|
+| `yaml` | `boolean` | `true` | YAML-Frontmatter aktivieren (--- als Trennzeichen) |
+| `toml` | `boolean` | `false` | TOML-Frontmatter aktivieren (+++ als Trennzeichen) |
+| `json` | `boolean` | `false` | JSON-Frontmatter aktivieren (;;; als Trennzeichen) |
+
+## Verwendung
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    frontmatter({
+      yaml: true,
+      toml: true,
+      json: true,
+    }),
+  ],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+## Beispiele
+
+### YAML-Frontmatter
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `---
+title: My Page
+date: 2024-01-01
+tags:
+  - markdown
+  - docs
+---
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter()] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+### TOML-Frontmatter
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `+++
+title = "My Page"
+date = 2024-01-01
++++
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ toml: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01" }
+```
+
+### JSON-Frontmatter
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `;;;
+{"title": "My Page", "draft": false}
+;;;
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ json: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", draft: false }
+```

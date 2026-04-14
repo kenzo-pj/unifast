@@ -1,0 +1,107 @@
+---
+title: "definitionList()"
+description: "용어와 `: 설명` 쌍을 사용하는 정의 목록 문법을 지원합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./definition-list-example.md?example"
+
+```ts
+import { definitionList } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function definitionList(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+Markdown
+: A lightweight markup language for creating formatted text.
+
+HTML
+: The standard markup language for documents designed to be displayed in a web browser.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+위의 Markdown은 다음과 같은 HTML을 생성합니다.
+
+```html
+<dl>
+  <dt>Markdown</dt>
+  <dd>A lightweight markup language for creating formatted text.</dd>
+  <dt>HTML</dt>
+  <dd>The standard markup language for documents designed to be displayed in a web browser.</dd>
+</dl>
+```
+
+## 예시
+
+### 정의 목록
+
+<Example data={example} />
+
+### 한 용어에 여러 설명
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+unifast
+: A fast Markdown/MDX compiler.
+: Built with Rust for maximum performance.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+출력:
+
+```html
+<dl>
+  <dt>unifast</dt>
+  <dd>A fast Markdown/MDX compiler.</dd>
+  <dd>Built with Rust for maximum performance.</dd>
+</dl>
+```
+
+### 여러 용어와 설명
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+Plugin
+Extension
+: A module that adds functionality to the core system.
+
+Transformer
+: A function that modifies the AST during compilation.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+출력:
+
+```html
+<dl>
+  <dt>Plugin</dt>
+  <dt>Extension</dt>
+  <dd>A module that adds functionality to the core system.</dd>
+  <dt>Transformer</dt>
+  <dd>A function that modifies the AST during compilation.</dd>
+</dl>
+```

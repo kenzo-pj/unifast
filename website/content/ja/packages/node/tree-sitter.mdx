@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "Tree-sitter パーシングライブラリを使ってフェンスドコードブロックのシンタックスハイライトを有効にする Tree-sitter プラグインを生成します。"
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## パラメータ
+
+### options?
+
+ハイライトエンジンの設定
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | "treeSitter" は Tree-sitter ハイライタを使用し、"none" はハイライトを無効にします |
+
+## 使い方
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## 使用例
+
+### シンタックスハイライトを有効にする
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### ハイライトを無効にする
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

@@ -1,0 +1,42 @@
+---
+title: "cjk()"
+description: "CJK 문자 사이에 불필요한 개행을 제거하는 CJK 친화적 텍스트 처리."
+---
+
+import { Example } from "~/components/Example"
+import example from "./cjk-example.md?example"
+
+```ts
+import { cjk } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function cjk(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile, cjk } from "@unifast/node";
+
+const md = `
+今日は天気が
+とても良いです。
+`;
+
+const result = compile(md, { plugins: [cjk()] });
+console.log(result.output);
+// <p>今日は天気がとても良いです。</p>
+```
+
+## 예시
+
+### CJK 개행 제거
+
+<Example data={example} />

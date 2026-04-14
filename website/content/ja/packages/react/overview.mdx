@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "unifast の HAST 出力を、コンポーネントマッピングを伴って React 要素へ変換します。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概要
+
+`@unifast/react` は、unifast の HAST (HTML 抽象構文木) 出力を React 要素へ変換します。主要な関数は次の 2 つです。
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) - 高レベル: Markdown/MDX をコンパイルして React 要素を直接返します
+- [`hastToReact()`](/docs/packages/react/hast-to-react) - 低レベル: HAST ツリーを React 要素に変換します
+
+このパッケージは、HTML から React へのプロパティ名の変換 (`class` から `className`、`for` から `htmlFor` など) と、CSS スタイル文字列のパースを自動的に処理します。
+
+## インストール
+
+<PackageInstall package="@unifast/react" />
+
+ピア依存: `compileToReact` を使うには `@unifast/node` が必要です。
+
+## 型定義
+
+### CompileToReactOptions
+
+`CompileOptions` に React 固有のフィールドを追加した型です。
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React の `createElement` 関数 |
+| `Fragment` | `unknown` | React の `Fragment` コンポーネント |
+| `components?` | `ComponentMap` | HTML タグ名から React コンポーネントへのマップ |
+| *(all CompileOptions)* | - | `CompileOptions` から継承 |
+
+### CompileToReactResult
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `element` | `unknown` | ルートの React 要素 |
+| `frontmatter` | `Record<string, unknown>` | パース済みの frontmatter メタデータ |
+| `diagnostics` | `Diagnostic[]` | 警告とエラー |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 処理時間の内訳 (ミリ秒) |
+| `toc` | `TocEntry[]` | 抽出された目次 |
+
+### HastToReactOptions
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React の `createElement` 関数 |
+| `Fragment` | `unknown` | React の `Fragment` コンポーネント |
+| `components?` | `ComponentMap` | HTML タグ名からカスタム React コンポーネントへのマップ |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### プロパティの変換
+
+| HTML 属性 | React プロパティ |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+CSS の `style` 文字列は、React のスタイルオブジェクト (例: `"font-size: 16px"` から `{ fontSize: "16px" }`) に自動的にパースされます。
+
+## エクスポート一覧
+
+| エクスポート | 種類 | 説明 |
+|--------|------|-------------|
+| `compileToReact` | function | Markdown/MDX を React 要素にコンパイルする |
+| `hastToReact` | function | HAST を React 要素に変換する |
+| `CompileToReactOptions` | type | `compileToReact` のオプション |
+| `CompileToReactResult` | type | `compileToReact` の結果 |
+| `HastToReactOptions` | type | `hastToReact` のオプション |
+| `CreateElement` | type | React の createElement シグネチャ |
+| `ComponentMap` | type | HTML タグからコンポーネントへのマップ |

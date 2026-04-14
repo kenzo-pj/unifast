@@ -1,0 +1,58 @@
+---
+title: "directive()"
+description: "Hỗ trợ container directive với cú pháp `:::name`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./directive-example.md?example"
+
+```ts
+import { directive } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function directive(): UnifastPlugin
+```
+
+## Tham số
+
+Không có.
+
+## Cách dùng
+
+```ts
+import { compile, directive } from "@unifast/node";
+
+const result = compile(md, { plugins: [directive()] });
+```
+
+## Ví dụ
+
+### Container directive
+
+<Example data={example} />
+
+Bạn có thể tạo kiểu cho chúng bằng CSS qua các class `.directive-note`, `.directive-warning`, tương tự như GitHub Alerts nhưng với tên hoàn toàn tùy chỉnh.
+
+### Container có thuộc tính
+
+```md
+:::warning title="Deprecation Notice"
+This API will be removed in the next major version.
+:::
+```
+
+### Nội dung lồng nhau
+
+Directive hỗ trợ đầy đủ Markdown bên trong, bao gồm danh sách, khối mã và các định dạng inline.
+
+```md
+:::note
+You can include **bold**, *italic*, and other Markdown inside containers.
+
+- List items work too
+- As does `inline code`
+:::
+```

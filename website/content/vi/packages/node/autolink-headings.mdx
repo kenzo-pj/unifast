@@ -1,0 +1,53 @@
+---
+title: "autolinkHeadings()"
+description: "Tự động thêm liên kết anchor vào các tiêu đề."
+---
+
+import { Example } from "~/components/Example"
+import example from "./autolink-headings-example.md?example"
+
+```ts
+import { autolinkHeadings } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function autolinkHeadings(options?: AutolinkHeadingsOptions): UnifastPlugin
+```
+
+## Tham số
+
+### options?
+
+Cấu hình cho hành vi liên kết tiêu đề
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `behavior` | `"prepend" \| "append" \| "wrap"` | `"prepend"` | Vị trí đặt anchor link so với nội dung tiêu đề |
+
+## Cách dùng
+
+```ts
+import { compile, autolinkHeadings } from "@unifast/node";
+
+const md = `# Introduction
+
+## Getting Started
+
+### Installation`;
+
+const result = compile(md, {
+  plugins: [
+    autolinkHeadings({
+      behavior: "prepend", // "prepend" | "append" | "wrap"
+    }),
+  ],
+});
+```
+
+## Ví dụ
+
+### Tiêu đề kèm anchor link
+
+<Example data={example} />

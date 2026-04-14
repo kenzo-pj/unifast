@@ -1,0 +1,93 @@
+---
+title: "Vite 集成"
+description: "使用 @unifast/vite 在构建阶段编译 Markdown 和 MDX 文件，并在 Vite 应用中直接 import 这些文件。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite` 提供了一个 Vite 插件，可在构建阶段编译 Markdown 和 MDX 文件。你可以在应用中直接 import `.md` 和 `.mdx` 文件。
+
+### 安装
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### 配置
+
+将插件添加到 Vite 配置中：
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // Optional: pass compile options
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### 导入 Markdown
+
+配置完成后，就可以直接 import `.md` 文件：
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Compiled HTML string
+console.log(content.frontmatter);  // Parsed frontmatter
+console.log(content.toc);          // Table of contents
+```
+
+导入的模块会提供以下字段：
+
+| 属性 | 类型 | 描述 |
+|----------|------|-------------|
+| `html` | `string` | 编译后的 HTML 输出 |
+| `frontmatter` | `Record<string, unknown>` | 解析后的 frontmatter 元数据 |
+| `toc` | `TocEntry[]` | 提取出的目录 |
+
+### 搭配插件使用
+
+通过 Vite 插件的选项传入编译插件：
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+这样项目中所有 Markdown/MDX 导入都会自动应用这些插件。
+
+### MDX 支持
+
+MDX 文件会被编译为 JavaScript 模块，并默认导出一个 React 组件：
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### 模块热替换
+
+该 Vite 插件支持 HMR。当你编辑 `.md` 或 `.mdx` 文件时，页面会在不重新加载的情况下即时更新。
+
+### 参见
+
+- [compile()](/docs/packages/node/compile) —— 底层的 compile API
+- [React 集成](/docs/guides/react) —— 在 React 中渲染编译后的内容

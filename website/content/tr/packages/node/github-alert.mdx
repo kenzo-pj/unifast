@@ -1,0 +1,37 @@
+---
+title: "githubAlert()"
+description: "Blockquote'larda GitHub tarzı uyarıları (NOTE, TIP, WARNING, vb.) destekler."
+---
+
+import { Example } from "~/components/Example"
+import example from "./github-alert-example.md?example"
+
+```ts
+import { githubAlert } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function githubAlert(): UnifastPlugin
+```
+
+## Parametreler
+
+Yok.
+
+## Kullanım
+
+```ts
+import { compile, githubAlert } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [githubAlert()],
+});
+```
+
+## Örnekler
+
+### GitHub tarzı uyarılar
+
+<Example data={example} />

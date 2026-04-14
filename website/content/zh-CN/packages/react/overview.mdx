@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "将 unifast 的 HAST 输出转换为 React 元素，并支持组件映射。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概述
+
+`@unifast/react` 会将 unifast 的 HAST（HTML 抽象语法树）输出转换为 React 元素。它提供了两个主要函数：
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) —— 高层 API：编译 Markdown/MDX 并直接返回 React 元素
+- [`hastToReact()`](/docs/packages/react/hast-to-react) —— 低层 API：将 HAST 树转换为 React 元素
+
+该包会自动处理 HTML 到 React 的属性重命名（`class` 改为 `className`、`for` 改为 `htmlFor` 等），并解析 CSS 样式字符串。
+
+## 安装
+
+<PackageInstall package="@unifast/react" />
+
+对等依赖：`compileToReact` 需要 `@unifast/node`。
+
+## 类型定义
+
+### CompileToReactOptions
+
+在 `CompileOptions` 的基础上新增了 React 相关字段。
+
+| 属性 | 类型 | 描述 |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React 的 `createElement` 函数 |
+| `Fragment` | `unknown` | React 的 `Fragment` 组件 |
+| `components?` | `ComponentMap` | HTML 标签名到 React 组件的映射 |
+| *（所有 CompileOptions）* | - | 继承自 `CompileOptions` |
+
+### CompileToReactResult
+
+| 属性 | 类型 | 描述 |
+|----------|------|-------------|
+| `element` | `unknown` | 根 React 元素 |
+| `frontmatter` | `Record<string, unknown>` | 解析后的 frontmatter 元数据 |
+| `diagnostics` | `Diagnostic[]` | 警告和错误 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 各阶段耗时（毫秒） |
+| `toc` | `TocEntry[]` | 提取出的目录 |
+
+### HastToReactOptions
+
+| 属性 | 类型 | 描述 |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React 的 `createElement` 函数 |
+| `Fragment` | `unknown` | React 的 `Fragment` 组件 |
+| `components?` | `ComponentMap` | HTML 标签名到自定义 React 组件的映射 |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### 属性转换
+
+| HTML 属性 | React 属性 |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+CSS `style` 字符串会被自动解析为 React 的样式对象（例如 `"font-size: 16px"` 会变成 `{ fontSize: "16px" }`）。
+
+## 导出列表
+
+| 导出 | 类别 | 描述 |
+|--------|------|-------------|
+| `compileToReact` | function | 将 Markdown/MDX 编译为 React 元素 |
+| `hastToReact` | function | 将 HAST 转换为 React 元素 |
+| `CompileToReactOptions` | type | `compileToReact` 的选项 |
+| `CompileToReactResult` | type | `compileToReact` 的结果 |
+| `HastToReactOptions` | type | `hastToReact` 的选项 |
+| `CreateElement` | type | React createElement 的签名 |
+| `ComponentMap` | type | HTML 标签到组件的映射 |

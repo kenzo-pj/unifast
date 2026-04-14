@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "HAST dönüşümleri aracılığıyla unifast için highlight.js tabanlı sözdizimi vurgulama plugin'i"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Genel Bakış
+
+`@unifast/highlight`, [lowlight](https://github.com/wooorm/lowlight) (bir highlight.js sarmalayıcısı) tarafından desteklenen sözdizimi vurgulaması sağlar. Vurgulamayı Rust'ta çalıştıran dahili `syntect()` ve `treeSitter()` plugin'lerinden farklı olarak, bu paket vurgulamayı derlemeden sonra bir JavaScript HAST dönüşümü olarak uygular — bu da size highlight.js'in geniş dil ve tema ekosistemine erişim sağlar.
+
+## Kurulum
+
+<PackageInstall package="@unifast/highlight" />
+
+## Hızlı Başlangıç
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// Kod blokları highlight.js CSS sınıflarıyla vurgulanır
+```
+
+## Nasıl Çalışır
+
+1. Rust derleyicisi, vurgulanmamış `<pre><code>` blokları ile HAST çıktısı üretir
+2. `highlight()` plugin'inin `hastTransform`'u HAST ağacında dolaşır
+3. `language-*` sınıfına sahip her `<code>` elemanı için lowlight kodu vurgular
+4. Vurgulanmış HAST düğümleri orijinal alt düğümlerin yerini alır
+
+Bu bir HAST dönüşümü olarak çalıştığından, native Rust vurgulama (`syntect` / `treeSitter`) devre dışı bırakılmalıdır. Plugin, derleme seçeneklerinde otomatik olarak `highlight.enabled: false` ayarını yapar.
+
+## Export Özeti
+
+| Export | Tür | Açıklama |
+|--------|-----|----------|
+| `highlight` | function | highlight.js HAST dönüşüm plugin'i oluştur |

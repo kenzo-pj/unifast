@@ -1,0 +1,87 @@
+---
+title: "math()"
+description: "Bật các biểu thức toán học với cú pháp inline và display."
+---
+
+import { Example } from "~/components/Example"
+import example from "./math-example.md?example"
+
+```ts
+import { math } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function math(): UnifastPlugin
+```
+
+## Tham số
+
+Không có.
+
+## Cách dùng
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+Einstein's famous equation: $E = mc^2$
+
+The sum of integers from 1 to n:
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+## Ví dụ
+
+### Biểu thức toán học
+
+<Example data={example} renderMath />
+
+### Toán inline
+
+Sử dụng dấu `$` đơn để bao quanh các biểu thức toán inline.
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ and is used to solve quadratic equations.
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### Toán display
+
+Sử dụng dấu phân cách `$$` hoặc một khối mã với ngôn ngữ `math` cho toán display.
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+$$
+\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### Bao gồm KaTeX CSS
+
+Plugin chuyển cú pháp toán thành cấu trúc HTML phù hợp, nhưng bạn cần import KaTeX CSS riêng để hiển thị đúng trên trình duyệt.
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+```

@@ -1,0 +1,58 @@
+---
+title: "directive()"
+description: "`:::name` 構文のコンテナディレクティブをサポートします。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./directive-example.md?example"
+
+```ts
+import { directive } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function directive(): UnifastPlugin
+```
+
+## パラメータ
+
+なし。
+
+## 使い方
+
+```ts
+import { compile, directive } from "@unifast/node";
+
+const result = compile(md, { plugins: [directive()] });
+```
+
+## 使用例
+
+### コンテナディレクティブ
+
+<Example data={example} />
+
+これらは GitHub Alerts と同様に、CSS の `.directive-note`、`.directive-warning` クラスでスタイリングできます。加えて、名前は完全にカスタマイズ可能です。
+
+### 属性付きのコンテナ
+
+```md
+:::warning title="Deprecation Notice"
+This API will be removed in the next major version.
+:::
+```
+
+### ネストされたコンテンツ
+
+ディレクティブの内部では、リスト、コードブロック、インラインの書式など、フルの Markdown を利用できます。
+
+```md
+:::note
+You can include **bold**, *italic*, and other Markdown inside containers.
+
+- List items work too
+- As does `inline code`
+:::
+```

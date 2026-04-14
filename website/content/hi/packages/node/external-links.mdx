@@ -1,0 +1,49 @@
+---
+title: "externalLinks()"
+description: "अपने Markdown output में external links पर rel और target attributes जोड़ें।"
+---
+
+import { Example } from "~/components/Example"
+import example from "./external-links-example.md?example"
+
+```ts
+import { externalLinks } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function externalLinks(options?: ExternalLinksPluginOptions): UnifastPlugin
+```
+
+## Parameters
+
+### options?
+
+External link attributes के लिए Configuration
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `rel` | `string` | `"nofollow noopener noreferrer"` | external links पर rel attribute का value |
+| `target` | `string` | — | target attribute का value (जैसे "\_blank") |
+
+## उपयोग
+
+```ts
+import { compile, externalLinks } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    externalLinks({
+      rel: "nofollow noopener noreferrer",
+      target: "_blank",
+    }),
+  ],
+});
+```
+
+## उदाहरण
+
+### External बनाम internal links
+
+<Example data={example} />

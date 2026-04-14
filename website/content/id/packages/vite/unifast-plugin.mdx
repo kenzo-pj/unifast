@@ -1,0 +1,83 @@
+---
+title: "unifastPlugin()"
+description: "Membuat plugin Vite yang mentransformasi file Markdown dan MDX menjadi modul JavaScript yang dapat diimpor."
+---
+
+```ts
+import unifast from "@unifast/vite";
+```
+
+## Signature
+
+```ts
+function unifastPlugin(options?: UnifastPluginOptions): Plugin
+```
+
+## Parameter
+
+### options?
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `md` | `CompileOptions` | `{}` | Opsi compile yang diterapkan ke file `.md` |
+| `mdx` | `CompileOptions` | Menggunakan opsi `md` | Opsi compile yang diterapkan ke file `.mdx`. Fallback ke `md` jika tidak ditentukan |
+
+## Return
+
+Sebuah objek Vite `Plugin` dengan:
+- **`name`**: `"vite-plugin-unifast"`
+- **`enforce`**: `"pre"` — berjalan sebelum plugin lain
+- **`transform`**: Meng-compile file `.md` / `.mdx` menjadi modul JS
+- **`handleHotUpdate`**: Memicu HMR ketika file Markdown berubah
+
+## Penggunaan
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { gfm, frontmatter, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        plugins: [gfm(), frontmatter(), syntect()],
+      },
+    }),
+  ],
+});
+```
+
+## Contoh
+
+### Opsi MD dan MDX terpisah
+
+```ts
+import unifast from "@unifast/vite";
+import { gfm, frontmatter } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        plugins: [gfm(), frontmatter()],
+      },
+      mdx: {
+        plugins: [gfm(), frontmatter()],
+        // MDX-specific options can differ
+      },
+    }),
+  ],
+});
+```
+
+### Mengimpor Markdown di komponen
+
+```ts
+import doc from "./README.md";
+
+// doc.html — compiled HTML string
+// doc.frontmatter — parsed frontmatter object
+// doc.toc — table of contents entries
+```

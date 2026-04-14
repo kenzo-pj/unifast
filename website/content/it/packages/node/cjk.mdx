@@ -1,0 +1,42 @@
+---
+title: "cjk()"
+description: "Elaborazione del testo ottimizzata per CJK che rimuove le interruzioni di riga indesiderate tra caratteri CJK."
+---
+
+import { Example } from "~/components/Example"
+import example from "./cjk-example.md?example"
+
+```ts
+import { cjk } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function cjk(): UnifastPlugin
+```
+
+## Parametri
+
+Nessuno.
+
+## Utilizzo
+
+```ts
+import { compile, cjk } from "@unifast/node";
+
+const md = `
+今日は天気が
+とても良いです。
+`;
+
+const result = compile(md, { plugins: [cjk()] });
+console.log(result.output);
+// <p>今日は天気がとても良いです。</p>
+```
+
+## Esempi
+
+### Rimozione delle interruzioni di riga CJK
+
+<Example data={example} />

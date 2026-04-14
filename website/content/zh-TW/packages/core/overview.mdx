@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "在 unifast 執行時期套件之間共用的 TypeScript 型別定義、HAST 工具函式與錯誤類別"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概觀
+
+`@unifast/core` 提供了共用的 TypeScript 型別定義，涵蓋 compile 選項、結果、HAST（HTML Abstract Syntax Tree）節點、外掛介面以及錯誤類別。它是 `@unifast/node` 等執行時期套件的相依套件──您通常**不**需要直接安裝它。
+
+若要使用編譯器與內建外掛，請改用 [`@unifast/node`](/docs/packages/node/overview)。
+
+## 安裝
+
+<PackageInstall package="@unifast/core" />
+
+## 型別定義
+
+### CompileOptions
+
+`compile()` 函式的設定選項。
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | 輸入格式 |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | 輸出格式 |
+| `gfm` | `object` | - | GitHub Flavored Markdown 設定 |
+| `gfm.tables` | `boolean` | - | 啟用 GFM 表格 |
+| `gfm.taskList` | `boolean` | - | 啟用任務清單核取方塊 |
+| `gfm.strikethrough` | `boolean` | - | 啟用 `~~strikethrough~~` |
+| `gfm.footnotes` | `boolean` | - | 啟用註腳 |
+| `gfm.autolink` | `boolean` | - | 啟用 URL 自動連結 |
+| `frontmatter` | `object` | - | Frontmatter 解析設定 |
+| `frontmatter.yaml` | `boolean` | - | 解析 YAML frontmatter |
+| `frontmatter.toml` | `boolean` | - | 解析 TOML frontmatter |
+| `frontmatter.json` | `boolean` | - | 解析 JSON frontmatter |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | 原始碼中原始 HTML 的處理方式 |
+| `sanitize` | `object` | - | HTML 消毒處理設定 |
+| `sanitize.enabled` | `boolean` | - | 啟用消毒處理 |
+| `sanitize.schema` | `SanitizeSchema` | - | 自訂消毒規則 |
+| `highlight` | `object` | - | 語法高亮設定 |
+| `highlight.enabled` | `boolean` | - | 啟用語法高亮 |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | 高亮引擎 |
+| `slug` | `object` | - | 標題 slug 產生設定 |
+| `slug.mode` | `"github" \| "unicode"` | - | slug 產生演算法 |
+| `toc` | `object` | - | 目錄設定 |
+| `toc.enabled` | `boolean` | - | 啟用目錄擷取 |
+| `toc.maxDepth` | `number` | - | 要納入的最大標題深度 |
+| `diagnostics` | `object` | - | 診斷訊息輸出設定 |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | 診斷訊息格式 |
+| `cache` | `object` | - | 快取設定 |
+| `cache.enabled` | `boolean` | - | 啟用結果快取 |
+| `cache.dir` | `string` | - | 快取目錄路徑 |
+| `plugins` | `UnifastPlugin[]` | `[]` | 要套用的外掛陣列 |
+
+### CompileResult
+
+`compile()` 函式的回傳值。
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `output` | `string \| object` | 編譯後的輸出（依 `outputKind` 而定，可能是 HTML 字串、HAST JSON 或 MDAST JSON） |
+| `frontmatter` | `Record<string, unknown>` | 已解析的 frontmatter 後設資料 |
+| `diagnostics` | `Diagnostic[]` | 警告與錯誤的陣列 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 各階段耗時（單位為毫秒） |
+| `toc` | `TocEntry[]` | 擷取而得的目錄項目 |
+
+### Diagnostic
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `level` | `"error" \| "warn"` | 嚴重度層級 |
+| `message` | `string` | 人類可讀的訊息內容 |
+| `start` | `number \| undefined` | 在原始碼中的起始位元組位移 |
+| `end` | `number \| undefined` | 在原始碼中的結束位元組位移 |
+| `line` | `number \| undefined` | 行號（從 1 開始） |
+| `column` | `number \| undefined` | 欄位編號（從 1 開始） |
+
+### TocEntry
+
+為目錄擷取出的單一標題項目。
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `depth` | `number` | 標題層級（1-6） |
+| `text` | `string` | 標題的純文字內容 |
+| `slug` | `string` | 用於錨點連結的 slug |
+
+### SanitizeSchema
+
+自訂的消毒規則。
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | 允許的 HTML 標籤 |
+| `allowedAttributes` | `Record<string, string[]>` | 每個標籤允許的屬性 |
+| `allowedProtocols` | `Record<string, string[]>` | 每個屬性允許的 URL 協定 |
+
+### UnifastPlugin
+
+用於擴充 unifast 的外掛介面。
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `name` | `string` | 唯一的外掛名稱 |
+| `options?` | `Partial<CompileOptions>` | 要合併至 compile 選項中的設定 |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | 在編譯完成後轉換 HAST 樹 |
+
+### HAST 節點型別
+
+| 型別 | `type` 欄位 | 屬性 | 說明 |
+|------|-------------|------------|-------------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | 樹的根節點 |
+| `HastElement` | `"element"` | `tagName`、`properties`、`children` | HTML 元素 |
+| `HastText` | `"text"` | `value: string` | 文字節點 |
+| `HastRaw` | `"raw"` | `value: string` | 原始 HTML 直通節點 |
+| `HastComment` | `"comment"` | `value: string` | HTML 註解 |
+| `HastDoctype` | `"doctype"` | - | `<!DOCTYPE html>` 節點 |
+
+`HastNode` 是聯集型別：`HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## 錯誤類別
+
+| 類別 | 繼承自 | 屬性 | 說明 |
+|-------|---------|------------|-------------|
+| `UnifastError` | `Error` | `code?: string`、`span?: { start, end }` | 所有 unifast 錯誤的基底類別 |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | 無法解析 Markdown/MDX 輸入時丟出 |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | 在解析之後編譯失敗時丟出 |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... compile something
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## 匯出列表
+
+| 匯出名稱 | 類別 | 說明 |
+|--------|------|-------------|
+| `CompileOptions` | type | 編譯設定 |
+| `CompileResult` | type | 編譯結果 |
+| `TocEntry` | type | 目錄項目 |
+| `SanitizeSchema` | type | 消毒規則 |
+| `UnifastPlugin` | type | 外掛介面 |
+| `HastNode` | type | 所有 HAST 節點型別的聯集 |
+| `HastRoot` | type | HAST 根節點 |
+| `HastElement` | type | HAST 元素節點 |
+| `HastText` | type | HAST 文字節點 |
+| `HastRaw` | type | HAST 原始 HTML 節點 |
+| `HastComment` | type | HAST 註解節點 |
+| `HastDoctype` | type | HAST doctype 節點 |
+| `hastToHtml` | function | HAST 轉 HTML 的序列化器 |
+| `escapeHtml` | function | 跳脫 HTML 特殊字元（`&`、`<`、`>`、`"`） |
+| `extractLang` | function | 從 HAST `<code>` 元素中擷取語言識別字 |
+| `extractText` | function | 從 HAST 節點擷取純文字內容 |
+| `findCodeChild` | function | 在 `<pre>` 元素中尋找 `<code>` 子元素 |
+| `visitHast` | function | 用於走訪 HAST 樹的 visitor 工具 |
+| `UnifastError` | class | 基底錯誤類別 |
+| `ParseError` | class | 解析錯誤類別 |
+| `CompileError` | class | 編譯錯誤類別 |

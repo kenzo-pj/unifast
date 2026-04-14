@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "एक GFM plugin बनाएँ जो GitHub Flavored Markdown extensions को enable करता है।"
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## Parameters
+
+### options?
+
+अलग-अलग GFM features के लिए Configuration
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | \| syntax के साथ pipe tables enable करें |
+| `taskList` | `boolean` | `true` | - [x] / - [ ] task list checkboxes enable करें |
+| `strikethrough` | `boolean` | `true` | ~~deleted~~ strikethrough syntax enable करें |
+| `footnotes` | `boolean` | `true` | [^1] footnote references और definitions enable करें |
+| `autolink` | `boolean` | `true` | नंगे URLs को स्वचालित रूप से link करें |
+
+## उपयोग
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## उदाहरण
+
+### Tables
+
+<Example data={tableExample} />
+
+### Task Lists
+
+<Example data={taskListExample} />
+
+### Strikethrough & Autolink
+
+<Example data={strikethroughExample} />
+
+### Footnotes
+
+<Example data={footnoteExample} />

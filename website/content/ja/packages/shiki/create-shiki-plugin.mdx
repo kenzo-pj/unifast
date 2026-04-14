@@ -1,0 +1,99 @@
+---
+title: "createShikiPlugin()"
+description: "Shiki を利用したシンタックスハイライトプラグインを生成します。Shiki のハイライタを初期化し、HAST 変換を備えた UnifastPlugin を返す非同期関数です。"
+---
+
+```ts
+import { createShikiPlugin } from "@unifast/shiki";
+```
+
+## シグネチャ
+
+```ts
+async function createShikiPlugin(
+  options?: ShikiTransformerOptions,
+): Promise<UnifastPlugin>
+```
+
+## パラメータ
+
+### options?
+
+Shiki の設定 (テーマ、言語)
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | 読み込む Shiki テーマ |
+| `defaultTheme` | `BundledTheme` | themes の最初のテーマ | レンダリングで使うデフォルトのテーマ |
+| `langs` | `BundledLanguage[]` | `[]` | 読み込む言語。読み込まれた言語のみがハイライトされます。 |
+
+## 使い方
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark", "github-light"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "json", "html", "css"],
+});
+
+const result = compile(md, {
+  plugins: [shiki],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with Shiki-generated <span> elements
+```
+
+## 使用例
+
+### 単一のテーマ
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile("```ts\nconst x = 1;\n```", {
+  plugins: [shiki],
+});
+
+console.log(result.output);
+// <pre> with Shiki-highlighted <span> elements
+```
+
+### 複数のテーマ
+
+```ts
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark", "github-light", "dracula"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "python"],
+});
+
+// Use with compile() — defaultTheme is applied to code blocks
+```
+
+### 他のプラグインと組み合わせて使う
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, {
+  plugins: [gfm(), frontmatter(), shiki],
+});
+```

@@ -1,0 +1,2 @@
+- [GitHub](https://github.com) — внешняя ссылка, открывается в новой вкладке
+- [Быстрый старт](/en/docs/introduction/quick-start) — внутренняя, без изменений

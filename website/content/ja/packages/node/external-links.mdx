@@ -1,0 +1,49 @@
+---
+title: "externalLinks()"
+description: "Markdown 出力の外部リンクに rel 属性と target 属性を追加します。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./external-links-example.md?example"
+
+```ts
+import { externalLinks } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function externalLinks(options?: ExternalLinksPluginOptions): UnifastPlugin
+```
+
+## パラメータ
+
+### options?
+
+外部リンク属性の設定
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `rel` | `string` | `"nofollow noopener noreferrer"` | 外部リンクの rel 属性に設定する値 |
+| `target` | `string` | — | target 属性に設定する値 (例: "\_blank") |
+
+## 使い方
+
+```ts
+import { compile, externalLinks } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    externalLinks({
+      rel: "nofollow noopener noreferrer",
+      target: "_blank",
+    }),
+  ],
+});
+```
+
+## 使用例
+
+### 外部リンクと内部リンク
+
+<Example data={example} />

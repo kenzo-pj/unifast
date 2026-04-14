@@ -1,0 +1,4 @@
+- [x] Dokümantasyon yaz
+- [x] Örnekler ekle
+- [ ] Pull request incele
+- [ ] Üretime dağıt

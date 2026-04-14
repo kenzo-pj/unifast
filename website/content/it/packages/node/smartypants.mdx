@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Applica sostituzioni tipografiche per virgolette, trattini e puntini di sospensione."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Parametri
+
+### options?
+
+Configurazione delle sostituzioni da applicare
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `quotes` | `boolean` | `true` | Sostituisce le virgolette dritte con quelle tipografiche |
+| `dashes` | `boolean` | `true` | Sostituisce -- con un en-dash e --- con un em-dash |
+| `ellipses` | `boolean` | `true` | Sostituisce ... con il carattere dei puntini di sospensione |
+
+## Utilizzo
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Esempi
+
+### Sostituzioni tipografiche
+
+<Example data={example} />
+
+| Sorgente | Risultato |
+|----------|-----------|
+| `"Hello"` | virgolette doppie tipografiche |
+| `'Hi'` | virgolette singole tipografiche |
+| `--` | en-dash (–) |
+| `---` | em-dash (—) |
+| `...` | puntini di sospensione (…) |

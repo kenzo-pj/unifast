@@ -1,0 +1,52 @@
+---
+title: "wikiLink()"
+description: "エイリアス対応のウィキスタイル `[[links]]` をサポートします。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./wiki-link-example.md?example"
+
+```ts
+import { wikiLink } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function wikiLink(options?: WikiLinkPluginOptions): UnifastPlugin
+```
+
+## パラメータ
+
+### options?
+
+ウィキリンクの動作設定
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `hrefTemplate` | `string` | `"/wiki/${slug}"` | リンク URL を生成するためのテンプレート。スラグ化されたページ名のプレースホルダとして `${slug}` を使用します。 |
+
+## 使い方
+
+```ts
+import { compile, wikiLink } from "@unifast/node";
+
+const md = `Check out [[Getting Started]] for an introduction.`;
+
+const result = compile(md, {
+  plugins: [
+    wikiLink({
+      hrefTemplate: "/docs/${slug}",
+    }),
+  ],
+});
+
+console.log(result.output);
+// <p>Check out <a href="/docs/getting-started">Getting Started</a> for an introduction.</p>
+```
+
+## 使用例
+
+### ウィキスタイルのリンク
+
+<Example data={example} />

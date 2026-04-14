@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "Mengonversi newline dalam teks menjadi elemen `<br>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Parameter
+
+Tidak ada.
+
+## Penggunaan
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Each newline becomes a <br> element
+```
+
+## Contoh
+
+### Newline menjadi line break
+
+Tanpa `breaks()`, ketiga baris ini akan digabungkan menjadi satu paragraf. Dengan plugin yang diaktifkan, setiap newline menjadi sebuah `<br>`:
+
+<Example data={example} />

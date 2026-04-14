@@ -1,0 +1,117 @@
+---
+title: "toc()"
+description: "Markdown/MDX から見出しを抽出して CompileResult.toc に格納する TOC プラグインを生成します。"
+---
+
+```ts
+import { toc } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function toc(options?: TocPluginOptions): UnifastPlugin
+```
+
+## パラメータ
+
+### options?
+
+TOC 抽出の設定
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `maxDepth` | `number` | `3` | 含める見出しの最大深さ (1 〜 6)。3 の場合は h1、h2、h3 を含みます。 |
+
+## 使い方
+
+```ts
+import { compile, toc } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    toc({
+      maxDepth: 3,
+    }),
+  ],
+});
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Getting Started", slug: "getting-started" },
+//   { depth: 3, text: "Installation", slug: "installation" },
+// ]
+```
+
+## 使用例
+
+### 基本的な見出しの抽出
+
+```ts
+import { compile, toc } from "@unifast/node";
+
+const md = `# Introduction
+
+## Getting Started
+
+### Installation
+
+## API Reference
+
+### compile()
+
+### hastToHtml()`;
+
+const result = compile(md, { plugins: [toc()] });
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Getting Started", slug: "getting-started" },
+//   { depth: 3, text: "Installation", slug: "installation" },
+//   { depth: 2, text: "API Reference", slug: "api-reference" },
+//   { depth: 3, text: "compile()", slug: "compile" },
+//   { depth: 3, text: "hastToHtml()", slug: "hasttohtml" },
+// ]
+```
+
+### 深さを制限する
+
+```ts
+import { compile, toc } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [toc({ maxDepth: 2 })],
+});
+
+console.log(result.toc);
+// Only h1 and h2 headings are included
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Getting Started", slug: "getting-started" },
+//   { depth: 2, text: "API Reference", slug: "api-reference" },
+// ]
+```
+
+### TOC ナビゲーションをレンダリングする
+
+```tsx
+import { compile, toc } from "@unifast/node";
+
+const result = compile(md, { plugins: [toc()] });
+
+function TableOfContents() {
+  return (
+    <nav>
+      <ul>
+        {result.toc.map((entry) => (
+          <li key={entry.slug} style={{ marginLeft: (entry.depth - 1) * 16 }}>
+            <a href={`#${entry.slug}`}>{entry.text}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+```

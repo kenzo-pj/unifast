@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "引用符、ダッシュ、三点リーダーの組版的な置換を適用します。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## パラメータ
+
+### options?
+
+適用する置換の設定
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | 直線的な引用符をカーリー引用符に置き換える |
+| `dashes` | `boolean` | `true` | -- を en ダッシュに、--- を em ダッシュに置き換える |
+| `ellipses` | `boolean` | `true` | ... を三点リーダー文字に置き換える |
+
+## 使い方
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## 使用例
+
+### 組版的な置換
+
+<Example data={example} />
+
+| ソース | 結果 |
+|--------|--------|
+| `"Hello"` | カーリーなダブルクォート |
+| `'Hi'` | カーリーなシングルクォート |
+| `--` | en ダッシュ (–) |
+| `---` | em ダッシュ (—) |
+| `...` | 三点リーダー (…) |

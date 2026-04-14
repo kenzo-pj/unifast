@@ -1,0 +1,93 @@
+---
+title: "createShikiTransformer()"
+description: "Создаёт автономный трансформер Shiki для низкоуровневого контроля. В отличие от createShikiPlugin(), возвращает сам объект трансформера, который можно применять к HAST-деревьям вручную."
+---
+
+```ts
+import { createShikiTransformer } from "@unifast/shiki";
+```
+
+## Сигнатура
+
+```ts
+async function createShikiTransformer(
+  options?: ShikiTransformerOptions,
+): Promise<ShikiTransformer>
+```
+
+## Параметры
+
+### options?
+
+Конфигурация Shiki (темы, языки)
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Темы Shiki для загрузки |
+| `defaultTheme` | `BundledTheme` | Первая тема из themes | Тема по умолчанию для отрисовки |
+| `langs` | `BundledLanguage[]` | `[]` | Языки для загрузки. Подсвечиваются только загруженные языки. |
+
+## Использование
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark", "github-light"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "json"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+
+console.log(highlighted);
+// HAST-дерево с блоками кода, подсвеченными Shiki
+```
+
+## Примеры
+
+### Ручное HAST-преобразование
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToHtml } from "@unifast/core";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile("```ts\nconst x = 1;\n```", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const html = hastToHtml(highlighted);
+
+console.log(html);
+// <pre> с элементами <span>, подсвеченными через Shiki
+```
+
+### С отрисовкой через React
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```

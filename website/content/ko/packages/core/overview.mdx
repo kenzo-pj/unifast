@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "unifast 런타임 패키지 간에 공유되는 TypeScript 타입 정의, HAST 유틸리티, 에러 클래스"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 개요
+
+`@unifast/core`는 컴파일 옵션, 결과, HAST(HTML Abstract Syntax Tree) 노드, 플러그인 인터페이스, 에러 클래스에 대한 공유 TypeScript 타입 정의를 제공합니다. `@unifast/node` 같은 런타임 패키지의 의존성이므로 일반적으로 직접 설치할 **필요가 없습니다**.
+
+컴파일러와 빌트인 플러그인을 사용하려면 [`@unifast/node`](/docs/packages/node/overview)를 사용하세요.
+
+## 설치
+
+<PackageInstall package="@unifast/core" />
+
+## 타입 정의
+
+### CompileOptions
+
+`compile()` 함수의 설정.
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | 입력 형식 |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | 출력 형식 |
+| `gfm` | `object` | - | GitHub Flavored Markdown 설정 |
+| `gfm.tables` | `boolean` | - | GFM 표 활성화 |
+| `gfm.taskList` | `boolean` | - | 작업 목록 체크박스 활성화 |
+| `gfm.strikethrough` | `boolean` | - | `~~취소선~~` 활성화 |
+| `gfm.footnotes` | `boolean` | - | 각주 활성화 |
+| `gfm.autolink` | `boolean` | - | URL 자동 링크 활성화 |
+| `frontmatter` | `object` | - | frontmatter 파싱 설정 |
+| `frontmatter.yaml` | `boolean` | - | YAML frontmatter 파싱 |
+| `frontmatter.toml` | `boolean` | - | TOML frontmatter 파싱 |
+| `frontmatter.json` | `boolean` | - | JSON frontmatter 파싱 |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | 원본 HTML 처리 방식 |
+| `sanitize` | `object` | - | HTML 새니타이즈 설정 |
+| `sanitize.enabled` | `boolean` | - | 새니타이즈 활성화 |
+| `sanitize.schema` | `SanitizeSchema` | - | 커스텀 새니타이즈 규칙 |
+| `highlight` | `object` | - | 구문 강조 설정 |
+| `highlight.enabled` | `boolean` | - | 구문 강조 활성화 |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | 강조 엔진 |
+| `slug` | `object` | - | 제목 슬러그 생성 설정 |
+| `slug.mode` | `"github" \| "unicode"` | - | 슬러그 생성 알고리즘 |
+| `toc` | `object` | - | 목차 설정 |
+| `toc.enabled` | `boolean` | - | TOC 추출 활성화 |
+| `toc.maxDepth` | `number` | - | 포함할 최대 제목 레벨 |
+| `diagnostics` | `object` | - | 진단 출력 설정 |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | 진단 형식 |
+| `cache` | `object` | - | 캐시 설정 |
+| `cache.enabled` | `boolean` | - | 결과 캐시 활성화 |
+| `cache.dir` | `string` | - | 캐시 디렉터리 경로 |
+| `plugins` | `UnifastPlugin[]` | `[]` | 적용할 플러그인 배열 |
+
+### CompileResult
+
+`compile()` 함수의 반환값.
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `output` | `string \| object` | 컴파일된 결과 (HTML 문자열, HAST JSON, MDAST JSON — `outputKind`에 따라 달라짐) |
+| `frontmatter` | `Record<string, unknown>` | 파싱된 frontmatter 메타데이터 |
+| `diagnostics` | `Diagnostic[]` | 경고와 오류 배열 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 단계별 소요 시간(ms) |
+| `toc` | `TocEntry[]` | 추출된 목차 항목 |
+
+### Diagnostic
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `level` | `"error" \| "warn"` | 심각도 |
+| `message` | `string` | 사람이 읽을 수 있는 메시지 |
+| `start` | `number \| undefined` | 소스의 시작 바이트 오프셋 |
+| `end` | `number \| undefined` | 소스의 끝 바이트 오프셋 |
+| `line` | `number \| undefined` | 줄 번호 (1부터 시작) |
+| `column` | `number \| undefined` | 열 번호 (1부터 시작) |
+
+### TocEntry
+
+목차를 위해 추출된 단일 제목.
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `depth` | `number` | 제목 레벨 (1-6) |
+| `text` | `string` | 제목의 평문 내용 |
+| `slug` | `string` | 앵커 링크용으로 생성된 슬러그 |
+
+### SanitizeSchema
+
+커스텀 새니타이즈 규칙.
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | 허용할 HTML 태그 |
+| `allowedAttributes` | `Record<string, string[]>` | 태그별 허용 속성 |
+| `allowedProtocols` | `Record<string, string[]>` | 속성별 허용 URL 프로토콜 |
+
+### UnifastPlugin
+
+unifast를 확장하기 위한 플러그인 인터페이스.
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `name` | `string` | 고유한 플러그인 이름 |
+| `options?` | `Partial<CompileOptions>` | 컴파일 옵션에 병합할 옵션 |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | 컴파일 후 HAST 트리를 변환 |
+
+### HAST 노드 타입
+
+| 타입 | `type` 필드 | 속성 | 설명 |
+|------|-------------|------------|-------------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | 트리의 루트 노드 |
+| `HastElement` | `"element"` | `tagName`, `properties`, `children` | HTML 요소 |
+| `HastText` | `"text"` | `value: string` | 텍스트 노드 |
+| `HastRaw` | `"raw"` | `value: string` | 원본 HTML 패스스루 |
+| `HastComment` | `"comment"` | `value: string` | HTML 주석 |
+| `HastDoctype` | `"doctype"` | - | `<!DOCTYPE html>` 노드 |
+
+`HastNode`는 유니언 타입입니다: `HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## 에러 클래스
+
+| 클래스 | 확장 | 속성 | 설명 |
+|-------|---------|------------|-------------|
+| `UnifastError` | `Error` | `code?: string`, `span?: { start, end }` | 모든 unifast 에러의 기반 클래스 |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | Markdown/MDX 입력을 파싱할 수 없을 때 발생 |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | 파싱 이후 컴파일이 실패할 때 발생 |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... 컴파일 수행
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## Exports 요약
+
+| Export | 종류 | 설명 |
+|--------|------|-------------|
+| `CompileOptions` | type | 컴파일 설정 |
+| `CompileResult` | type | 컴파일 결과 |
+| `TocEntry` | type | 목차 항목 |
+| `SanitizeSchema` | type | 새니타이즈 규칙 |
+| `UnifastPlugin` | type | 플러그인 인터페이스 |
+| `HastNode` | type | 모든 HAST 노드 타입의 유니언 |
+| `HastRoot` | type | HAST 루트 노드 |
+| `HastElement` | type | HAST 요소 노드 |
+| `HastText` | type | HAST 텍스트 노드 |
+| `HastRaw` | type | HAST 원본 HTML 노드 |
+| `HastComment` | type | HAST 주석 노드 |
+| `HastDoctype` | type | HAST doctype 노드 |
+| `hastToHtml` | function | HAST-to-HTML 시리얼라이저 |
+| `escapeHtml` | function | HTML 특수 문자 이스케이프 (`&`, `<`, `>`, `"`) |
+| `extractLang` | function | HAST `<code>` 요소에서 언어 식별자 추출 |
+| `extractText` | function | HAST 노드에서 평문 텍스트 추출 |
+| `findCodeChild` | function | `<pre>` 요소 안의 `<code>` 자식 요소 찾기 |
+| `visitHast` | function | HAST 트리를 순회하기 위한 비지터 유틸리티 |
+| `UnifastError` | class | 기반 에러 클래스 |
+| `ParseError` | class | 파싱 에러 클래스 |
+| `CompileError` | class | 컴파일 에러 클래스 |

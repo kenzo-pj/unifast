@@ -1,0 +1,130 @@
+---
+title: "シンタックスハイライト"
+description: "unifast で利用できる 4 つのシンタックスハイライトエンジン (tree-sitter、syntect、Shiki、highlight.js) から選択します。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast は 4 つのシンタックスハイライトエンジンをサポートしています。そのうち 2 つ (**tree-sitter**、**syntect**) は Rust コンパイラ内部で動作し、残りの 2 つ (**Shiki**、**highlight.js**) は JavaScript で動作します。
+
+### 比較
+
+| | tree-sitter | syntect | Shiki | highlight.js |
+|---|-------------|---------|-------|--------------|
+| **ランタイム** | Rust (組み込み) | Rust (組み込み) | JavaScript | JavaScript |
+| **パース方式** | AST ベース (tree-sitter 文法) | 正規表現ベース (TextMate 文法) | 正規表現ベース (VS Code 文法) | 正規表現ベース (highlight.js 文法) |
+| **速度** | 最速 | 高速 | 遅め | 遅め |
+| **言語数** | 29 言語 + syntect へのフォールバック | 100 以上 (TextMate) | VS Code 文法 | 190 以上 |
+| **CSS 出力** | クラスベース (`ts-*`) | クラスベース (`sy-*`) | インラインスタイルまたはクラスベース | クラスベース (`hljs`) |
+| **パッケージ** | `@unifast/node` | `@unifast/node` | `@unifast/shiki` | `@unifast/highlight` |
+| **適した用途** | 精度の高いハイライト、広範な対応 | シンプルな構成、高速な起動 | きめ細かいテーマ制御 | highlight.js のテーマエコシステム |
+
+### tree-sitter を使う
+
+tree-sitter は AST ベースのパースで高精度なシンタックスハイライトを実現します。Rust コンパイラ内部で動作し、29 言語をネイティブにサポートします。非対応の言語では自動的に syntect にフォールバックします。
+
+tree-sitter は `@unifast/node` に含まれているため、別途インストールする必要はありません。
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [treeSitter()] }
+);
+```
+
+tree-sitter は `ts-` で始まる CSS クラス名を生成します。これらのクラスに対応する CSS ルールをスタイルシートに用意する必要があります。
+
+#### サポートされる言語
+
+TypeScript、TSX、JavaScript、HTML、CSS、Python、Rust、JSON、YAML、Go、Ruby、TOML、Swift、PHP、Java、Lua、Scala、Zig、Elixir、OCaml、R、Make、Nix、Regex、Erlang、Bash、C、C++、CMake
+
+言語のエイリアス (例: `ts`、`py`、`rs`、`sh`、`yml`、`rb`) にも対応しています。
+
+### syntect を使う
+
+syntect は TextMate 文法を使用し、Rust コンパイラ内部で完結して動作します。追加の JavaScript オーバーヘッドはありません。
+
+syntect は `@unifast/node` に含まれているため、別途インストールする必要はありません。
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [syntect()] }
+);
+```
+
+syntect は `sy-` で始まる CSS クラス名を生成します。これらのクラスに対応する CSS ルールをスタイルシートに用意する必要があります。
+
+### Shiki を使う
+
+Shiki は VS Code の TextMate 文法エンジンを利用し、テーマに対応した正確なハイライトを実現します。
+
+<PackageInstall package="@unifast/shiki shiki" />
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  theme: "github-dark",
+  langs: ["typescript", "rust", "bash"],
+});
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [shiki] }
+);
+```
+
+### highlight.js を使う
+
+`@unifast/highlight` は [lowlight](https://github.com/wooorm/lowlight) (highlight.js) を利用し、JavaScript 上で HAST 変換として動作します。190 以上の言語をサポートし、任意の highlight.js テーマを利用できます。
+
+<PackageInstall package="@unifast/highlight" />
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [highlight()] }
+);
+```
+
+highlight.js は `hljs` プレフィックス付きのクラス名を生成します。スタイリングには任意の [highlight.js テーマ CSS](https://highlightjs.org/demo) を利用できます。
+
+### 行番号
+
+すべてのエンジンが行番号に対応しています。コンパイルオプションで有効にできます。
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [treeSitter()],
+  lineNumbers: true,
+});
+```
+
+各行は `data-line` 属性を持つ `<span>` でラップされ、CSS でスタイリングできます。
+
+```css
+[data-line]::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: 2rem;
+  text-align: right;
+  margin-right: 1rem;
+  color: #6b7280;
+}
+```
+
+### 関連項目
+
+- [syntect()](/docs/packages/node/syntect) - syntect の API リファレンス
+- [createShikiPlugin()](/docs/packages/shiki/create-shiki-plugin) - Shiki の API リファレンス

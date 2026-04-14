@@ -1,0 +1,77 @@
+---
+title: "highlight()"
+description: "创建一个 highlight.js 语法高亮插件，通过 HAST 转换使用 lowlight 为围栏代码块进行高亮。"
+---
+
+```ts
+import { highlight } from "@unifast/highlight";
+```
+
+## 签名
+
+```ts
+function highlight(): UnifastPlugin
+```
+
+## 参数
+
+无。
+
+## 用法
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// <pre><code class="language-typescript hljs">
+//   <span class="hljs-keyword">const</span> ...
+// </code></pre>
+```
+
+## 示例
+
+### 使用多种语言
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`python
+def hello():
+    print("Hello, world!")
+\`\`\`
+
+\`\`\`css
+.container {
+  display: flex;
+}
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [highlight()] });
+// Both code blocks are highlighted with appropriate highlight.js classes
+```
+
+### 与其他插件搭配使用
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), highlight()],
+});
+```

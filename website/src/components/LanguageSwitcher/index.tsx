@@ -5,6 +5,7 @@ import { memo, useCallback } from "react";
 import {
   useTranslation,
   DEFAULT_LOCALE,
+  LOCALE_LABELS,
   SUPPORTED_LOCALES,
   parseLocaleFromPath,
   type LocaleCode,
@@ -14,7 +15,7 @@ import styles from "./LanguageSwitcher.module.css";
 
 const LOCALE_ITEMS = SUPPORTED_LOCALES.map((loc) => ({
   value: loc,
-  label: loc === "en" ? "English" : "日本語",
+  label: LOCALE_LABELS[loc],
 }));
 
 export const LanguageSwitcher = memo(function LanguageSwitcher() {

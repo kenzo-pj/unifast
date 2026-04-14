@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "建立一個 GFM 外掛，啟用 GitHub Flavored Markdown 擴充功能。"
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## 參數
+
+### options?
+
+個別 GFM 功能的設定
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | 啟用以 \| 為語法的管線式表格 |
+| `taskList` | `boolean` | `true` | 啟用 - [x] / - [ ] 任務清單核取方塊 |
+| `strikethrough` | `boolean` | `true` | 啟用 ~~deleted~~ 刪除線語法 |
+| `footnotes` | `boolean` | `true` | 啟用 [^1] 註腳參照與定義 |
+| `autolink` | `boolean` | `true` | 自動將裸 URL 轉為連結 |
+
+## 用法
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## 範例
+
+### 表格
+
+<Example data={tableExample} />
+
+### 任務清單
+
+<Example data={taskListExample} />
+
+### 刪除線與自動連結
+
+<Example data={strikethroughExample} />
+
+### 註腳
+
+<Example data={footnoteExample} />

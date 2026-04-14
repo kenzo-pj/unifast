@@ -1,0 +1,94 @@
+---
+title: "MDX Kullanımı"
+description: "JSX ifadeleri ve import deyimlerini Markdown içinde kullanmak için MDX'i unifast ile derleyin ve React veya diğer JSX çalışma zamanlarıyla render edin."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+MDX, Markdown içinde JSX ifadeleri ve import deyimleri kullanmanıza olanak tanır. unifast, MDX'i React veya diğer JSX çalışma zamanlarıyla render edilebilen JavaScript modüllerine derler.
+
+### Kurulum
+
+<PackageInstall package="@unifast/node" />
+
+### Temel Kullanım
+
+```ts
+import { compile } from "@unifast/node";
+
+const source = `
+# Hello
+
+<Counter initial={0} />
+
+export const meta = { title: "My Page" };
+`;
+
+const result = compile(source, { inputKind: "mdx" });
+// result.output bir JavaScript modül string'idir
+```
+
+### MDX Nasıl Çalışır
+
+MDX, Markdown'u iki yetenekle genişletir:
+
+1. **JSX ifadeleri** - İçeriğinizde bileşenleri satır içi kullanın.
+2. **ESM import/export'ları** - Bileşenleri içe aktarın ve üst veri dışa aktarın.
+
+Derleyici, MDX'i şu adımlarla işler:
+
+```
+MDX source
+  → Parse (Markdown + JSX + ESM)
+  → MdAst with JSX/ESM nodes
+  → Lower to HAst
+  → Emit as JavaScript module
+```
+
+Çıktı, bileşen enjeksiyonu için `components` prop'unu kabul eden varsayılan bir export fonksiyonuna sahip bir JavaScript modülüdür.
+
+### React ile Kullanım
+
+```ts
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const source = `# Hello\n\nThis is **MDX**.`;
+
+const result = compile(source, { inputKind: "mdx" });
+const Component = compileToReact(result);
+
+// React uygulamanızda render edin
+<Component components={{ h1: MyHeading }} />
+```
+
+### MDX'te Frontmatter
+
+Üst verileri çıkarmak için MDX'i frontmatter plugin'iyle birleştirin:
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const source = `---
+title: My Article
+author: Jane
+---
+
+# {frontmatter.title}
+
+Written by {frontmatter.author}.
+`;
+
+const result = compile(source, {
+  inputKind: "mdx",
+  plugins: [frontmatter()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Article", author: "Jane" }
+```
+
+### Ayrıca Bakın
+
+- [compile()](/docs/packages/node/compile) - Tam API referansı
+- [React Entegrasyonu](/docs/guides/react) - MDX'i React ile render etme

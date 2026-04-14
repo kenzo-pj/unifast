@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "Plugin syntax highlighting dựa trên highlight.js cho unifast thông qua các phép biến đổi HAST"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Tổng quan
+
+`@unifast/highlight` cung cấp khả năng syntax highlighting được hỗ trợ bởi [lowlight](https://github.com/wooorm/lowlight) (một wrapper của highlight.js). Khác với các plugin tích hợp sẵn `syntect()` và `treeSitter()` chạy highlight trong Rust, gói này áp dụng highlight dưới dạng một phép biến đổi HAST trong JavaScript sau khi biên dịch — cho phép bạn tận dụng hệ sinh thái ngôn ngữ và theme phong phú của highlight.js.
+
+## Cài đặt
+
+<PackageInstall package="@unifast/highlight" />
+
+## Bắt đầu nhanh
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with highlight.js CSS classes
+```
+
+## Cách hoạt động
+
+1. Trình biên dịch Rust sinh ra đầu ra HAST với các khối `<pre><code>` chưa được highlight
+2. `hastTransform` của plugin `highlight()` duyệt cây HAST
+3. Với mỗi phần tử `<code>` có class `language-*`, lowlight sẽ highlight đoạn mã
+4. Các nút HAST đã highlight sẽ thay thế các con ban đầu
+
+Vì nó chạy dưới dạng phép biến đổi HAST, việc highlight native của Rust (`syntect` / `treeSitter`) phải được tắt đi. Plugin sẽ tự động thiết lập `highlight.enabled: false` trong các tùy chọn biên dịch.
+
+## Tổng hợp các export
+
+| Export | Loại | Mô tả |
+|--------|------|-------------|
+| `highlight` | function | Tạo plugin biến đổi HAST bằng highlight.js |

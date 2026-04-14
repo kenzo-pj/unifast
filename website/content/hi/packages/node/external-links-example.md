@@ -1,0 +1,2 @@
+- [GitHub](https://github.com) — external, नए tab में खुलता है
+- [क्विक स्टार्ट](/en/docs/introduction/quick-start) — internal, अपरिवर्तित

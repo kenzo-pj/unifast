@@ -1,0 +1,123 @@
+---
+title: "hastToReact()"
+description: "Converte um nó raiz HAST em elementos React. A função de baixo nível para quando você precisa de controle total sobre a pipeline de compilação."
+---
+
+```ts
+import { hastToReact } from "@unifast/react";
+```
+
+## Assinatura
+
+```ts
+function hastToReact(
+  hast: HastRoot,
+  options: HastToReactOptions,
+): unknown
+```
+
+## Parâmetros
+
+### hast
+
+| Propriedade | Tipo | Padrão | Descrição |
+|----------|------|---------|-------------|
+| `type` | `"root"` | — | Identificador do tipo de nó |
+| `children` | `HastNode[]` | — | Nós filhos da árvore |
+
+### options
+
+Configuração de criação de elementos React
+
+| Propriedade | Tipo | Padrão | Descrição |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | A função createElement do React |
+| `Fragment` | `unknown` | — | O componente Fragment do React |
+| `components?` | `ComponentMap` | — | Mapa de nomes de tags HTML para componentes React customizados |
+
+## Uso
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+
+const element = hastToReact(hast, {
+  createElement,
+  Fragment,
+  components: {
+    pre: ({ children, ...props }) => <pre className="code-block" {...props}>{children}</pre>,
+    a: ({ children, ...props }) => <a target="_blank" rel="noopener" {...props}>{children}</a>,
+  },
+});
+```
+
+## Exemplos
+
+### Uso básico
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile("# Hello, **world**!", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Com HAST highlightado por Shiki
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```
+
+### Server-side rendering
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+## Comportamento
+
+- **Renomeação de propriedades:** Atributos HTML são renomeados para os equivalentes do React (`class` para `className`, `for` para `htmlFor`, etc.)
+- **Parsing de style:** Strings de style CSS são parseadas para objetos style do React
+- **Arrays className:** Arrays `className` HAST são unidos com espaços
+- **Atributos booleanos:** `true` renderiza o atributo, `false`/`null`/`undefined` o omite
+- **Nós raw:** Renderizados como HTML inline - use o plugin `sanitize` (do `@unifast/node`) ao processar entrada não confiável
+- **Comentários e doctype:** Ignorados (retornam `null`)

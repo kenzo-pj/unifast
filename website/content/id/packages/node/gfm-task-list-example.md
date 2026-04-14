@@ -1,0 +1,4 @@
+- [x] Menulis dokumentasi
+- [x] Menambahkan contoh
+- [ ] Mereview pull request
+- [ ] Deploy ke production

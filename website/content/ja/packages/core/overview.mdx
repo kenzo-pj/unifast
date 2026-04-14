@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "unifast のランタイムパッケージ間で共有される TypeScript の型定義、HAST ユーティリティ、エラークラスです。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概要
+
+`@unifast/core` は、compile オプションや結果、HAST (HTML 抽象構文木) ノード、プラグインインターフェース、エラークラスのための共有 TypeScript 型定義を提供します。`@unifast/node` のようなランタイムパッケージの依存関係であり、通常は直接インストールする **必要はありません**。
+
+コンパイラや組み込みプラグインを利用する場合は [`@unifast/node`](/docs/packages/node/overview) を使用してください。
+
+## インストール
+
+<PackageInstall package="@unifast/core" />
+
+## 型定義
+
+### CompileOptions
+
+`compile()` 関数の設定です。
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | 入力フォーマット |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | 出力フォーマット |
+| `gfm` | `object` | - | GitHub Flavored Markdown の設定 |
+| `gfm.tables` | `boolean` | - | GFM テーブルを有効にする |
+| `gfm.taskList` | `boolean` | - | タスクリストのチェックボックスを有効にする |
+| `gfm.strikethrough` | `boolean` | - | `~~strikethrough~~` を有効にする |
+| `gfm.footnotes` | `boolean` | - | 脚注を有効にする |
+| `gfm.autolink` | `boolean` | - | URL の自動リンクを有効にする |
+| `frontmatter` | `object` | - | frontmatter のパース設定 |
+| `frontmatter.yaml` | `boolean` | - | YAML frontmatter をパースする |
+| `frontmatter.toml` | `boolean` | - | TOML frontmatter をパースする |
+| `frontmatter.json` | `boolean` | - | JSON frontmatter をパースする |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | ソース内の生の HTML の扱い方 |
+| `sanitize` | `object` | - | HTML サニタイズの設定 |
+| `sanitize.enabled` | `boolean` | - | サニタイズを有効にする |
+| `sanitize.schema` | `SanitizeSchema` | - | カスタムサニタイズルール |
+| `highlight` | `object` | - | シンタックスハイライトの設定 |
+| `highlight.enabled` | `boolean` | - | シンタックスハイライトを有効にする |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | ハイライトエンジン |
+| `slug` | `object` | - | 見出しスラグ生成の設定 |
+| `slug.mode` | `"github" \| "unicode"` | - | スラグ生成アルゴリズム |
+| `toc` | `object` | - | 目次の設定 |
+| `toc.enabled` | `boolean` | - | TOC 抽出を有効にする |
+| `toc.maxDepth` | `number` | - | 含める見出しの最大深さ |
+| `diagnostics` | `object` | - | 診断出力の設定 |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | 診断フォーマット |
+| `cache` | `object` | - | キャッシュの設定 |
+| `cache.enabled` | `boolean` | - | 結果キャッシュを有効にする |
+| `cache.dir` | `string` | - | キャッシュディレクトリのパス |
+| `plugins` | `UnifastPlugin[]` | `[]` | 適用するプラグインの配列 |
+
+### CompileResult
+
+`compile()` 関数が返す値です。
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `output` | `string \| object` | コンパイル結果 (HTML 文字列、HAST JSON、または MDAST JSON。`outputKind` によって異なります) |
+| `frontmatter` | `Record<string, unknown>` | パース済みの frontmatter メタデータ |
+| `diagnostics` | `Diagnostic[]` | 警告とエラーの配列 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | ミリ秒単位の処理時間の内訳 |
+| `toc` | `TocEntry[]` | 抽出された目次のエントリ |
+
+### Diagnostic
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `level` | `"error" \| "warn"` | 重大度レベル |
+| `message` | `string` | 人間が読めるメッセージ |
+| `start` | `number \| undefined` | ソース内の開始バイトオフセット |
+| `end` | `number \| undefined` | ソース内の終了バイトオフセット |
+| `line` | `number \| undefined` | 行番号 (1 始まり) |
+| `column` | `number \| undefined` | 列番号 (1 始まり) |
+
+### TocEntry
+
+目次用に抽出された見出し 1 つ分です。
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `depth` | `number` | 見出しレベル (1 〜 6) |
+| `text` | `string` | 見出しのプレーンテキスト内容 |
+| `slug` | `string` | アンカーリンク用に生成されたスラグ |
+
+### SanitizeSchema
+
+カスタムサニタイズルールです。
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | 許可する HTML タグ |
+| `allowedAttributes` | `Record<string, string[]>` | タグごとに許可する属性 |
+| `allowedProtocols` | `Record<string, string[]>` | 属性ごとに許可する URL プロトコル |
+
+### UnifastPlugin
+
+unifast を拡張するためのプラグインインターフェースです。
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `name` | `string` | 一意なプラグイン名 |
+| `options?` | `Partial<CompileOptions>` | compile オプションにマージするオプション |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | コンパイル後に HAST ツリーを変換する |
+
+### HAST ノードの型
+
+| 型 | `type` フィールド | プロパティ | 説明 |
+|------|-------------|------------|-------------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | ツリーのルートノード |
+| `HastElement` | `"element"` | `tagName`, `properties`, `children` | HTML 要素 |
+| `HastText` | `"text"` | `value: string` | テキストノード |
+| `HastRaw` | `"raw"` | `value: string` | 生の HTML のパススルー |
+| `HastComment` | `"comment"` | `value: string` | HTML コメント |
+| `HastDoctype` | `"doctype"` | - | `<!DOCTYPE html>` ノード |
+
+`HastNode` はユニオン型です: `HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## エラークラス
+
+| クラス | 継承元 | プロパティ | 説明 |
+|-------|---------|------------|-------------|
+| `UnifastError` | `Error` | `code?: string`, `span?: { start, end }` | すべての unifast エラーの基底クラス |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | Markdown/MDX 入力をパースできなかった場合にスローされます |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | パース後のコンパイルに失敗した場合にスローされます |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... compile something
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## エクスポート一覧
+
+| エクスポート | 種類 | 説明 |
+|--------|------|-------------|
+| `CompileOptions` | type | コンパイル設定 |
+| `CompileResult` | type | コンパイル結果 |
+| `TocEntry` | type | 目次のエントリ |
+| `SanitizeSchema` | type | サニタイズルール |
+| `UnifastPlugin` | type | プラグインインターフェース |
+| `HastNode` | type | すべての HAST ノード型のユニオン |
+| `HastRoot` | type | HAST ルートノード |
+| `HastElement` | type | HAST 要素ノード |
+| `HastText` | type | HAST テキストノード |
+| `HastRaw` | type | HAST 生 HTML ノード |
+| `HastComment` | type | HAST コメントノード |
+| `HastDoctype` | type | HAST doctype ノード |
+| `hastToHtml` | function | HAST から HTML へのシリアライザ |
+| `escapeHtml` | function | HTML の特殊文字 (`&`、`<`、`>`、`"`) をエスケープする |
+| `extractLang` | function | HAST の `<code>` 要素から言語識別子を抽出する |
+| `extractText` | function | HAST ノードからプレーンテキストの内容を抽出する |
+| `findCodeChild` | function | `<pre>` 要素の内部から `<code>` 子要素を見つける |
+| `visitHast` | function | HAST ツリーを走査するビジターパターンのユーティリティ |
+| `UnifastError` | class | 基底エラークラス |
+| `ParseError` | class | パースエラークラス |
+| `CompileError` | class | コンパイルエラークラス |

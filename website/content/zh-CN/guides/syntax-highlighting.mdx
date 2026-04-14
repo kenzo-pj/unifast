@@ -1,0 +1,130 @@
+---
+title: "语法高亮"
+description: "在 unifast 中，你可以从 tree-sitter、syntect、Shiki 和 highlight.js 这四种语法高亮引擎中自由选择。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast 支持四种语法高亮引擎。其中两种运行在 Rust 编译器内部（**tree-sitter**、**syntect**），另外两种运行在 JavaScript 中（**Shiki**、**highlight.js**）。
+
+### 对比
+
+| | tree-sitter | syntect | Shiki | highlight.js |
+|---|-------------|---------|-------|--------------|
+| **运行时** | Rust（内置） | Rust（内置） | JavaScript | JavaScript |
+| **解析方式** | 基于 AST（tree-sitter 语法） | 基于正则（TextMate 语法） | 基于正则（VS Code 语法） | 基于正则（highlight.js 语法） |
+| **速度** | 最快 | 快 | 较慢 | 较慢 |
+| **语言支持** | 29 种语言 + syntect 回退 | 100+（TextMate） | VS Code 语法 | 190+ |
+| **CSS 输出** | 基于类名（`ts-*`） | 基于类名（`sy-*`） | 内联样式或基于类名 | 基于类名（`hljs`） |
+| **所在包** | `@unifast/node` | `@unifast/node` | `@unifast/shiki` | `@unifast/highlight` |
+| **适用场景** | 需要精确高亮、覆盖范围广 | 配置简单、启动快 | 需要精细的主题控制 | 利用 highlight.js 主题生态 |
+
+### 使用 tree-sitter
+
+tree-sitter 采用基于 AST 的解析方式实现精确的语法高亮。它运行在 Rust 编译器内部，原生支持 29 种语言；对于不支持的语言，会自动回退到 syntect。
+
+tree-sitter 已包含在 `@unifast/node` 中 —— 无需单独安装。
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [treeSitter()] }
+);
+```
+
+tree-sitter 生成的 CSS 类名均以 `ts-` 为前缀。你需要在样式表中为这些类提供对应的 CSS 规则。
+
+#### 支持的语言
+
+TypeScript、TSX、JavaScript、HTML、CSS、Python、Rust、JSON、YAML、Go、Ruby、TOML、Swift、PHP、Java、Lua、Scala、Zig、Elixir、OCaml、R、Make、Nix、Regex、Erlang、Bash、C、C++、CMake
+
+同时也支持语言别名（例如 `ts`、`py`、`rs`、`sh`、`yml`、`rb`）。
+
+### 使用 syntect
+
+syntect 使用 TextMate 语法，完全运行在 Rust 编译器内部 —— 不会引入额外的 JavaScript 开销。
+
+syntect 已包含在 `@unifast/node` 中 —— 无需单独安装。
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [syntect()] }
+);
+```
+
+syntect 生成的 CSS 类名均以 `sy-` 为前缀。你需要在样式表中为这些类提供对应的 CSS 规则。
+
+### 使用 Shiki
+
+Shiki 使用 VS Code 的 TextMate 语法引擎，可实现精确的高亮并支持主题。
+
+<PackageInstall package="@unifast/shiki shiki" />
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  theme: "github-dark",
+  langs: ["typescript", "rust", "bash"],
+});
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [shiki] }
+);
+```
+
+### 使用 highlight.js
+
+`@unifast/highlight` 基于 [lowlight](https://github.com/wooorm/lowlight)（highlight.js 的封装），以 JavaScript HAST 转换的形式运行。它支持 190 多种语言，并可搭配任意 highlight.js 主题使用。
+
+<PackageInstall package="@unifast/highlight" />
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [highlight()] }
+);
+```
+
+highlight.js 生成的类名带有 `hljs` 前缀。可以使用任意 [highlight.js 主题 CSS](https://highlightjs.org/demo) 进行样式设置。
+
+### 行号
+
+所有引擎都支持行号。只需在编译选项中启用即可：
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [treeSitter()],
+  lineNumbers: true,
+});
+```
+
+每一行都会被包裹在一个带 `data-line` 属性的 `<span>` 中，便于通过 CSS 进行样式定制：
+
+```css
+[data-line]::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: 2rem;
+  text-align: right;
+  margin-right: 1rem;
+  color: #6b7280;
+}
+```
+
+### 参见
+
+- [syntect()](/docs/packages/node/syntect) —— syntect API 参考
+- [createShikiPlugin()](/docs/packages/shiki/create-shiki-plugin) —— Shiki API 参考

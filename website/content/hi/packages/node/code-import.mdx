@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "बाहरी फ़ाइलों से code को fenced code blocks में import करें।"
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## Parameters
+
+### options?
+
+Code import व्यवहार के लिए Configuration
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `rootDir` | `string` | — | file paths को resolve करने के लिए root directory। जब omit किया जाता है, तो paths current working directory के सापेक्ष resolve होते हैं। |
+
+## उपयोग
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// code block ./src/example.ts की सामग्री से replace हो जाता है
+```
+
+## उदाहरण
+
+### मूल file import
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+code block content फ़ाइल की सामग्री से replace हो जाता है, syntax highlighting के लिए language को preserve करते हुए।
+
+### rootDir के साथ
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// File paths rootDir के सापेक्ष resolve होते हैं
+```
+
+### rootDir के बिना
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// File paths current working directory के सापेक्ष resolve होते हैं
+```

@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "Import mã từ các file bên ngoài vào các khối mã fenced."
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## Tham số
+
+### options?
+
+Cấu hình cho hành vi import mã
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `rootDir` | `string` | — | Thư mục gốc để phân giải đường dẫn file. Khi bỏ qua, đường dẫn được phân giải tương đối so với thư mục làm việc hiện tại. |
+
+## Cách dùng
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// The code block is replaced with the contents of ./src/example.ts
+```
+
+## Ví dụ
+
+### Import file cơ bản
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+Nội dung của khối mã được thay bằng nội dung của file, giữ nguyên ngôn ngữ để hỗ trợ syntax highlighting.
+
+### Với rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// File paths are resolved relative to rootDir
+```
+
+### Không có rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// File paths are resolved relative to the current working directory
+```
