@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type LocaleCode } from "../src/i18n";
+import { pageRouteToApiPath } from "../src/api-path";
 
 export const LOCALES = SUPPORTED_LOCALES;
 export { DEFAULT_LOCALE };
@@ -309,6 +310,10 @@ function buildAlternateLinks(
   return links.join("");
 }
 
+function jsonAlternateLink(localizedRoute: string): string {
+  return `\n    <xhtml:link rel="alternate" type="application/json" href="${SITE_URL}${pageRouteToApiPath(localizedRoute)}" />`;
+}
+
 export function buildSitemap(contentDir: string): string {
   const today = new Date().toISOString().split("T")[0];
   const defaultRoutes = collectRoutes(path.resolve(contentDir, DEFAULT_LOCALE));
@@ -325,7 +330,7 @@ export function buildSitemap(contentDir: string): string {
 
     // Default-locale URL entry
     urls.push(
-      `  <url>\n    <loc>${localeUrl(route, DEFAULT_LOCALE)}</loc>\n    <lastmod>${today}</lastmod>${alternates}\n  </url>`,
+      `  <url>\n    <loc>${localeUrl(route, DEFAULT_LOCALE)}</loc>\n    <lastmod>${today}</lastmod>${alternates}${jsonAlternateLink(route)}\n  </url>`,
     );
 
     // Per-locale URL entries (one per locale that has the file)
@@ -333,7 +338,7 @@ export function buildSitemap(contentDir: string): string {
       if (locale === DEFAULT_LOCALE) continue;
       if (!routesByLocale.get(locale)?.has(route)) continue;
       urls.push(
-        `  <url>\n    <loc>${localeUrl(route, locale)}</loc>\n    <lastmod>${today}</lastmod>${alternates}\n  </url>`,
+        `  <url>\n    <loc>${localeUrl(route, locale)}</loc>\n    <lastmod>${today}</lastmod>${alternates}${jsonAlternateLink(`/${locale}${route}`)}\n  </url>`,
       );
     }
   }
@@ -560,6 +565,85 @@ export function collectAllEntries(contentDir: string): Map<string, ContentEntry>
   return map;
 }
 
+export interface PageEntry {
+  route: string;
+  apiPath: string;
+  locale: LocaleCode;
+  title: string;
+  description: string;
+  body: string;
+}
+
+export function collectPageEntries(contentDir: string): PageEntry[] {
+  const result: PageEntry[] = [];
+  for (const locale of LOCALES) {
+    const entries = collectContentEntries(path.resolve(contentDir, locale));
+    for (const entry of entries) {
+      const localizedRoute =
+        locale === DEFAULT_LOCALE ? entry.route : `/${locale}${entry.route}`;
+      const description = entry.description || extractDescription(entry.body);
+      result.push({
+        route: localizedRoute,
+        apiPath: pageRouteToApiPath(localizedRoute),
+        locale,
+        title: entry.title,
+        description,
+        body: entry.body,
+      });
+    }
+  }
+  return result;
+}
+
+export function buildPageJson(
+  entry: PageEntry,
+  allEntries: PageEntry[],
+): Record<string, unknown> {
+  const baseRoute = stripLocalePrefix(entry.route);
+
+  const byLocale = new Map<LocaleCode, PageEntry>();
+  for (const e of allEntries) {
+    if (stripLocalePrefix(e.route) === baseRoute) byLocale.set(e.locale, e);
+  }
+
+  const alternates = LOCALES.filter((loc) => byLocale.has(loc)).map((loc) => {
+    const e = byLocale.get(loc) as PageEntry;
+    return {
+      locale: loc,
+      url: `${SITE_URL}${e.route}`,
+      api: `${SITE_URL}/${e.apiPath}`,
+    };
+  });
+
+  const section =
+    baseRoute === "/"
+      ? null
+      : (baseRoute.replace(/^\/docs\//, "").split("/")[0] ?? null);
+
+  return {
+    url: `${SITE_URL}${entry.route}`,
+    locale: entry.locale,
+    title: entry.title,
+    description: entry.description,
+    section,
+    body: entry.body.trim(),
+    alternates,
+  };
+}
+
+export function writePageJsonFiles(contentDir: string, distDir: string): number {
+  const entries = collectPageEntries(contentDir);
+  for (const entry of entries) {
+    const filePath = path.join(distDir, entry.apiPath);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(
+      filePath,
+      `${JSON.stringify(buildPageJson(entry, entries), null, 2)}\n`,
+    );
+  }
+  return entries.length;
+}
+
 export default function metaPlugin() {
   let contentDir: string;
 
@@ -577,7 +661,19 @@ export default function metaPlugin() {
       };
 
       server.middlewares.use((req: any, res: any, next: any) => {
-        const handler = handlers[req.url];
+        const url: string = req.url ?? "";
+
+        if (url.startsWith("/api/") && url.endsWith(".json")) {
+          const entries = collectPageEntries(contentDir);
+          const entry = entries.find((e) => e.apiPath === url);
+          if (entry) {
+            res.setHeader("Content-Type", "application/json; charset=utf-8");
+            res.end(`${JSON.stringify(buildPageJson(entry, entries), null, 2)}\n`);
+            return;
+          }
+        }
+
+        const handler = handlers[url];
         if (!handler) return next();
         const { content, type } = handler();
         res.setHeader("Content-Type", `${type}; charset=utf-8`);

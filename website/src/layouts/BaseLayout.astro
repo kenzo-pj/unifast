@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import PostHog from "../components/PostHog.astro";
+import { pageRouteToApiPath } from "../api-path";
 
 interface Props {
   title?: string;
@@ -12,6 +13,9 @@ interface Props {
 const { title = "unifast", description = "", lang = "en", noindex = false } = Astro.props;
 const fullTitle = title === "unifast" ? "unifast" : `${title} - unifast`;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const apiJsonUrl = noindex
+  ? null
+  : new URL(pageRouteToApiPath(Astro.url.pathname), Astro.site).href;
 ---
 
 <!doctype html>
@@ -31,6 +35,9 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap.xml" type="application/xml" />
     <link rel="canonical" href={canonicalUrl.href} />
+    {apiJsonUrl && (
+      <link rel="alternate" type="application/json" href={apiJsonUrl} title="Page as JSON" />
+    )}
     <meta property="og:title" content={fullTitle} />
     {description && <meta property="og:description" content={description} />}
     <meta property="og:type" content="website" />
