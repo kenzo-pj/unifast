@@ -1,0 +1,37 @@
+---
+title: "githubAlert()"
+description: "Prend en charge les alertes de style GitHub dans les citations (NOTE, TIP, WARNING, etc.)."
+---
+
+import { Example } from "~/components/Example"
+import example from "./github-alert-example.md?example"
+
+```ts
+import { githubAlert } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function githubAlert(): UnifastPlugin
+```
+
+## Paramètres
+
+Aucun.
+
+## Utilisation
+
+```ts
+import { compile, githubAlert } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [githubAlert()],
+});
+```
+
+## Exemples
+
+### Alertes de style GitHub
+
+<Example data={example} />

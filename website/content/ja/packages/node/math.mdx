@@ -1,0 +1,87 @@
+---
+title: "math()"
+description: "インラインおよびディスプレイ構文による数式表現を有効にします。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./math-example.md?example"
+
+```ts
+import { math } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function math(): UnifastPlugin
+```
+
+## パラメータ
+
+なし。
+
+## 使い方
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+Einstein's famous equation: $E = mc^2$
+
+The sum of integers from 1 to n:
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+## 使用例
+
+### 数式の表現
+
+<Example data={example} renderMath />
+
+### インライン数式
+
+インライン数式には単一の `$` を区切り文字として使います。
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ and is used to solve quadratic equations.
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### ディスプレイ数式
+
+ディスプレイ数式には `$$` を区切り文字として使うか、言語に `math` を指定したコードブロックを使います。
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+$$
+\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### KaTeX CSS の読み込み
+
+プラグインは数式構文を適切な HTML 構造に変換しますが、ブラウザで正しく描画するためには KaTeX CSS を別途読み込む必要があります。
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+```

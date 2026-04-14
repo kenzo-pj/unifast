@@ -1,0 +1,121 @@
+---
+title: "React インテグレーション"
+description: "@unifast/react を使って、シンプルな HTML レンダリングから MDX のコンポーネントマッピングまで、React アプリケーションで unifast の出力をレンダリングします。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/react` は、unifast の出力を React アプリケーションでレンダリングするためのユーティリティを提供します。シンプルな HTML レンダリングから MDX のコンポーネントマッピングまで対応できます。
+
+### インストール
+
+<PackageInstall package="@unifast/node @unifast/react" />
+
+### hastToReact を使う
+
+HAst (HTML AST) を React 要素に変換します。生の HTML を注入することなく、HTML 要素をカスタム React コンポーネントにマッピングできます。
+
+```tsx
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+const result = compile(source, { outputKind: "hast" });
+const elements = hastToReact(result.output, {
+  components: {
+    h1: (props) => <h1 className="heading" {...props} />,
+    a: (props) => <a className="link" target="_blank" {...props} />,
+    pre: CodeBlock,
+  },
+});
+
+function Page() {
+  return <article>{elements}</article>;
+}
+```
+
+このアプローチはデフォルトで安全です。AST は生の HTML を経由せずに React 要素へ変換されます。
+
+### MDX のレンダリング
+
+MDX コンテンツには `compileToReact` を使うことで、React コンポーネントを直接取得できます。
+
+```tsx
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const result = compile(source, { inputKind: "mdx" });
+const Content = compileToReact(result);
+
+function Page() {
+  return (
+    <Content
+      components={{
+        Alert: MyAlertComponent,
+        CodeBlock: MyCodeBlock,
+      }}
+    />
+  );
+}
+```
+
+### コンポーネントのマッピング
+
+`hastToReact` と `compileToReact` はどちらも `components` マップを受け取ります。これを使ってデフォルトの HTML 要素をカスタム React コンポーネントに置き換えられます。
+
+```tsx
+const components = {
+  // Replace headings
+  h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
+
+  // Custom code blocks
+  pre: ({ children, ...props }) => <CodeBlock {...props}>{children}</CodeBlock>,
+
+  // External links open in new tab
+  a: ({ href, children }) => (
+    <a href={href} target={href?.startsWith("http") ? "_blank" : undefined}>
+      {children}
+    </a>
+  ),
+};
+```
+
+### サーバーサイドレンダリング
+
+unifast のコンパイルは同期的に Node.js 上で実行されるため、SSR に適しています。
+
+```tsx
+// server.tsx
+import { compile, frontmatter } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+export async function getStaticProps() {
+  const source = await readFile("content/post.md", "utf8");
+  const result = compile(source, {
+    plugins: [frontmatter()],
+    outputKind: "hast",
+  });
+
+  return {
+    props: {
+      hast: result.output,
+      meta: result.frontmatter,
+    },
+  };
+}
+
+function Post({ hast, meta }) {
+  const content = hastToReact(hast);
+  return (
+    <article>
+      <h1>{meta.title}</h1>
+      {content}
+    </article>
+  );
+}
+```
+
+### 関連項目
+
+- [compileToReact()](/docs/packages/react/compile-to-react) - API リファレンス
+- [hastToReact()](/docs/packages/react/hast-to-react) - API リファレンス
+- [MDX を使う](/docs/guides/mdx) - MDX コンパイルガイド

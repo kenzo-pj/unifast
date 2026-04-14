@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "Plugin Vite untuk unifast — mentransformasi file Markdown dan MDX menjadi modul JS"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Ikhtisar
+
+`@unifast/vite` adalah plugin Vite yang mentransformasi file `.md` dan `.mdx` menjadi modul JavaScript. Ia mengintegrasikan compiler Markdown/MDX unifast ke dalam pipeline build Vite, memungkinkan Anda mengimpor file Markdown secara langsung di aplikasi Anda.
+
+## Instalasi
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` adalah peer dependency (opsional) — ketika tersedia, plugin akan menggunakan compiler Rust native untuk performa maksimal. Tanpa itu, file `.md` akan fallback ke rendering HTML dasar, dan file `.mdx` membutuhkannya.
+
+## Panduan Cepat
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // compile options for .md files
+      },
+      mdx: {
+        // compile options for .mdx files
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // compiled HTML string
+console.log(doc.frontmatter);  // parsed frontmatter object
+console.log(doc.toc);          // table of contents entries
+```
+
+## Export Modul
+
+### File `.md`
+
+Setiap file `.md` ditransformasikan menjadi sebuah modul dengan export berikut:
+
+| Export | Tipe | Deskripsi |
+|--------|------|-------------|
+| `html` | `string` | String HTML hasil kompilasi |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter yang sudah di-parse |
+| `toc` | `TocEntry[]` | Daftar isi yang diekstrak |
+| `default` | `object` | Objek yang berisi `html`, `frontmatter`, dan `toc` |
+
+### File `.mdx`
+
+Setiap file `.mdx` di-compile menjadi modul JSX menggunakan `jsx-runtime` React. Ia meng-export sebuah komponen React default beserta `frontmatter` dan `toc`.
+
+## Ringkasan Export
+
+| Export | Jenis | Deskripsi |
+|--------|------|-------------|
+| `default` (unifastPlugin) | function | Factory plugin Vite |
+| `UnifastPluginOptions` | type | Antarmuka opsi plugin |

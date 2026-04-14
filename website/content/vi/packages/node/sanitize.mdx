@@ -1,0 +1,139 @@
+---
+title: "sanitize()"
+description: "Tạo plugin sanitization để loại bỏ các thẻ HTML, thuộc tính và protocol URL nguy hiểm khỏi đầu ra đã biên dịch."
+---
+
+```ts
+import { sanitize } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function sanitize(options?: SanitizePluginOptions): UnifastPlugin
+```
+
+## Tham số
+
+### options?
+
+Cấu hình sanitization
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `enabled` | `boolean` | `true` | Bật hoặc tắt sanitization |
+| `schema` | `SanitizeSchema` | — | Schema sanitization tùy chỉnh |
+
+#### SanitizeSchema
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | Các tên thẻ HTML được phép (tất cả các thẻ khác sẽ bị loại bỏ) |
+| `allowedAttributes` | `Record<string, string[]>` | Map từ tên thẻ đến các tên thuộc tính được phép |
+| `allowedProtocols` | `Record<string, string[]>` | Map từ tên thuộc tính đến các protocol URL được phép |
+
+## Cách dùng
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      enabled: true,
+      schema: {
+        allowedTags: ["h1", "h2", "h3", "p", "a", "strong", "em", "code", "pre", "img", "ul", "ol", "li", "blockquote", "table", "thead", "tbody", "tr", "th", "td"],
+        allowedAttributes: {
+          a: ["href", "title", "target"],
+          img: ["src", "alt", "width", "height"],
+          code: ["class"],
+          pre: ["class"],
+        },
+        allowedProtocols: {
+          href: ["https", "http", "mailto"],
+          src: ["https", "http"],
+        },
+      },
+    }),
+  ],
+});
+```
+
+## Ví dụ
+
+### Loại bỏ HTML nguy hiểm
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const untrustedMd = `
+# Hello
+
+<script>alert("xss")</script>
+
+<img src="x" onerror="alert('xss')">
+
+[Click me](javascript:alert('xss'))
+`;
+
+const result = compile(untrustedMd, {
+  plugins: [sanitize()],
+});
+
+console.log(result.output);
+// <script> tags, onerror attributes, and javascript: URLs are removed
+```
+
+### Tùy chỉnh các thẻ được phép
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      schema: {
+        allowedTags: ["p", "a", "strong", "em", "code", "pre"],
+      },
+    }),
+  ],
+});
+
+console.log(result.output);
+// Only the specified tags are kept; all others are stripped
+```
+
+### Giới hạn các protocol URL
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      schema: {
+        allowedProtocols: {
+          href: ["https", "mailto"],
+          src: ["https"],
+        },
+      },
+    }),
+  ],
+});
+
+console.log(result.output);
+// Only https: and mailto: links are allowed
+```
+
+### Tắt sanitization
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [sanitize({ enabled: false })],
+});
+
+console.log(result.output);
+// No sanitization applied — use only with trusted input
+```

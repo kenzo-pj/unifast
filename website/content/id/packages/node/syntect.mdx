@@ -1,0 +1,86 @@
+---
+title: "syntect()"
+description: "Membuat plugin syntect yang mengaktifkan syntax highlighting Rust-native untuk fenced code block. Ditenagai oleh definisi sintaks Sublime Text dengan dukungan untuk 100+ bahasa."
+---
+
+```ts
+import { syntect } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function syntect(options?: SyntectPluginOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfigurasi engine highlighting
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "syntect"` | `"syntect"` | "syntect" menggunakan highlighter syntect; "none" menonaktifkan highlighting |
+
+## Penggunaan
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    syntect({
+      engine: "syntect",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## Contoh
+
+### Mengaktifkan syntax highlighting
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [syntect()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Menonaktifkan highlighting
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [syntect({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

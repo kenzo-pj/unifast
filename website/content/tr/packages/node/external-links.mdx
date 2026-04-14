@@ -1,0 +1,49 @@
+---
+title: "externalLinks()"
+description: "Markdown çıktınızdaki dış bağlantılara rel ve target öznitelikleri ekler."
+---
+
+import { Example } from "~/components/Example"
+import example from "./external-links-example.md?example"
+
+```ts
+import { externalLinks } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function externalLinks(options?: ExternalLinksPluginOptions): UnifastPlugin
+```
+
+## Parametreler
+
+### options?
+
+Dış bağlantı öznitelikleri yapılandırması
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `rel` | `string` | `"nofollow noopener noreferrer"` | Dış bağlantılardaki rel özniteliği değeri |
+| `target` | `string` | — | target özniteliği değeri (örn. "\_blank") |
+
+## Kullanım
+
+```ts
+import { compile, externalLinks } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    externalLinks({
+      rel: "nofollow noopener noreferrer",
+      target: "_blank",
+    }),
+  ],
+});
+```
+
+## Örnekler
+
+### Dış ve iç bağlantılar
+
+<Example data={example} />

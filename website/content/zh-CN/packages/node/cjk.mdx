@@ -1,0 +1,42 @@
+---
+title: "cjk()"
+description: "面向 CJK 的文本处理，移除 CJK 字符之间多余的换行符。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./cjk-example.md?example"
+
+```ts
+import { cjk } from "@unifast/node";
+```
+
+## 签名
+
+```ts
+function cjk(): UnifastPlugin
+```
+
+## 参数
+
+无。
+
+## 用法
+
+```ts
+import { compile, cjk } from "@unifast/node";
+
+const md = `
+今日は天気が
+とても良いです。
+`;
+
+const result = compile(md, { plugins: [cjk()] });
+console.log(result.output);
+// <p>今日は天気がとても良いです。</p>
+```
+
+## 示例
+
+### CJK 换行符移除
+
+<Example data={example} />

@@ -1,0 +1,53 @@
+---
+title: "autolinkHeadings()"
+description: "제목에 앵커 링크를 자동으로 추가합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./autolink-headings-example.md?example"
+
+```ts
+import { autolinkHeadings } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function autolinkHeadings(options?: AutolinkHeadingsOptions): UnifastPlugin
+```
+
+## 매개변수
+
+### options?
+
+제목 링크 동작을 위한 설정
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `behavior` | `"prepend" \| "append" \| "wrap"` | `"prepend"` | 제목 본문을 기준으로 앵커 링크를 배치할 위치 |
+
+## 사용법
+
+```ts
+import { compile, autolinkHeadings } from "@unifast/node";
+
+const md = `# Introduction
+
+## Getting Started
+
+### Installation`;
+
+const result = compile(md, {
+  plugins: [
+    autolinkHeadings({
+      behavior: "prepend", // "prepend" | "append" | "wrap"
+    }),
+  ],
+});
+```
+
+## 예시
+
+### 앵커 링크가 달린 제목
+
+<Example data={example} />

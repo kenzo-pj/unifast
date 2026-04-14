@@ -41,17 +41,17 @@
     ]
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.4.4",
-    "@commitlint/config-conventional": "^20.4.4",
-    "@evilmartians/lefthook": "^2.1.4",
-    "@vitest/coverage-v8": "^4.1.0",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@evilmartians/lefthook": "^2.1.5",
+    "@vitest/coverage-v8": "^4.1.4",
     "better-typescript-lib": "^2.12.0",
-    "knip": "^5.86.0",
+    "knip": "^5.88.1",
     "oxfmt": "^0.36.0",
-    "oxlint": "^1.54.0",
-    "tsdown": "^0.21.2",
-    "turbo": "^2.8.16",
+    "oxlint": "^1.60.0",
+    "tsdown": "^0.21.8",
+    "turbo": "^2.9.6",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.4"
   }
 }

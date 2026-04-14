@@ -1,0 +1,93 @@
+---
+title: "Intégration Vite"
+description: "Utilisez @unifast/vite pour compiler vos fichiers Markdown et MDX au moment du build et les importer directement dans votre application Vite."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite` fournit un plugin Vite qui compile les fichiers Markdown et MDX au moment du build. Importez directement vos fichiers `.md` et `.mdx` dans votre application.
+
+### Installation
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### Configuration
+
+Ajoutez le plugin à votre configuration Vite :
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // Optional: pass compile options
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### Importer du Markdown
+
+Une fois configuré, importez directement vos fichiers `.md` :
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Compiled HTML string
+console.log(content.frontmatter);  // Parsed frontmatter
+console.log(content.toc);          // Table of contents
+```
+
+Le module importé expose :
+
+| Propriété | Type | Description |
+|----------|------|-------------|
+| `html` | `string` | Sortie HTML compilée |
+| `frontmatter` | `Record<string, unknown>` | Métadonnées frontmatter analysées |
+| `toc` | `TocEntry[]` | Table des matières extraite |
+
+### Avec des plugins
+
+Passez vos plugins via les options du plugin Vite :
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+Tous les imports Markdown/MDX de votre projet utiliseront automatiquement ces plugins.
+
+### Prise en charge de MDX
+
+Les fichiers MDX sont compilés en modules JavaScript avec un export par défaut sous forme de composant React :
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### Rechargement à chaud des modules
+
+Le plugin Vite prend en charge le HMR. Lorsque vous modifiez un fichier `.md` ou `.mdx`, la page se met à jour sans rechargement complet.
+
+### Voir aussi
+
+- [compile()](/docs/packages/node/compile) - API compile sous-jacente
+- [Intégration React](/docs/guides/react) - Rendu du contenu compilé dans React

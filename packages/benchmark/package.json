@@ -35,7 +35,7 @@
     "remark-emoji": "^5.0.2",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
-    "remark-github-blockquote-alert": "^2.0.1",
+    "remark-github-blockquote-alert": "^2.1.0",
     "remark-math": "^6.0.0",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
@@ -43,6 +43,6 @@
     "remark-wiki-link": "^2.0.1",
     "unified": "^11.0.5",
     "vfile-matter": "^5.0.1",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.4"
   }
 }

@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "Mengonversi output HAST unifast menjadi elemen React dengan pemetaan komponen"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Ikhtisar
+
+`@unifast/react` mengonversi output HAST (HTML Abstract Syntax Tree) unifast menjadi elemen React. Paket ini menyediakan dua fungsi utama:
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) - Tingkat tinggi: meng-compile Markdown/MDX dan langsung mengembalikan elemen React
+- [`hastToReact()`](/docs/packages/react/hast-to-react) - Tingkat rendah: mengonversi sebuah pohon HAST menjadi elemen React
+
+Paket ini secara otomatis menangani penggantian nama properti HTML-ke-React (`class` menjadi `className`, `for` menjadi `htmlFor`, dll.) dan parsing string style CSS.
+
+## Instalasi
+
+<PackageInstall package="@unifast/react" />
+
+Peer dependency: `@unifast/node` diperlukan untuk `compileToReact`.
+
+## Definisi Tipe
+
+### CompileToReactOptions
+
+Memperluas `CompileOptions` dengan field khusus React.
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | Fungsi `createElement` dari React |
+| `Fragment` | `unknown` | Komponen `Fragment` dari React |
+| `components?` | `ComponentMap` | Pemetaan dari nama tag HTML ke komponen React |
+| *(seluruh CompileOptions)* | - | Diwarisi dari `CompileOptions` |
+
+### CompileToReactResult
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `element` | `unknown` | Elemen React root |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter yang sudah di-parse |
+| `diagnostics` | `Diagnostic[]` | Peringatan dan error |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Rincian timing (ms) |
+| `toc` | `TocEntry[]` | Daftar isi yang diekstrak |
+
+### HastToReactOptions
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | Fungsi `createElement` dari React |
+| `Fragment` | `unknown` | Komponen `Fragment` dari React |
+| `components?` | `ComponentMap` | Pemetaan dari nama tag HTML ke komponen React kustom |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### Konversi Properti
+
+| Atribut HTML | Prop React |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+String `style` CSS secara otomatis di-parse menjadi objek style React (misalnya `"font-size: 16px"` menjadi `{ fontSize: "16px" }`).
+
+## Ringkasan Export
+
+| Export | Jenis | Deskripsi |
+|--------|------|-------------|
+| `compileToReact` | function | Meng-compile Markdown/MDX menjadi elemen React |
+| `hastToReact` | function | Mengonversi HAST menjadi elemen React |
+| `CompileToReactOptions` | type | Opsi untuk `compileToReact` |
+| `CompileToReactResult` | type | Hasil dari `compileToReact` |
+| `HastToReactOptions` | type | Opsi untuk `hastToReact` |
+| `CreateElement` | type | Signature createElement React |
+| `ComponentMap` | type | Pemetaan tag HTML ke komponen |

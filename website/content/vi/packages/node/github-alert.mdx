@@ -1,0 +1,37 @@
+---
+title: "githubAlert()"
+description: "Hỗ trợ các alert kiểu GitHub trong blockquote (NOTE, TIP, WARNING, v.v.)."
+---
+
+import { Example } from "~/components/Example"
+import example from "./github-alert-example.md?example"
+
+```ts
+import { githubAlert } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function githubAlert(): UnifastPlugin
+```
+
+## Tham số
+
+Không có.
+
+## Cách dùng
+
+```ts
+import { compile, githubAlert } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [githubAlert()],
+});
+```
+
+## Ví dụ
+
+### Các alert kiểu GitHub
+
+<Example data={example} />

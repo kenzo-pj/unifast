@@ -1,0 +1,130 @@
+---
+title: "Syntax Highlighting"
+description: "Pilih dari empat engine syntax highlighting di unifast: tree-sitter, syntect, Shiki, dan highlight.js."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast mendukung empat engine syntax highlighting. Dua di antaranya berjalan di dalam compiler Rust (**tree-sitter**, **syntect**), dan dua lainnya berjalan di JavaScript (**Shiki**, **highlight.js**).
+
+### Perbandingan
+
+| | tree-sitter | syntect | Shiki | highlight.js |
+|---|-------------|---------|-------|--------------|
+| **Runtime** | Rust (bawaan) | Rust (bawaan) | JavaScript | JavaScript |
+| **Parsing** | Berbasis AST (grammar tree-sitter) | Berbasis regex (grammar TextMate) | Berbasis regex (grammar VS Code) | Berbasis regex (grammar highlight.js) |
+| **Kecepatan** | Tercepat | Cepat | Lebih lambat | Lebih lambat |
+| **Bahasa** | 29 bahasa + fallback syntect | 100+ (TextMate) | Grammar VS Code | 190+ |
+| **Output CSS** | Berbasis class (`ts-*`) | Berbasis class (`sy-*`) | Inline style atau berbasis class | Berbasis class (`hljs`) |
+| **Paket** | `@unifast/node` | `@unifast/node` | `@unifast/shiki` | `@unifast/highlight` |
+| **Cocok untuk** | Highlighting presisi, cakupan luas | Setup sederhana, startup cepat | Kontrol tema yang detail | Ekosistem tema highlight.js |
+
+### Menggunakan tree-sitter
+
+tree-sitter menggunakan parsing berbasis AST untuk syntax highlighting yang presisi. Ia berjalan di dalam compiler Rust dan secara native mendukung 29 bahasa. Untuk bahasa yang tidak didukung, ia secara otomatis fallback ke syntect.
+
+tree-sitter sudah disertakan dalam `@unifast/node` — tidak perlu instalasi terpisah.
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [treeSitter()] }
+);
+```
+
+tree-sitter menghasilkan nama class CSS dengan prefix `ts-`. Anda perlu menyediakan aturan CSS untuk class-class ini di stylesheet Anda.
+
+#### Bahasa yang didukung
+
+TypeScript, TSX, JavaScript, HTML, CSS, Python, Rust, JSON, YAML, Go, Ruby, TOML, Swift, PHP, Java, Lua, Scala, Zig, Elixir, OCaml, R, Make, Nix, Regex, Erlang, Bash, C, C++, CMake
+
+Alias bahasa juga didukung (misalnya `ts`, `py`, `rs`, `sh`, `yml`, `rb`).
+
+### Menggunakan syntect
+
+syntect menggunakan grammar TextMate dan berjalan sepenuhnya di dalam compiler Rust — tidak ada overhead JavaScript tambahan.
+
+syntect sudah disertakan dalam `@unifast/node` — tidak perlu instalasi terpisah.
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [syntect()] }
+);
+```
+
+syntect menghasilkan nama class CSS dengan prefix `sy-`. Anda perlu menyediakan aturan CSS untuk class-class ini di stylesheet Anda.
+
+### Menggunakan Shiki
+
+Shiki menggunakan engine grammar TextMate dari VS Code untuk highlighting yang akurat dengan dukungan tema.
+
+<PackageInstall package="@unifast/shiki shiki" />
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  theme: "github-dark",
+  langs: ["typescript", "rust", "bash"],
+});
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [shiki] }
+);
+```
+
+### Menggunakan highlight.js
+
+`@unifast/highlight` menggunakan [lowlight](https://github.com/wooorm/lowlight) (highlight.js) dan berjalan sebagai transform HAST di JavaScript. Ia mendukung 190+ bahasa dan bekerja dengan tema highlight.js apa pun.
+
+<PackageInstall package="@unifast/highlight" />
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [highlight()] }
+);
+```
+
+highlight.js menghasilkan nama class dengan prefix `hljs`. Gunakan [tema CSS highlight.js](https://highlightjs.org/demo) apa pun untuk styling.
+
+### Nomor Baris
+
+Semua engine mendukung nomor baris. Aktifkan di opsi compile:
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [treeSitter()],
+  lineNumbers: true,
+});
+```
+
+Setiap baris dibungkus dalam sebuah `<span>` dengan atribut `data-line` untuk styling berbasis CSS:
+
+```css
+[data-line]::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: 2rem;
+  text-align: right;
+  margin-right: 1rem;
+  color: #6b7280;
+}
+```
+
+### Lihat Juga
+
+- [syntect()](/docs/packages/node/syntect) - Referensi API syntect
+- [createShikiPlugin()](/docs/packages/shiki/create-shiki-plugin) - Referensi API Shiki

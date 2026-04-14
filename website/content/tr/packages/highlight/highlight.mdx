@@ -1,0 +1,77 @@
+---
+title: "highlight()"
+description: "lowlight kullanarak HAST dönüşümleri aracılığıyla fenced kod bloklarını vurgulayan bir highlight.js sözdizimi vurgulama plugin'i oluşturur."
+---
+
+```ts
+import { highlight } from "@unifast/highlight";
+```
+
+## İmza
+
+```ts
+function highlight(): UnifastPlugin
+```
+
+## Parametreler
+
+Yok.
+
+## Kullanım
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// <pre><code class="language-typescript hljs">
+//   <span class="hljs-keyword">const</span> ...
+// </code></pre>
+```
+
+## Örnekler
+
+### Birden fazla dil ile
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`python
+def hello():
+    print("Hello, world!")
+\`\`\`
+
+\`\`\`css
+.container {
+  display: flex;
+}
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [highlight()] });
+// Her iki kod bloğu da uygun highlight.js sınıflarıyla vurgulanır
+```
+
+### Diğer plugin'ler ile
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), highlight()],
+});
+```

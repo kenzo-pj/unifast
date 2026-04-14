@@ -1,0 +1,123 @@
+---
+title: "hastToReact()"
+description: "HAST 루트 노드를 React 엘리먼트로 변환합니다. 컴파일 파이프라인 전반을 직접 제어해야 할 때 쓰는 저수준 함수입니다."
+---
+
+```ts
+import { hastToReact } from "@unifast/react";
+```
+
+## 시그니처
+
+```ts
+function hastToReact(
+  hast: HastRoot,
+  options: HastToReactOptions,
+): unknown
+```
+
+## 매개변수
+
+### hast
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `type` | `"root"` | — | 노드 타입 식별자 |
+| `children` | `HastNode[]` | — | 트리의 자식 노드 |
+
+### options
+
+React 엘리먼트 생성 설정.
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | React의 createElement 함수 |
+| `Fragment` | `unknown` | — | React의 Fragment 컴포넌트 |
+| `components?` | `ComponentMap` | — | HTML 태그 이름과 커스텀 React 컴포넌트의 매핑 |
+
+## 사용법
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+
+const element = hastToReact(hast, {
+  createElement,
+  Fragment,
+  components: {
+    pre: ({ children, ...props }) => <pre className="code-block" {...props}>{children}</pre>,
+    a: ({ children, ...props }) => <a target="_blank" rel="noopener" {...props}>{children}</a>,
+  },
+});
+```
+
+## 예시
+
+### 기본 사용법
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile("# Hello, **world**!", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Shiki로 강조된 HAST와 함께
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```
+
+### 서버 사이드 렌더링
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// SSR을 위한 HTML 문자열
+```
+
+## 동작
+
+- **속성 이름 변환:** HTML 속성은 React 네이밍으로 변환됩니다 (`class`에서 `className`, `for`에서 `htmlFor` 등).
+- **스타일 파싱:** CSS 스타일 문자열이 React 스타일 객체로 파싱됩니다.
+- **className 배열:** HAST의 `className` 배열은 공백으로 이어 붙여집니다.
+- **불리언 속성:** `true`면 속성이 렌더링되고, `false`/`null`/`undefined`면 생략됩니다.
+- **Raw 노드:** 인라인 HTML로 렌더링됩니다. 신뢰할 수 없는 입력을 다룰 때는 (`@unifast/node`의) `sanitize` 플러그인을 사용하세요.
+- **주석과 doctype:** 무시됩니다(`null` 반환).

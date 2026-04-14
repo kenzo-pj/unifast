@@ -1,0 +1,2 @@
+- [GitHub](https://github.com) — 外部連結，會在新分頁開啟
+- [快速入門](/zh-TW/docs/introduction/quick-start) — 內部連結，不會被修改

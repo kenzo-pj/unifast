@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Применяет типографские замены для кавычек, тире и многоточий."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Параметры
+
+### options?
+
+Конфигурация того, какие замены применять
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | Заменять прямые кавычки на парные |
+| `dashes` | `boolean` | `true` | Заменять -- на короткое тире, а --- на длинное тире |
+| `ellipses` | `boolean` | `true` | Заменять ... на символ многоточия |
+
+## Использование
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Примеры
+
+### Типографские замены
+
+<Example data={example} />
+
+| Источник | Результат |
+|--------|--------|
+| `"Hello"` | парные двойные кавычки |
+| `'Hi'` | парные одинарные кавычки |
+| `--` | короткое тире (–) |
+| `---` | длинное тире (—) |
+| `...` | многоточие (…) |

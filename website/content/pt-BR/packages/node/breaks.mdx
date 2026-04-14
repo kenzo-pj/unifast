@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "Converte newlines em texto para elementos `<br>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## Assinatura
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Parâmetros
+
+Nenhum.
+
+## Uso
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Each newline becomes a <br> element
+```
+
+## Exemplos
+
+### Newlines para line breaks
+
+Sem o `breaks()`, essas três linhas seriam mescladas em um único parágrafo. Com o plugin habilitado, cada newline se torna um `<br>`:
+
+<Example data={example} />

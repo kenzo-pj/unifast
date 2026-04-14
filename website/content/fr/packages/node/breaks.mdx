@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "Convertit les retours à la ligne dans le texte en éléments `<br>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Paramètres
+
+Aucun.
+
+## Utilisation
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Each newline becomes a <br> element
+```
+
+## Exemples
+
+### Retours à la ligne transformés en sauts de ligne
+
+Sans `breaks()`, ces trois lignes seraient fusionnées en un seul paragraphe. Avec le plugin activé, chaque retour à la ligne devient un `<br>` :
+
+<Example data={example} />

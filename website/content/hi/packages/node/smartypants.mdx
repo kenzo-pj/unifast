@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "quotes, dashes, और ellipses के लिए typographic replacements लागू करें।"
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Parameters
+
+### options?
+
+कौन से replacements लागू करने हैं, इसके लिए Configuration
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | straight quotes को curly quotes से replace करें |
+| `dashes` | `boolean` | `true` | -- को en-dash से और --- को em-dash से replace करें |
+| `ellipses` | `boolean` | `true` | ... को एक ellipsis character से replace करें |
+
+## उपयोग
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## उदाहरण
+
+### Typographic replacements
+
+<Example data={example} />
+
+| Source | Result |
+|--------|--------|
+| `"Hello"` | curly double quotes |
+| `'Hi'` | curly single quotes |
+| `--` | en-dash (–) |
+| `---` | em-dash (—) |
+| `...` | ellipsis (…) |

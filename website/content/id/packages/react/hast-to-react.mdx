@@ -1,0 +1,123 @@
+---
+title: "hastToReact()"
+description: "Mengonversi node root HAST menjadi elemen React. Fungsi tingkat rendah untuk saat Anda membutuhkan kontrol penuh atas pipeline kompilasi."
+---
+
+```ts
+import { hastToReact } from "@unifast/react";
+```
+
+## Signature
+
+```ts
+function hastToReact(
+  hast: HastRoot,
+  options: HastToReactOptions,
+): unknown
+```
+
+## Parameter
+
+### hast
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `type` | `"root"` | — | Identifier tipe node |
+| `children` | `HastNode[]` | — | Node anak dari pohon |
+
+### options
+
+Konfigurasi pembuatan elemen React
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | Fungsi createElement dari React |
+| `Fragment` | `unknown` | — | Komponen Fragment dari React |
+| `components?` | `ComponentMap` | — | Pemetaan dari nama tag HTML ke komponen React kustom |
+
+## Penggunaan
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+
+const element = hastToReact(hast, {
+  createElement,
+  Fragment,
+  components: {
+    pre: ({ children, ...props }) => <pre className="code-block" {...props}>{children}</pre>,
+    a: ({ children, ...props }) => <a target="_blank" rel="noopener" {...props}>{children}</a>,
+  },
+});
+```
+
+## Contoh
+
+### Penggunaan dasar
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile("# Hello, **world**!", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Dengan HAST yang sudah di-highlight Shiki
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```
+
+### Server-side rendering
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+## Perilaku
+
+- **Penggantian nama properti:** Atribut HTML diganti namanya menjadi setara React (`class` menjadi `className`, `for` menjadi `htmlFor`, dll.)
+- **Parsing style:** String style CSS di-parse menjadi objek style React
+- **Array className:** Array `className` HAST digabungkan dengan spasi
+- **Atribut boolean:** `true` merender atribut, `false`/`null`/`undefined` menghilangkannya
+- **Node mentah:** Dirender sebagai HTML inline - gunakan plugin `sanitize` (dari `@unifast/node`) saat memproses input yang tidak terpercaya
+- **Komentar dan doctype:** Diabaikan (mengembalikan `null`)

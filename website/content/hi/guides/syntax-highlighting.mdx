@@ -1,0 +1,130 @@
+---
+title: "Syntax Highlighting"
+description: "unifast में चार syntax highlighting engines में से चुनें: tree-sitter, syntect, Shiki, और highlight.js।"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast चार syntax highlighting engines को सपोर्ट करता है। दो Rust कंपाइलर के अंदर चलते हैं (**tree-sitter**, **syntect**), और दो JavaScript में चलते हैं (**Shiki**, **highlight.js**)।
+
+### तुलना
+
+| | tree-sitter | syntect | Shiki | highlight.js |
+|---|-------------|---------|-------|--------------|
+| **Runtime** | Rust (built-in) | Rust (built-in) | JavaScript | JavaScript |
+| **Parsing** | AST-based (tree-sitter grammars) | Regex-based (TextMate grammars) | Regex-based (VS Code grammars) | Regex-based (highlight.js grammars) |
+| **गति** | सबसे तेज़ | तेज़ | धीमा | धीमा |
+| **भाषाएँ** | 29 भाषाएँ + syntect fallback | 100+ (TextMate) | VS Code grammars | 190+ |
+| **CSS output** | Class-based (`ts-*`) | Class-based (`sy-*`) | Inline styles या class-based | Class-based (`hljs`) |
+| **Package** | `@unifast/node` | `@unifast/node` | `@unifast/shiki` | `@unifast/highlight` |
+| **सर्वश्रेष्ठ उपयोग** | सटीक highlighting, व्यापक coverage | सरल setup, तेज़ startup | fine-grained theme control | highlight.js theme ecosystem |
+
+### tree-sitter का उपयोग
+
+tree-sitter सटीक syntax highlighting के लिए AST-based parsing का उपयोग करता है। यह Rust कंपाइलर के अंदर चलता है और 29 भाषाओं को natively सपोर्ट करता है। असमर्थित भाषाओं के लिए, यह अपने आप syntect पर fall back करता है।
+
+tree-sitter `@unifast/node` में शामिल है — अलग से install करने की ज़रूरत नहीं है।
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [treeSitter()] }
+);
+```
+
+tree-sitter `ts-` prefix वाले CSS class names उत्पन्न करता है। आपको अपनी stylesheet में इन classes के लिए CSS rules प्रदान करने होंगे।
+
+#### समर्थित भाषाएँ
+
+TypeScript, TSX, JavaScript, HTML, CSS, Python, Rust, JSON, YAML, Go, Ruby, TOML, Swift, PHP, Java, Lua, Scala, Zig, Elixir, OCaml, R, Make, Nix, Regex, Erlang, Bash, C, C++, CMake
+
+Language aliases भी समर्थित हैं (जैसे `ts`, `py`, `rs`, `sh`, `yml`, `rb`)।
+
+### syntect का उपयोग
+
+syntect TextMate grammars का उपयोग करता है और पूरी तरह से Rust कंपाइलर के अंदर चलता है — कोई अतिरिक्त JavaScript overhead नहीं।
+
+syntect `@unifast/node` में शामिल है — अलग से install करने की ज़रूरत नहीं है।
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [syntect()] }
+);
+```
+
+syntect `sy-` prefix वाले CSS class names उत्पन्न करता है। आपको अपनी stylesheet में इन classes के लिए CSS rules प्रदान करने होंगे।
+
+### Shiki का उपयोग
+
+Shiki theme support के साथ सटीक highlighting के लिए VS Code के TextMate grammar engine का उपयोग करता है।
+
+<PackageInstall package="@unifast/shiki shiki" />
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  theme: "github-dark",
+  langs: ["typescript", "rust", "bash"],
+});
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [shiki] }
+);
+```
+
+### highlight.js का उपयोग
+
+`@unifast/highlight` [lowlight](https://github.com/wooorm/lowlight) (highlight.js) का उपयोग करता है और JavaScript में एक HAST transform के रूप में चलता है। यह 190+ भाषाओं को सपोर्ट करता है और किसी भी highlight.js theme के साथ काम करता है।
+
+<PackageInstall package="@unifast/highlight" />
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [highlight()] }
+);
+```
+
+highlight.js `hljs` prefix के साथ class names उत्पन्न करता है। styling के लिए किसी भी [highlight.js theme CSS](https://highlightjs.org/demo) का उपयोग करें।
+
+### Line Numbers
+
+सभी engines line numbers को सपोर्ट करते हैं। उन्हें compile options में enable करें:
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [treeSitter()],
+  lineNumbers: true,
+});
+```
+
+प्रत्येक line को CSS-based styling के लिए `data-line` attribute के साथ एक `<span>` में wrap किया जाता है:
+
+```css
+[data-line]::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: 2rem;
+  text-align: right;
+  margin-right: 1rem;
+  color: #6b7280;
+}
+```
+
+### यह भी देखें
+
+- [syntect()](/docs/packages/node/syntect) - syntect API reference
+- [createShikiPlugin()](/docs/packages/shiki/create-shiki-plugin) - Shiki API reference

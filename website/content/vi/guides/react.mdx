@@ -1,0 +1,121 @@
+---
+title: "Tích hợp React"
+description: "Render đầu ra của unifast trong ứng dụng React bằng @unifast/react, từ render HTML đơn giản đến ánh xạ component MDX đầy đủ."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/react` cung cấp các tiện ích để render đầu ra của unifast trong ứng dụng React - từ render HTML đơn giản đến ánh xạ component MDX đầy đủ.
+
+### Cài đặt
+
+<PackageInstall package="@unifast/node @unifast/react" />
+
+### Sử dụng hastToReact
+
+Chuyển HAst (HTML AST) thành các React element. Cách này cho phép bạn ánh xạ các phần tử HTML sang React component tùy chỉnh mà không cần inject HTML thô.
+
+```tsx
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+const result = compile(source, { outputKind: "hast" });
+const elements = hastToReact(result.output, {
+  components: {
+    h1: (props) => <h1 className="heading" {...props} />,
+    a: (props) => <a className="link" target="_blank" {...props} />,
+    pre: CodeBlock,
+  },
+});
+
+function Page() {
+  return <article>{elements}</article>;
+}
+```
+
+Hướng tiếp cận này an toàn ngay từ mặc định - AST được chuyển đổi thành các React element mà không chạm vào HTML thô.
+
+### Render MDX
+
+Đối với nội dung MDX, sử dụng `compileToReact` để lấy trực tiếp một React component:
+
+```tsx
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const result = compile(source, { inputKind: "mdx" });
+const Content = compileToReact(result);
+
+function Page() {
+  return (
+    <Content
+      components={{
+        Alert: MyAlertComponent,
+        CodeBlock: MyCodeBlock,
+      }}
+    />
+  );
+}
+```
+
+### Ánh xạ component
+
+Cả `hastToReact` và `compileToReact` đều nhận một map `components`. Hãy sử dụng nó để thay thế các phần tử HTML mặc định bằng React component tùy chỉnh của bạn:
+
+```tsx
+const components = {
+  // Replace headings
+  h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
+
+  // Custom code blocks
+  pre: ({ children, ...props }) => <CodeBlock {...props}>{children}</CodeBlock>,
+
+  // External links open in new tab
+  a: ({ href, children }) => (
+    <a href={href} target={href?.startsWith("http") ? "_blank" : undefined}>
+      {children}
+    </a>
+  ),
+};
+```
+
+### Server-Side Rendering
+
+Quá trình biên dịch của unifast là đồng bộ và chạy trong Node.js, rất phù hợp cho SSR:
+
+```tsx
+// server.tsx
+import { compile, frontmatter } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+export async function getStaticProps() {
+  const source = await readFile("content/post.md", "utf8");
+  const result = compile(source, {
+    plugins: [frontmatter()],
+    outputKind: "hast",
+  });
+
+  return {
+    props: {
+      hast: result.output,
+      meta: result.frontmatter,
+    },
+  };
+}
+
+function Post({ hast, meta }) {
+  const content = hastToReact(hast);
+  return (
+    <article>
+      <h1>{meta.title}</h1>
+      {content}
+    </article>
+  );
+}
+```
+
+### Xem thêm
+
+- [compileToReact()](/docs/packages/react/compile-to-react) - Tài liệu tham chiếu API
+- [hastToReact()](/docs/packages/react/hast-to-react) - Tài liệu tham chiếu API
+- [Sử dụng MDX](/docs/guides/mdx) - Hướng dẫn biên dịch MDX

@@ -1,0 +1,123 @@
+---
+title: "hastToReact()"
+description: "將 HAST 根節點轉換為 React 元素。當您需要完整掌控編譯管線時使用的低階函式。"
+---
+
+```ts
+import { hastToReact } from "@unifast/react";
+```
+
+## 函式簽名
+
+```ts
+function hastToReact(
+  hast: HastRoot,
+  options: HastToReactOptions,
+): unknown
+```
+
+## 參數
+
+### hast
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `type` | `"root"` | — | 節點型別識別字 |
+| `children` | `HastNode[]` | — | 樹的子節點 |
+
+### options
+
+React 元素建立設定
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | React 的 createElement 函式 |
+| `Fragment` | `unknown` | — | React 的 Fragment 元件 |
+| `components?` | `ComponentMap` | — | HTML 標籤名稱到自訂 React 元件的對應表 |
+
+## 用法
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+
+const element = hastToReact(hast, {
+  createElement,
+  Fragment,
+  components: {
+    pre: ({ children, ...props }) => <pre className="code-block" {...props}>{children}</pre>,
+    a: ({ children, ...props }) => <a target="_blank" rel="noopener" {...props}>{children}</a>,
+  },
+});
+```
+
+## 範例
+
+### 基本用法
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile("# Hello, **world**!", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### 搭配 Shiki 高亮後的 HAST
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```
+
+### 伺服器端渲染
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+## 行為
+
+- **屬性重新命名：** HTML 屬性會改為對應的 React 名稱（`class` 變 `className`、`for` 變 `htmlFor` 等）
+- **Style 解析：** CSS style 字串會被解析為 React style 物件
+- **className 陣列：** HAST 的 `className` 陣列會以空白字元串接
+- **布林屬性：** `true` 會輸出屬性，`false`、`null`、`undefined` 則會省略
+- **Raw 節點：** 會以行內 HTML 的方式渲染──處理不信任的輸入時，請搭配 `sanitize` 外掛（來自 `@unifast/node`）使用
+- **註解與 doctype：** 會被忽略（回傳 `null`）

@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "एक Tree-sitter plugin बनाएँ जो Tree-sitter parsing library का उपयोग करके fenced code blocks के लिए syntax highlighting enable करता है।"
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## Parameters
+
+### options?
+
+Highlighting engine configuration
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | "treeSitter" Tree-sitter highlighter का उपयोग करता है; "none" highlighting disable करता है |
+
+## उपयोग
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks <span> elements और CSS classes के साथ syntax highlighted होते हैं
+```
+
+## उदाहरण
+
+### Syntax highlighting enable करें
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Highlighting disable करें
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks syntax highlighting के बिना render होते हैं
+```

@@ -1,0 +1,130 @@
+---
+title: "Evidenziazione della sintassi"
+description: "Scegli tra quattro motori di evidenziazione della sintassi in unifast: tree-sitter, syntect, Shiki e highlight.js."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast supporta quattro motori di evidenziazione della sintassi. Due vengono eseguiti all'interno del compilatore Rust (**tree-sitter**, **syntect**) e due in JavaScript (**Shiki**, **highlight.js**).
+
+### Confronto
+
+| | tree-sitter | syntect | Shiki | highlight.js |
+|---|-------------|---------|-------|--------------|
+| **Runtime** | Rust (integrato) | Rust (integrato) | JavaScript | JavaScript |
+| **Parsing** | Basato su AST (grammatiche tree-sitter) | Basato su regex (grammatiche TextMate) | Basato su regex (grammatiche VS Code) | Basato su regex (grammatiche highlight.js) |
+| **Velocità** | Il più veloce | Veloce | Più lento | Più lento |
+| **Linguaggi** | 29 linguaggi + fallback su syntect | 100+ (TextMate) | Grammatiche VS Code | 190+ |
+| **Output CSS** | Basato su classi (`ts-*`) | Basato su classi (`sy-*`) | Stili inline o basato su classi | Basato su classi (`hljs`) |
+| **Pacchetto** | `@unifast/node` | `@unifast/node` | `@unifast/shiki` | `@unifast/highlight` |
+| **Ideale per** | Evidenziazione precisa, ampia copertura | Configurazione semplice, avvio rapido | Controllo fine dei temi | Ecosistema di temi highlight.js |
+
+### Utilizzo di tree-sitter
+
+tree-sitter utilizza il parsing basato su AST per un'evidenziazione della sintassi precisa. Viene eseguito all'interno del compilatore Rust e supporta nativamente 29 linguaggi. Per i linguaggi non supportati, ripiega automaticamente su syntect.
+
+tree-sitter è incluso in `@unifast/node`, non è necessaria alcuna installazione separata.
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [treeSitter()] }
+);
+```
+
+tree-sitter genera nomi di classi CSS con il prefisso `ts-`. È necessario fornire le regole CSS per queste classi nel proprio foglio di stile.
+
+#### Linguaggi supportati
+
+TypeScript, TSX, JavaScript, HTML, CSS, Python, Rust, JSON, YAML, Go, Ruby, TOML, Swift, PHP, Java, Lua, Scala, Zig, Elixir, OCaml, R, Make, Nix, Regex, Erlang, Bash, C, C++, CMake
+
+Sono supportati anche gli alias dei linguaggi (ad esempio `ts`, `py`, `rs`, `sh`, `yml`, `rb`).
+
+### Utilizzo di syntect
+
+syntect usa le grammatiche TextMate e viene eseguito interamente all'interno del compilatore Rust, senza alcun overhead JavaScript aggiuntivo.
+
+syntect è incluso in `@unifast/node`, non è necessaria alcuna installazione separata.
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [syntect()] }
+);
+```
+
+syntect genera nomi di classi CSS con il prefisso `sy-`. È necessario fornire le regole CSS per queste classi nel proprio foglio di stile.
+
+### Utilizzo di Shiki
+
+Shiki utilizza il motore di grammatiche TextMate di VS Code per un'evidenziazione accurata con supporto ai temi.
+
+<PackageInstall package="@unifast/shiki shiki" />
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  theme: "github-dark",
+  langs: ["typescript", "rust", "bash"],
+});
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [shiki] }
+);
+```
+
+### Utilizzo di highlight.js
+
+`@unifast/highlight` usa [lowlight](https://github.com/wooorm/lowlight) (highlight.js) e funziona come trasformazione HAST in JavaScript. Supporta oltre 190 linguaggi e funziona con qualsiasi tema di highlight.js.
+
+<PackageInstall package="@unifast/highlight" />
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [highlight()] }
+);
+```
+
+highlight.js genera nomi di classi con il prefisso `hljs`. Utilizza qualsiasi [CSS di un tema di highlight.js](https://highlightjs.org/demo) per lo styling.
+
+### Numeri di riga
+
+Tutti i motori supportano i numeri di riga. Abilitali nelle opzioni di compilazione:
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [treeSitter()],
+  lineNumbers: true,
+});
+```
+
+Ogni riga viene racchiusa in uno `<span>` con un attributo `data-line` per lo styling basato su CSS:
+
+```css
+[data-line]::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: 2rem;
+  text-align: right;
+  margin-right: 1rem;
+  color: #6b7280;
+}
+```
+
+### Vedi anche
+
+- [syntect()](/docs/packages/node/syntect) - Riferimento API di syntect
+- [createShikiPlugin()](/docs/packages/shiki/create-shiki-plugin) - Riferimento API di Shiki

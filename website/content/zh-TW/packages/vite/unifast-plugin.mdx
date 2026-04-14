@@ -1,0 +1,83 @@
+---
+title: "unifastPlugin()"
+description: "建立一個 Vite 外掛，將 Markdown 與 MDX 檔案轉換為可直接匯入的 JavaScript 模組。"
+---
+
+```ts
+import unifast from "@unifast/vite";
+```
+
+## 函式簽名
+
+```ts
+function unifastPlugin(options?: UnifastPluginOptions): Plugin
+```
+
+## 參數
+
+### options?
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `md` | `CompileOptions` | `{}` | 套用至 `.md` 檔案的 compile 選項 |
+| `mdx` | `CompileOptions` | 沿用 `md` 的選項 | 套用至 `.mdx` 檔案的 compile 選項；若未指定則沿用 `md` 的設定 |
+
+## 回傳值
+
+一個 Vite `Plugin` 物件，包含：
+- **`name`**：`"vite-plugin-unifast"`
+- **`enforce`**：`"pre"`──在其他外掛之前執行
+- **`transform`**：將 `.md` / `.mdx` 檔案編譯為 JS 模組
+- **`handleHotUpdate`**：Markdown 檔案變更時觸發 HMR
+
+## 用法
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { gfm, frontmatter, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        plugins: [gfm(), frontmatter(), syntect()],
+      },
+    }),
+  ],
+});
+```
+
+## 範例
+
+### 為 MD 與 MDX 設定不同選項
+
+```ts
+import unifast from "@unifast/vite";
+import { gfm, frontmatter } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        plugins: [gfm(), frontmatter()],
+      },
+      mdx: {
+        plugins: [gfm(), frontmatter()],
+        // MDX-specific options can differ
+      },
+    }),
+  ],
+});
+```
+
+### 在元件中匯入 Markdown
+
+```ts
+import doc from "./README.md";
+
+// doc.html — compiled HTML string
+// doc.frontmatter — parsed frontmatter object
+// doc.toc — table of contents entries
+```

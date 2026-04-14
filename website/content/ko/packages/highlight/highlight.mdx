@@ -1,0 +1,77 @@
+---
+title: "highlight()"
+description: "lowlight를 사용해 HAST 변환으로 펜스드 코드 블록을 강조하는 highlight.js 구문 강조 플러그인을 생성합니다."
+---
+
+```ts
+import { highlight } from "@unifast/highlight";
+```
+
+## 시그니처
+
+```ts
+function highlight(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// <pre><code class="language-typescript hljs">
+//   <span class="hljs-keyword">const</span> ...
+// </code></pre>
+```
+
+## 예시
+
+### 여러 언어와 함께
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`python
+def hello():
+    print("Hello, world!")
+\`\`\`
+
+\`\`\`css
+.container {
+  display: flex;
+}
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [highlight()] });
+// 두 코드 블록 모두 highlight.js의 적절한 클래스로 강조됩니다
+```
+
+### 다른 플러그인과 함께
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), highlight()],
+});
+```

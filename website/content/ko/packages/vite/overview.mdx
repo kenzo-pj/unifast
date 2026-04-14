@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "unifast를 위한 Vite 플러그인 — Markdown과 MDX 파일을 JS 모듈로 변환"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 개요
+
+`@unifast/vite`는 `.md`와 `.mdx` 파일을 JavaScript 모듈로 변환해 주는 Vite 플러그인입니다. unifast의 Markdown/MDX 컴파일러를 Vite 빌드 파이프라인에 통합하여, 애플리케이션에서 Markdown 파일을 직접 import할 수 있게 합니다.
+
+## 설치
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node`는 peer 의존성(선택)입니다. 설치되어 있으면 플러그인이 최고의 성능을 위해 네이티브 Rust 컴파일러를 사용합니다. 설치되어 있지 않으면 `.md` 파일은 기본 HTML 렌더링으로 폴백하며, `.mdx` 파일에는 반드시 필요합니다.
+
+## 빠른 시작
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // .md 파일용 compile 옵션
+      },
+      mdx: {
+        // .mdx 파일용 compile 옵션
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // 컴파일된 HTML 문자열
+console.log(doc.frontmatter);  // 파싱된 frontmatter 객체
+console.log(doc.toc);          // 목차 항목
+```
+
+## 모듈 exports
+
+### `.md` 파일
+
+각 `.md` 파일은 다음 export를 가진 모듈로 변환됩니다.
+
+| Export | 타입 | 설명 |
+|--------|------|-------------|
+| `html` | `string` | 컴파일된 HTML 문자열 |
+| `frontmatter` | `Record<string, unknown>` | 파싱된 frontmatter 메타데이터 |
+| `toc` | `TocEntry[]` | 추출된 목차 |
+| `default` | `object` | `html`, `frontmatter`, `toc`를 담은 객체 |
+
+### `.mdx` 파일
+
+각 `.mdx` 파일은 React의 `jsx-runtime`을 사용하는 JSX 모듈로 컴파일됩니다. 기본 React 컴포넌트와 함께 `frontmatter`, `toc`를 export합니다.
+
+## Exports 요약
+
+| Export | 종류 | 설명 |
+|--------|------|-------------|
+| `default` (unifastPlugin) | function | Vite 플러그인 팩토리 |
+| `UnifastPluginOptions` | type | 플러그인 옵션 인터페이스 |

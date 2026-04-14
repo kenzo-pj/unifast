@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "Tạo plugin GFM để kích hoạt các phần mở rộng GitHub Flavored Markdown."
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## Tham số
+
+### options?
+
+Cấu hình cho từng tính năng GFM
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | Bật bảng pipe với cú pháp \| |
+| `taskList` | `boolean` | `true` | Bật checkbox danh sách tác vụ - [x] / - [ ] |
+| `strikethrough` | `boolean` | `true` | Bật cú pháp gạch ngang ~~deleted~~ |
+| `footnotes` | `boolean` | `true` | Bật tham chiếu và định nghĩa chú thích cuối [^1] |
+| `autolink` | `boolean` | `true` | Tự động tạo link cho các URL trần |
+
+## Cách dùng
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## Ví dụ
+
+### Bảng
+
+<Example data={tableExample} />
+
+### Danh sách tác vụ
+
+<Example data={taskListExample} />
+
+### Gạch ngang & Autolink
+
+<Example data={strikethroughExample} />
+
+### Chú thích cuối
+
+<Example data={footnoteExample} />

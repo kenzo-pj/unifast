@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "HAST dönüşümleriyle unifast için Shiki tabanlı sözdizimi vurgulama plugin'i"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Genel Bakış
+
+`@unifast/shiki`, [Shiki](https://shiki.style/) tarafından desteklenen sözdizimi vurgulaması sağlar ve 200+ dili ile çok çeşitli temaları destekler. Dahili highlight plugin'inin aksine Shiki, JavaScript'te bir HAST dönüşümü olarak çalışır ve `<pre><code>` bloklarını zengin stillendirilmiş çıktıyla değiştirir.
+
+Plugin, çift işlemeyi önlemek için dahili Rust vurgulayıcısını otomatik olarak devre dışı bırakır.
+
+## Kurulum
+
+<PackageInstall package="@unifast/shiki" />
+
+## Tip Tanımları
+
+### ShikiTransformerOptions
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Yüklenecek Shiki temaları |
+| `defaultTheme` | `BundledTheme` | `themes`'deki ilk tema | Render için varsayılan tema |
+| `langs` | `BundledLanguage[]` | `[]` | Yüklenecek diller. Yalnızca yüklenen diller vurgulanır. |
+
+> `BundledTheme` ve `BundledLanguage`, `shiki` paketindeki türlerdir.
+
+### ShikiTransformer
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `transform` | `(hast: HastRoot) => HastRoot` | Tüm `<pre><code class="language-*">` bloklarına Shiki vurgulamasını uygula |
+
+## Export Özeti
+
+| Export | Tür | Açıklama |
+|--------|-----|----------|
+| `createShikiPlugin` | function | Bir Shiki UnifastPlugin oluştur (async) |
+| `createShikiTransformer` | function | Bağımsız bir Shiki transformer oluştur (async) |
+| `ShikiTransformerOptions` | type | Shiki yapılandırma seçenekleri |
+| `ShikiTransformer` | type | Transformer arayüzü |
+| `hastToHtml` | function | HAST'den HTML'e serileştirici (yeniden export edilmiş) |
+| `HastNode`, `HastRoot`, vb. | types | HAST düğüm türleri (yeniden export edilmiş) |

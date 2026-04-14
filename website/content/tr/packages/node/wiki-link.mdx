@@ -1,0 +1,52 @@
+---
+title: "wikiLink()"
+description: "İsteğe bağlı takma adlarla wiki tarzı `[[links]]` destekler."
+---
+
+import { Example } from "~/components/Example"
+import example from "./wiki-link-example.md?example"
+
+```ts
+import { wikiLink } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function wikiLink(options?: WikiLinkPluginOptions): UnifastPlugin
+```
+
+## Parametreler
+
+### options?
+
+Wiki bağlantısı davranışı yapılandırması
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `hrefTemplate` | `string` | `"/wiki/${slug}"` | Bağlantı URL'leri oluşturmak için şablon. Slug'laştırılmış sayfa adı için yer tutucu olarak ${slug} kullanın. |
+
+## Kullanım
+
+```ts
+import { compile, wikiLink } from "@unifast/node";
+
+const md = `Check out [[Getting Started]] for an introduction.`;
+
+const result = compile(md, {
+  plugins: [
+    wikiLink({
+      hrefTemplate: "/docs/${slug}",
+    }),
+  ],
+});
+
+console.log(result.output);
+// <p>Check out <a href="/docs/getting-started">Getting Started</a> for an introduction.</p>
+```
+
+## Örnekler
+
+### Wiki tarzı bağlantılar
+
+<Example data={example} />

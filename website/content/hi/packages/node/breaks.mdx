@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "text में newlines को `<br>` elements में convert करें।"
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Parameters
+
+कोई नहीं।
+
+## उपयोग
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// प्रत्येक newline एक <br> element बन जाता है
+```
+
+## उदाहरण
+
+### Newlines से line breaks तक
+
+`breaks()` के बिना, ये तीन lines एक ही paragraph में merge हो जातीं। plugin enable होने पर, प्रत्येक newline एक `<br>` बन जाता है:
+
+<Example data={example} />

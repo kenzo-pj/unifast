@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "Crée un plugin Tree-sitter qui active la coloration syntaxique pour les blocs de code clôturés, en s'appuyant sur la bibliothèque d'analyse Tree-sitter."
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## Paramètres
+
+### options?
+
+Configuration du moteur de coloration
+
+| Propriété | Type | Défaut | Description |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | "treeSitter" utilise le coloriseur Tree-sitter ; "none" désactive la coloration |
+
+## Utilisation
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## Exemples
+
+### Activer la coloration syntaxique
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Désactiver la coloration
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

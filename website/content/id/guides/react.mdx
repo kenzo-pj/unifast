@@ -1,0 +1,121 @@
+---
+title: "Integrasi React"
+description: "Render output unifast di aplikasi React dengan @unifast/react, dari rendering HTML sederhana hingga pemetaan komponen MDX secara penuh."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/react` menyediakan utilitas untuk merender output unifast di aplikasi React - dari rendering HTML sederhana hingga pemetaan komponen MDX secara penuh.
+
+### Instalasi
+
+<PackageInstall package="@unifast/node @unifast/react" />
+
+### Menggunakan hastToReact
+
+Konversi HAst (AST HTML) menjadi elemen React. Ini memungkinkan Anda memetakan elemen HTML ke komponen React kustom tanpa injeksi HTML mentah.
+
+```tsx
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+const result = compile(source, { outputKind: "hast" });
+const elements = hastToReact(result.output, {
+  components: {
+    h1: (props) => <h1 className="heading" {...props} />,
+    a: (props) => <a className="link" target="_blank" {...props} />,
+    pre: CodeBlock,
+  },
+});
+
+function Page() {
+  return <article>{elements}</article>;
+}
+```
+
+Pendekatan ini aman secara default - AST dikonversi menjadi elemen React tanpa HTML mentah.
+
+### Merender MDX
+
+Untuk konten MDX, gunakan `compileToReact` untuk mendapatkan komponen React secara langsung:
+
+```tsx
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const result = compile(source, { inputKind: "mdx" });
+const Content = compileToReact(result);
+
+function Page() {
+  return (
+    <Content
+      components={{
+        Alert: MyAlertComponent,
+        CodeBlock: MyCodeBlock,
+      }}
+    />
+  );
+}
+```
+
+### Pemetaan Komponen
+
+Baik `hastToReact` maupun `compileToReact` menerima map `components`. Gunakan ini untuk mengganti elemen HTML default dengan komponen React kustom:
+
+```tsx
+const components = {
+  // Replace headings
+  h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
+
+  // Custom code blocks
+  pre: ({ children, ...props }) => <CodeBlock {...props}>{children}</CodeBlock>,
+
+  // External links open in new tab
+  a: ({ href, children }) => (
+    <a href={href} target={href?.startsWith("http") ? "_blank" : undefined}>
+      {children}
+    </a>
+  ),
+};
+```
+
+### Server-Side Rendering
+
+Kompilasi unifast bersifat sinkron dan berjalan di Node.js, sehingga ideal untuk SSR:
+
+```tsx
+// server.tsx
+import { compile, frontmatter } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+export async function getStaticProps() {
+  const source = await readFile("content/post.md", "utf8");
+  const result = compile(source, {
+    plugins: [frontmatter()],
+    outputKind: "hast",
+  });
+
+  return {
+    props: {
+      hast: result.output,
+      meta: result.frontmatter,
+    },
+  };
+}
+
+function Post({ hast, meta }) {
+  const content = hastToReact(hast);
+  return (
+    <article>
+      <h1>{meta.title}</h1>
+      {content}
+    </article>
+  );
+}
+```
+
+### Lihat Juga
+
+- [compileToReact()](/docs/packages/react/compile-to-react) - Referensi API
+- [hastToReact()](/docs/packages/react/hast-to-react) - Referensi API
+- [Menggunakan MDX](/docs/guides/mdx) - Panduan kompilasi MDX

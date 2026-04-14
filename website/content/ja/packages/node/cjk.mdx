@@ -1,0 +1,42 @@
+---
+title: "cjk()"
+description: "CJK 文字間の不要な改行を除去する、CJK に配慮したテキスト処理です。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./cjk-example.md?example"
+
+```ts
+import { cjk } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function cjk(): UnifastPlugin
+```
+
+## パラメータ
+
+なし。
+
+## 使い方
+
+```ts
+import { compile, cjk } from "@unifast/node";
+
+const md = `
+今日は天気が
+とても良いです。
+`;
+
+const result = compile(md, { plugins: [cjk()] });
+console.log(result.output);
+// <p>今日は天気がとても良いです。</p>
+```
+
+## 使用例
+
+### CJK の改行除去
+
+<Example data={example} />

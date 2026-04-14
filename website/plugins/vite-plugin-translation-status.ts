@@ -3,15 +3,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type LocaleCode } from "../src/i18n";
+
 export type TranslationStatus = "translated" | "outdated" | "missing";
 
 export interface TranslationStatusEntry {
   status: TranslationStatus;
   enLastModified?: number;
-  jaLastModified?: number;
+  localeLastModified?: number;
 }
 
-export type TranslationManifest = Record<string, TranslationStatusEntry>;
+export type TranslationManifest = Partial<
+  Record<LocaleCode, Record<string, TranslationStatusEntry>>
+>;
 
 const VIRTUAL_MODULE_ID = "virtual:translation-status";
 const RESOLVED_VIRTUAL_MODULE_ID = "\0" + VIRTUAL_MODULE_ID;
@@ -43,33 +47,57 @@ function collectContentPaths(dir: string, prefix = ""): string[] {
   return paths;
 }
 
+function resolveContentFile(dir: string, slug: string): string | null {
+  const md = path.join(dir, `${slug}.md`);
+  const mdx = path.join(dir, `${slug}.mdx`);
+  if (fs.existsSync(mdx)) return mdx;
+  if (fs.existsSync(md)) return md;
+  return null;
+}
+
 function buildManifest(contentDir: string, gitRoot: string): TranslationManifest {
   const enDir = path.join(contentDir, "en");
-  const jaDir = path.join(contentDir, "ja");
   const manifest: TranslationManifest = {};
 
   const contentPaths = collectContentPaths(enDir);
 
-  for (const slug of contentPaths) {
-    const enFile = path.join(enDir, `${slug}.md`);
-    const jaFile = path.join(jaDir, `${slug}.md`);
+  for (const locale of SUPPORTED_LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    const localeManifest: Record<string, TranslationStatusEntry> = {};
+    const localeDir = path.join(contentDir, locale);
 
-    const enRelative = path.relative(gitRoot, enFile);
-    const jaRelative = path.relative(gitRoot, jaFile);
+    for (const slug of contentPaths) {
+      const enFile = resolveContentFile(enDir, slug);
+      const localeFile = resolveContentFile(localeDir, slug);
 
-    if (!fs.existsSync(jaFile)) {
-      manifest[slug] = { status: "missing" };
-      continue;
+      if (!enFile) continue;
+
+      if (!localeFile) {
+        localeManifest[slug] = { status: "missing" };
+        continue;
+      }
+
+      const enRelative = path.relative(gitRoot, enFile);
+      const localeRelative = path.relative(gitRoot, localeFile);
+      const enTimestamp = getGitTimestamp(enRelative, gitRoot);
+      const localeTimestamp = getGitTimestamp(localeRelative, gitRoot);
+
+      if (enTimestamp && localeTimestamp && enTimestamp > localeTimestamp) {
+        localeManifest[slug] = {
+          status: "outdated",
+          enLastModified: enTimestamp,
+          localeLastModified: localeTimestamp,
+        };
+      } else {
+        localeManifest[slug] = {
+          status: "translated",
+          enLastModified: enTimestamp ?? undefined,
+          localeLastModified: localeTimestamp ?? undefined,
+        };
+      }
     }
 
-    const enTimestamp = getGitTimestamp(enRelative, gitRoot);
-    const jaTimestamp = getGitTimestamp(jaRelative, gitRoot);
-
-    if (enTimestamp && jaTimestamp && enTimestamp > jaTimestamp) {
-      manifest[slug] = { status: "outdated", enLastModified: enTimestamp, jaLastModified: jaTimestamp };
-    } else {
-      manifest[slug] = { status: "translated", enLastModified: enTimestamp ?? undefined, jaLastModified: jaTimestamp ?? undefined };
-    }
+    manifest[locale] = localeManifest;
   }
 
   return manifest;

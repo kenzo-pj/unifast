@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "외부 파일의 코드를 펜스드 코드 블록으로 가져옵니다."
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## 매개변수
+
+### options?
+
+코드 import 동작을 위한 설정
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `rootDir` | `string` | — | 파일 경로를 해석할 루트 디렉터리. 생략하면 현재 작업 디렉터리를 기준으로 해석됩니다. |
+
+## 사용법
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// 코드 블록이 ./src/example.ts 파일의 내용으로 치환됩니다
+```
+
+## 예시
+
+### 기본 파일 import
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+코드 블록의 내용이 파일 내용으로 치환되며, 구문 강조를 위해 언어는 그대로 유지됩니다.
+
+### rootDir와 함께
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// 파일 경로가 rootDir 기준으로 해석됩니다
+```
+
+### rootDir 없이
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// 파일 경로가 현재 작업 디렉터리 기준으로 해석됩니다
+```

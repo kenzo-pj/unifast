@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "Converte le interruzioni di riga nel testo in elementi `<br>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Parametri
+
+Nessuno.
+
+## Utilizzo
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Each newline becomes a <br> element
+```
+
+## Esempi
+
+### Trasformare le interruzioni di riga in line break
+
+Senza `breaks()`, queste tre righe verrebbero unite in un unico paragrafo. Con il plugin abilitato, ogni interruzione di riga diventa un `<br>`:
+
+<Example data={example} />

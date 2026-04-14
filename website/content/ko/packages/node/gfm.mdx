@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "GitHub Flavored Markdown 확장을 활성화하는 GFM 플러그인을 생성합니다."
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## 매개변수
+
+### options?
+
+개별 GFM 기능 설정
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | \| 문법 파이프 테이블 활성화 |
+| `taskList` | `boolean` | `true` | - [x] / - [ ] 작업 목록 체크박스 활성화 |
+| `strikethrough` | `boolean` | `true` | ~~취소선~~ 문법 활성화 |
+| `footnotes` | `boolean` | `true` | [^1] 각주 참조와 정의 활성화 |
+| `autolink` | `boolean` | `true` | 순수 URL 자동 링크 |
+
+## 사용법
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## 예시
+
+### 표
+
+<Example data={tableExample} />
+
+### 작업 목록
+
+<Example data={taskListExample} />
+
+### 취소선과 자동 링크
+
+<Example data={strikethroughExample} />
+
+### 각주
+
+<Example data={footnoteExample} />

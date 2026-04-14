@@ -1,0 +1,37 @@
+---
+title: "githubAlert()"
+description: "引用内で GitHub スタイルのアラート (NOTE、TIP、WARNING など) をサポートします。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./github-alert-example.md?example"
+
+```ts
+import { githubAlert } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function githubAlert(): UnifastPlugin
+```
+
+## パラメータ
+
+なし。
+
+## 使い方
+
+```ts
+import { compile, githubAlert } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [githubAlert()],
+});
+```
+
+## 使用例
+
+### GitHub スタイルのアラート
+
+<Example data={example} />

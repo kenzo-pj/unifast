@@ -1,0 +1,123 @@
+---
+title: "hastToReact()"
+description: "Bir HAST kök düğümünü React elemanlarına dönüştürür. Derleme ardışık düzeni üzerinde tam kontrole ihtiyacınız olduğunda kullanacağınız düşük seviyeli fonksiyon."
+---
+
+```ts
+import { hastToReact } from "@unifast/react";
+```
+
+## İmza
+
+```ts
+function hastToReact(
+  hast: HastRoot,
+  options: HastToReactOptions,
+): unknown
+```
+
+## Parametreler
+
+### hast
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `type` | `"root"` | — | Düğüm türü tanımlayıcısı |
+| `children` | `HastNode[]` | — | Ağacın alt düğümleri |
+
+### options
+
+React eleman oluşturma yapılandırması
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `createElement` | `CreateElement` | — | React'in createElement fonksiyonu |
+| `Fragment` | `unknown` | — | React'in Fragment bileşeni |
+| `components?` | `ComponentMap` | — | HTML etiket adlarının özel React bileşenlerine eşlemesi |
+
+## Kullanım
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+
+const element = hastToReact(hast, {
+  createElement,
+  Fragment,
+  components: {
+    pre: ({ children, ...props }) => <pre className="code-block" {...props}>{children}</pre>,
+    a: ({ children, ...props }) => <a target="_blank" rel="noopener" {...props}>{children}</a>,
+  },
+});
+```
+
+## Örnekler
+
+### Temel kullanım
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile("# Hello, **world**!", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Shiki ile vurgulanmış HAST
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```
+
+### Sunucu tarafı render
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// SSR için render edilmiş HTML string'i
+```
+
+## Davranış
+
+- **Özellik yeniden adlandırma:** HTML öznitelikleri React karşılıklarına yeniden adlandırılır (`class` → `className`, `for` → `htmlFor`, vb.)
+- **Stil ayrıştırma:** CSS stil string'leri React stil nesnelerine ayrıştırılır
+- **className dizileri:** HAST `className` dizileri boşluklarla birleştirilir
+- **Boolean öznitelikler:** `true` özniteliği render eder, `false`/`null`/`undefined` onu atlar
+- **Raw düğümler:** Satır içi HTML olarak render edilir - güvenilmeyen girdileri işlerken `sanitize` plugin'ini (`@unifast/node`'dan) kullanın
+- **Yorumlar ve doctype:** Yok sayılır (`null` döndürür)

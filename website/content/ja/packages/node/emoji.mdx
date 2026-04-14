@@ -1,0 +1,40 @@
+---
+title: "emoji()"
+description: "`:smile:` のような絵文字ショートコードを Unicode の絵文字に変換します。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./emoji-example.md?example"
+
+```ts
+import { emoji } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function emoji(): UnifastPlugin
+```
+
+## パラメータ
+
+なし。
+
+## 使い方
+
+```ts
+import { compile, emoji } from "@unifast/node";
+
+const md = `This is great :thumbsup: and I'm happy :smile:!`;
+
+const result = compile(md, {
+  plugins: [emoji()],
+});
+// :thumbsup: → 👍, :smile: → 😄
+```
+
+## 使用例
+
+### 絵文字ショートコード
+
+<Example data={example} />

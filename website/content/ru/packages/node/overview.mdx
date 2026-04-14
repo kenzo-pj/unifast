@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "Биндинг Node.js для компилятора Markdown/MDX unifast на основе нативного Rust"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Обзор
+
+`@unifast/node` — основная точка входа для использования unifast в Node.js. Он предоставляет функцию [`compile()`](/docs/packages/node/compile), которая вызывает нативный компилятор на Rust через napi-rs для максимальной производительности. Также он поддерживает систему плагинов, позволяя применять HAST-преобразования в JavaScript после шага компиляции на Rust.
+
+## Установка
+
+<PackageInstall package="@unifast/node" />
+
+> Нативное дополнение на Rust должно быть предварительно собрано. Выполните `cargo build -p unifast-bindings-node --release`, если нативный бинарник недоступен.
+
+## Быстрый старт
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## Конвейер плагинов
+
+Когда передаются плагины, `compile()` выполняет следующий конвейер:
+
+1. **Извлечение плагинов** — отделяет `plugins` от остальных параметров
+2. **Слияние параметров** — глубокое слияние `options` каждого плагина с параметрами компиляции
+3. **Принудительный HAST** — если у какого-либо плагина есть `hastTransform`, нативный вызов использует `outputKind: "hast"`
+4. **Нативная компиляция** — вызов компилятора на Rust через napi-rs
+5. **HAST-преобразования** — последовательное применение `hastTransform` каждого плагина
+6. **Преобразование вывода** — если пользователь не запросил вывод HAST, результат конвертируется обратно в HTML через `hastToHtml`
+
+## Встроенные плагины
+
+Следующие фабричные функции плагинов включены в пакет — отдельная установка не требуется:
+
+`gfm`, `frontmatter`, `sanitize`, `syntect`, `treeSitter`, `toc`, `externalLinks`, `autolinkHeadings`, `smartypants`, `wikiLink`, `codeImport`, `emoji`, `breaks`, `math`, `githubAlert`, `sectionize`, `directive`, `definitionList`, `rubyAnnotation`, `cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## Сводка экспортов
+
+| Экспорт | Вид | Описание |
+|--------|------|-------------|
+| `compile` | функция | Компилирует Markdown/MDX в HTML и другие форматы |
+| `gfm`, `frontmatter`, ... | функция | Фабрики встроенных плагинов (всего 20) |
+| `hastToHtml` | функция | Сериализатор HAST в HTML (реэкспорт из `@unifast/core`) |
+| `CompileOptions` | тип | Конфигурация компиляции |
+| `CompileResult` | тип | Результат компиляции |
+| `UnifastPlugin` | тип | Интерфейс плагина |
+| `TocEntry` | тип | Элемент оглавления |
+| `HastRoot` | тип | Корневой узел HAST |
+| `HastElement` | тип | Узел-элемент HAST |
+| `HastText` | тип | Текстовый узел HAST |
+| `HastNode` | тип | Объединение всех типов узлов HAST |
+| `UnifastError` | класс | Базовый класс ошибок |
+| `ParseError` | класс | Класс ошибок парсинга |
+| `CompileError` | класс | Класс ошибок компиляции |

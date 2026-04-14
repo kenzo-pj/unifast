@@ -1,0 +1,158 @@
+---
+title: "compileToReact()"
+description: "Biên dịch đầu vào Markdown hoặc MDX và trả về trực tiếp các React element, cùng với frontmatter, diagnostics, stats và TOC."
+---
+
+```ts
+import { compileToReact } from "@unifast/react";
+```
+
+## Chữ ký
+
+```ts
+function compileToReact(
+  input: string,
+  options: CompileToReactOptions,
+): CompileToReactResult
+```
+
+## Tham số
+
+### input
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Mã nguồn Markdown hoặc MDX |
+
+### options
+
+Các tùy chọn biên dịch kết hợp cùng với cấu hình riêng cho React
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | Hàm createElement của React |
+| `Fragment` | `unknown` | — | Component Fragment của React |
+| `components?` | `ComponentMap` | — | Map từ tên thẻ HTML sang React component |
+
+> Kế thừa từ [`CompileOptions`](/docs/packages/core/overview) — tất cả các tùy chọn biên dịch khác cũng được chấp nhận.
+
+## Giá trị trả về
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `element` | `unknown` | React element gốc |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter đã được parse |
+| `diagnostics` | `Diagnostic[]` | Cảnh báo và lỗi |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Thống kê thời gian (ms) |
+| `toc` | `TocEntry[]` | Mục lục đã được trích xuất |
+
+## Cách dùng
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { gfm, frontmatter, toc } from "@unifast/node";
+
+const { element, frontmatter: fm, toc: tocEntries, diagnostics, stats } = compileToReact(
+  md,
+  {
+    createElement,
+    Fragment,
+    components: {
+      h1: ({ children, ...props }) => <h1 className="title" {...props}>{children}</h1>,
+      a: ({ children, ...props }) => <a target="_blank" {...props}>{children}</a>,
+    },
+    plugins: [gfm(), frontmatter(), toc()],
+  },
+);
+```
+
+## Ví dụ
+
+### Cách dùng cơ bản
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(
+  "# Hello, **world**!",
+  { createElement, Fragment },
+);
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Với component tùy chỉnh
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, {
+  createElement,
+  Fragment,
+  components: {
+    h1: ({ children, ...props }) => (
+      <h1 className="text-4xl font-bold" {...props}>{children}</h1>
+    ),
+    a: ({ children, ...props }) => (
+      <a className="text-blue-500 underline" target="_blank" {...props}>{children}</a>
+    ),
+    code: ({ children, ...props }) => (
+      <code className="bg-gray-100 rounded px-1" {...props}>{children}</code>
+    ),
+  },
+});
+```
+
+### Server-side rendering
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+### Sử dụng frontmatter và TOC
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { frontmatter, toc } from "@unifast/node";
+
+const md = `---
+title: My Page
+---
+
+# Introduction
+
+## Setup
+
+## Usage
+`;
+
+const result = compileToReact(md, {
+  createElement,
+  Fragment,
+  plugins: [frontmatter(), toc()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page" }
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Setup", slug: "setup" },
+//   { depth: 2, text: "Usage", slug: "usage" },
+// ]
+```

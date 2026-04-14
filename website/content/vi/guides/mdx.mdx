@@ -1,0 +1,94 @@
+---
+title: "Sử dụng MDX"
+description: "Biên dịch MDX với unifast để sử dụng biểu thức JSX và câu lệnh import bên trong Markdown, render bằng React hoặc các JSX runtime khác."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+MDX cho phép bạn sử dụng biểu thức JSX và câu lệnh import ngay trong Markdown. unifast biên dịch MDX thành các module JavaScript có thể render bằng React hoặc các JSX runtime khác.
+
+### Cài đặt
+
+<PackageInstall package="@unifast/node" />
+
+### Cách dùng cơ bản
+
+```ts
+import { compile } from "@unifast/node";
+
+const source = `
+# Hello
+
+<Counter initial={0} />
+
+export const meta = { title: "My Page" };
+`;
+
+const result = compile(source, { inputKind: "mdx" });
+// result.output is a JavaScript module string
+```
+
+### Cách MDX hoạt động
+
+MDX mở rộng Markdown với hai khả năng:
+
+1. **Biểu thức JSX** - Sử dụng component xen kẽ trong nội dung của bạn.
+2. **Import/export ESM** - Import component và export metadata.
+
+Trình biên dịch xử lý MDX qua các bước sau:
+
+```
+MDX source
+  → Parse (Markdown + JSX + ESM)
+  → MdAst with JSX/ESM nodes
+  → Lower to HAst
+  → Emit as JavaScript module
+```
+
+Kết quả đầu ra là một module JavaScript với một hàm default export nhận prop `components` để inject component.
+
+### Sử dụng với React
+
+```ts
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const source = `# Hello\n\nThis is **MDX**.`;
+
+const result = compile(source, { inputKind: "mdx" });
+const Component = compileToReact(result);
+
+// Render in your React app
+<Component components={{ h1: MyHeading }} />
+```
+
+### Frontmatter trong MDX
+
+Kết hợp MDX với plugin frontmatter để trích xuất metadata:
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const source = `---
+title: My Article
+author: Jane
+---
+
+# {frontmatter.title}
+
+Written by {frontmatter.author}.
+`;
+
+const result = compile(source, {
+  inputKind: "mdx",
+  plugins: [frontmatter()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Article", author: "Jane" }
+```
+
+### Xem thêm
+
+- [compile()](/docs/packages/node/compile) - Tài liệu tham chiếu API đầy đủ
+- [Tích hợp React](/docs/guides/react) - Render MDX bằng React

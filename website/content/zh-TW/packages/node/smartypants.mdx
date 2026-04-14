@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "套用引號、破折號與刪節號的排版式替換。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## 參數
+
+### options?
+
+要套用的替換項目設定
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | 將直引號替換為彎引號 |
+| `dashes` | `boolean` | `true` | 將 -- 替換為 en-dash，--- 替換為 em-dash |
+| `ellipses` | `boolean` | `true` | 將 ... 替換為刪節號字元 |
+
+## 用法
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## 範例
+
+### 排版式替換
+
+<Example data={example} />
+
+| 原始碼 | 結果 |
+|--------|--------|
+| `"Hello"` | 彎式雙引號 |
+| `'Hi'` | 彎式單引號 |
+| `--` | en-dash（–） |
+| `---` | em-dash（—） |
+| `...` | 刪節號（…） |

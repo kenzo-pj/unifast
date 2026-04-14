@@ -1,0 +1,2 @@
+- [GitHub](https://github.com) — esterno, si apre in una nuova scheda
+- [Avvio rapido](/en/docs/introduction/quick-start) — interno, invariato

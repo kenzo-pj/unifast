@@ -1,0 +1,37 @@
+---
+title: "githubAlert()"
+description: "支援在引用區塊中使用 GitHub 風格的提示（NOTE、TIP、WARNING 等）。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./github-alert-example.md?example"
+
+```ts
+import { githubAlert } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function githubAlert(): UnifastPlugin
+```
+
+## 參數
+
+無。
+
+## 用法
+
+```ts
+import { compile, githubAlert } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [githubAlert()],
+});
+```
+
+## 範例
+
+### GitHub 風格的提示
+
+<Example data={example} />

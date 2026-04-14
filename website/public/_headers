@@ -8,3 +8,19 @@
 
 /pagefind/*
   Cache-Control: public, max-age=86400
+
+/api/*
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+  Access-Control-Allow-Origin: *
+  X-Robots-Tag: all
+
+/llms.txt
+  Cache-Control: public, max-age=300, s-maxage=3600
+  X-Robots-Tag: all
+
+/llms-full.txt
+  Cache-Control: public, max-age=300, s-maxage=3600
+  X-Robots-Tag: all
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600, s-maxage=86400

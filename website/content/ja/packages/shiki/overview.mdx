@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "HAST 変換を通じて unifast に Shiki ベースのシンタックスハイライトを追加するプラグインです。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概要
+
+`@unifast/shiki` は、[Shiki](https://shiki.style/) によるシンタックスハイライトを提供し、200 以上の言語と多彩なテーマをサポートします。組み込みの highlight プラグインとは異なり、Shiki は JavaScript の HAST 変換として動作し、`<pre><code>` ブロックをリッチにスタイリングされた出力に置き換えます。
+
+本プラグインは、二重処理を避けるために組み込みの Rust ハイライタを自動的に無効にします。
+
+## インストール
+
+<PackageInstall package="@unifast/shiki" />
+
+## 型定義
+
+### ShikiTransformerOptions
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | 読み込む Shiki テーマ |
+| `defaultTheme` | `BundledTheme` | `themes` の最初のテーマ | レンダリングで使うデフォルトのテーマ |
+| `langs` | `BundledLanguage[]` | `[]` | 読み込む言語。読み込まれた言語のみがハイライトされます。 |
+
+> `BundledTheme` と `BundledLanguage` は `shiki` パッケージの型です。
+
+### ShikiTransformer
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | すべての `<pre><code class="language-*">` ブロックに Shiki のハイライトを適用する |
+
+## エクスポート一覧
+
+| エクスポート | 種類 | 説明 |
+|--------|------|-------------|
+| `createShikiPlugin` | function | Shiki の UnifastPlugin を生成する (非同期) |
+| `createShikiTransformer` | function | スタンドアロンの Shiki トランスフォーマーを生成する (非同期) |
+| `ShikiTransformerOptions` | type | Shiki の設定オプション |
+| `ShikiTransformer` | type | トランスフォーマーのインターフェース |
+| `hastToHtml` | function | HAST から HTML へのシリアライザ (再エクスポート) |
+| `HastNode`, `HastRoot`, etc. | types | HAST のノード型 (再エクスポート) |

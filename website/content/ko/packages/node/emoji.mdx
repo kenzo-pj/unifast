@@ -1,0 +1,40 @@
+---
+title: "emoji()"
+description: "`:smile:` 같은 이모지 숏코드를 유니코드 이모지로 변환합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./emoji-example.md?example"
+
+```ts
+import { emoji } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function emoji(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile, emoji } from "@unifast/node";
+
+const md = `This is great :thumbsup: and I'm happy :smile:!`;
+
+const result = compile(md, {
+  plugins: [emoji()],
+});
+// :thumbsup: → 👍, :smile: → 😄
+```
+
+## 예시
+
+### 이모지 숏코드
+
+<Example data={example} />

@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "外部ファイルのコードをフェンスドコードブロックへ取り込みます。"
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## パラメータ
+
+### options?
+
+コードインポートの動作設定
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `rootDir` | `string` | — | ファイルパスを解決する際のルートディレクトリ。省略時は、カレントディレクトリを基準に解決されます。 |
+
+## 使い方
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// The code block is replaced with the contents of ./src/example.ts
+```
+
+## 使用例
+
+### 基本的なファイルのインポート
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+コードブロックの内容はファイルの内容で置き換えられ、シンタックスハイライト用の言語は維持されます。
+
+### rootDir あり
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// File paths are resolved relative to rootDir
+```
+
+### rootDir なし
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// File paths are resolved relative to the current working directory
+```

@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "Convertit la sortie HAST d'unifast en éléments React, avec mappage de composants"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Vue d'ensemble
+
+`@unifast/react` convertit la sortie HAST (HTML Abstract Syntax Tree) d'unifast en éléments React. Le paquet fournit deux fonctions principales :
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) - Haut niveau : compile du Markdown/MDX et retourne directement des éléments React
+- [`hastToReact()`](/docs/packages/react/hast-to-react) - Bas niveau : convertit un arbre HAST en éléments React
+
+Le paquet prend automatiquement en charge le renommage des propriétés HTML vers leurs équivalents React (`class` vers `className`, `for` vers `htmlFor`, etc.) ainsi que l'analyse des chaînes de style CSS.
+
+## Installation
+
+<PackageInstall package="@unifast/react" />
+
+Dépendance par les pairs : `@unifast/node` est requis pour `compileToReact`.
+
+## Définitions de types
+
+### CompileToReactOptions
+
+Étend `CompileOptions` avec des champs propres à React.
+
+| Propriété | Type | Description |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | La fonction `createElement` de React |
+| `Fragment` | `unknown` | Le composant `Fragment` de React |
+| `components?` | `ComponentMap` | Table associant les noms de balises HTML à des composants React |
+| *(toutes les CompileOptions)* | - | Héritées de `CompileOptions` |
+
+### CompileToReactResult
+
+| Propriété | Type | Description |
+|----------|------|-------------|
+| `element` | `unknown` | L'élément React racine |
+| `frontmatter` | `Record<string, unknown>` | Métadonnées frontmatter analysées |
+| `diagnostics` | `Diagnostic[]` | Avertissements et erreurs |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Détail du temps passé (ms) |
+| `toc` | `TocEntry[]` | Table des matières extraite |
+
+### HastToReactOptions
+
+| Propriété | Type | Description |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | La fonction `createElement` de React |
+| `Fragment` | `unknown` | Le composant `Fragment` de React |
+| `components?` | `ComponentMap` | Table associant les noms de balises HTML à des composants React personnalisés |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### Conversion des propriétés
+
+| Attribut HTML | Prop React |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+Les chaînes CSS `style` sont automatiquement converties en objets de style React (par exemple, `"font-size: 16px"` devient `{ fontSize: "16px" }`).
+
+## Résumé des exports
+
+| Export | Nature | Description |
+|--------|------|-------------|
+| `compileToReact` | fonction | Compile du Markdown/MDX vers des éléments React |
+| `hastToReact` | fonction | Convertit du HAST en éléments React |
+| `CompileToReactOptions` | type | Options de `compileToReact` |
+| `CompileToReactResult` | type | Résultat de `compileToReact` |
+| `HastToReactOptions` | type | Options de `hastToReact` |
+| `CreateElement` | type | Signature de createElement React |
+| `ComponentMap` | type | Table associant balise HTML et composant |

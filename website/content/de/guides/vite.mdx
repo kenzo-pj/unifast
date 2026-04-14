@@ -1,0 +1,93 @@
+---
+title: "Vite-Integration"
+description: "Verwenden Sie @unifast/vite, um Markdown- und MDX-Dateien zur Build-Zeit zu kompilieren und direkt in Ihrer Vite-Anwendung zu importieren."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite` stellt ein Vite-Plugin bereit, das Markdown- und MDX-Dateien zur Build-Zeit kompiliert. Importieren Sie `.md`- und `.mdx`-Dateien direkt in Ihrer Anwendung.
+
+### Installation
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### Einrichtung
+
+Fügen Sie das Plugin zu Ihrer Vite-Konfiguration hinzu:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // Optional: pass compile options
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### Markdown importieren
+
+Nach der Konfiguration können Sie `.md`-Dateien direkt importieren:
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Compiled HTML string
+console.log(content.frontmatter);  // Parsed frontmatter
+console.log(content.toc);          // Table of contents
+```
+
+Das importierte Modul stellt Folgendes bereit:
+
+| Eigenschaft | Typ | Beschreibung |
+|----------|------|-------------|
+| `html` | `string` | Kompilierte HTML-Ausgabe |
+| `frontmatter` | `Record<string, unknown>` | Geparste Frontmatter-Metadaten |
+| `toc` | `TocEntry[]` | Extrahiertes Inhaltsverzeichnis |
+
+### Mit Plugins
+
+Übergeben Sie Plugins über die Optionen des Vite-Plugins:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+Alle Markdown-/MDX-Importe in Ihrem Projekt verwenden diese Plugins automatisch.
+
+### MDX-Unterstützung
+
+MDX-Dateien werden zu JavaScript-Modulen mit einem standardmäßig exportierten React-Komponenten-Export kompiliert:
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### Hot Module Replacement
+
+Das Vite-Plugin unterstützt HMR. Wenn Sie eine `.md`- oder `.mdx`-Datei bearbeiten, wird die Seite ohne vollständiges Neuladen aktualisiert.
+
+### Siehe auch
+
+- [compile()](/docs/packages/node/compile) – Zugrunde liegende compile-API
+- [React-Integration](/docs/guides/react) – Kompilierte Inhalte in React rendern

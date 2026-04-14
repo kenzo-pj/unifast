@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "따옴표, 대시, 말줄임표에 타이포그래피 치환을 적용합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## 매개변수
+
+### options?
+
+적용할 치환 설정
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | 직선 따옴표를 곡선 따옴표로 치환 |
+| `dashes` | `boolean` | `true` | `--`를 en-dash로, `---`를 em-dash로 치환 |
+| `ellipses` | `boolean` | `true` | `...`를 말줄임표 문자로 치환 |
+
+## 사용법
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## 예시
+
+### 타이포그래피 치환
+
+<Example data={example} />
+
+| 소스 | 결과 |
+|--------|--------|
+| `"Hello"` | 곡선 큰따옴표 |
+| `'Hi'` | 곡선 작은따옴표 |
+| `--` | en-dash (–) |
+| `---` | em-dash (—) |
+| `...` | 말줄임표 (…) |

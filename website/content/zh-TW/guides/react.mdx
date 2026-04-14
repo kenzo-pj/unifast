@@ -1,0 +1,121 @@
+---
+title: "React 整合"
+description: "使用 @unifast/react 在 React 應用程式中渲染 unifast 的輸出結果，從基本的 HTML 渲染到完整的 MDX 元件對應都能支援。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/react` 提供在 React 應用程式中渲染 unifast 輸出結果的工具──從基本的 HTML 渲染，到完整的 MDX 元件對應都能支援。
+
+### 安裝
+
+<PackageInstall package="@unifast/node @unifast/react" />
+
+### 使用 hastToReact
+
+將 HAst（HTML AST）轉換為 React 元素。如此一來，您就能將 HTML 元素對應到自訂的 React 元件，不必注入原始 HTML。
+
+```tsx
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+const result = compile(source, { outputKind: "hast" });
+const elements = hastToReact(result.output, {
+  components: {
+    h1: (props) => <h1 className="heading" {...props} />,
+    a: (props) => <a className="link" target="_blank" {...props} />,
+    pre: CodeBlock,
+  },
+});
+
+function Page() {
+  return <article>{elements}</article>;
+}
+```
+
+這種做法預設就是安全的──AST 會直接轉換為 React 元素，不會包含原始 HTML。
+
+### 渲染 MDX
+
+若要處理 MDX 內容，可使用 `compileToReact` 直接取得 React 元件：
+
+```tsx
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const result = compile(source, { inputKind: "mdx" });
+const Content = compileToReact(result);
+
+function Page() {
+  return (
+    <Content
+      components={{
+        Alert: MyAlertComponent,
+        CodeBlock: MyCodeBlock,
+      }}
+    />
+  );
+}
+```
+
+### 元件對應
+
+`hastToReact` 與 `compileToReact` 都接受一個 `components` 對應表。您可以用它來將預設的 HTML 元素替換為自訂的 React 元件：
+
+```tsx
+const components = {
+  // Replace headings
+  h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
+
+  // Custom code blocks
+  pre: ({ children, ...props }) => <CodeBlock {...props}>{children}</CodeBlock>,
+
+  // External links open in new tab
+  a: ({ href, children }) => (
+    <a href={href} target={href?.startsWith("http") ? "_blank" : undefined}>
+      {children}
+    </a>
+  ),
+};
+```
+
+### 伺服器端渲染
+
+unifast 的編譯是同步執行且在 Node.js 上運行的，因此非常適合用於 SSR：
+
+```tsx
+// server.tsx
+import { compile, frontmatter } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+export async function getStaticProps() {
+  const source = await readFile("content/post.md", "utf8");
+  const result = compile(source, {
+    plugins: [frontmatter()],
+    outputKind: "hast",
+  });
+
+  return {
+    props: {
+      hast: result.output,
+      meta: result.frontmatter,
+    },
+  };
+}
+
+function Post({ hast, meta }) {
+  const content = hastToReact(hast);
+  return (
+    <article>
+      <h1>{meta.title}</h1>
+      {content}
+    </article>
+  );
+}
+```
+
+### 另請參閱
+
+- [compileToReact()](/docs/packages/react/compile-to-react) - API 參考
+- [hastToReact()](/docs/packages/react/hast-to-react) - API 參考
+- [使用 MDX](/docs/guides/mdx) - MDX 編譯指南

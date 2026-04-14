@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
 
+# Structured data for AI / LLM crawlers:
+#   /api/**/*.json   per-page JSON (title, description, body, hreflang alternates)
+#   /llms.txt        page index in llms.txt format
+#   /llms-full.txt   full documentation text
+
 Sitemap: https://unifast.dev/sitemap.xml

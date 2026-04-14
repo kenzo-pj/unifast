@@ -1,0 +1,42 @@
+---
+title: "cjk()"
+description: "Pemrosesan teks yang ramah CJK dengan menghapus newline yang tidak diinginkan di antara karakter CJK."
+---
+
+import { Example } from "~/components/Example"
+import example from "./cjk-example.md?example"
+
+```ts
+import { cjk } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function cjk(): UnifastPlugin
+```
+
+## Parameter
+
+Tidak ada.
+
+## Penggunaan
+
+```ts
+import { compile, cjk } from "@unifast/node";
+
+const md = `
+今日は天気が
+とても良いです。
+`;
+
+const result = compile(md, { plugins: [cjk()] });
+console.log(result.output);
+// <p>今日は天気がとても良いです。</p>
+```
+
+## Contoh
+
+### Penghapusan newline pada CJK
+
+<Example data={example} />

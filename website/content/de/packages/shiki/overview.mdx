@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "Auf Shiki basierendes Plugin zur Syntax-Hervorhebung für unifast mit HAST-Transformationen"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Überblick
+
+`@unifast/shiki` stellt Syntax-Hervorhebung bereit, die von [Shiki](https://shiki.style/) unterstützt wird, und bietet Unterstützung für über 200 Sprachen sowie eine breite Auswahl an Themes. Anders als das integrierte Highlight-Plugin läuft Shiki als HAST-Transformation in JavaScript und ersetzt `<pre><code>`-Blöcke durch reichhaltig gestaltete Ausgaben.
+
+Das Plugin deaktiviert automatisch den integrierten Rust-Highlighter, um eine doppelte Verarbeitung zu vermeiden.
+
+## Installation
+
+<PackageInstall package="@unifast/shiki" />
+
+## Typdefinitionen
+
+### ShikiTransformerOptions
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Zu ladende Shiki-Themes |
+| `defaultTheme` | `BundledTheme` | Erstes Theme in `themes` | Standard-Theme für das Rendering |
+| `langs` | `BundledLanguage[]` | `[]` | Zu ladende Sprachen. Nur geladene Sprachen werden hervorgehoben. |
+
+> `BundledTheme` und `BundledLanguage` sind Typen aus dem `shiki`-Paket.
+
+### ShikiTransformer
+
+| Eigenschaft | Typ | Beschreibung |
+|----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | Wendet Shiki-Hervorhebung auf alle `<pre><code class="language-*">`-Blöcke an |
+
+## Zusammenfassung der Exporte
+
+| Export | Art | Beschreibung |
+|--------|------|-------------|
+| `createShikiPlugin` | function | Erstellt ein Shiki-UnifastPlugin (async) |
+| `createShikiTransformer` | function | Erstellt einen eigenständigen Shiki-Transformer (async) |
+| `ShikiTransformerOptions` | type | Shiki-Konfigurationsoptionen |
+| `ShikiTransformer` | type | Transformer-Schnittstelle |
+| `hastToHtml` | function | HAST-zu-HTML-Serialisierer (reexportiert) |
+| `HastNode`, `HastRoot` usw. | types | HAST-Knotentypen (reexportiert) |

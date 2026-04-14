@@ -1,0 +1,49 @@
+---
+title: "externalLinks()"
+description: "为 Markdown 输出中的外部链接添加 rel 和 target 属性。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./external-links-example.md?example"
+
+```ts
+import { externalLinks } from "@unifast/node";
+```
+
+## 签名
+
+```ts
+function externalLinks(options?: ExternalLinksPluginOptions): UnifastPlugin
+```
+
+## 参数
+
+### options?
+
+外部链接属性的配置
+
+| 属性 | 类型 | 默认值 | 描述 |
+|----------|------|---------|-------------|
+| `rel` | `string` | `"nofollow noopener noreferrer"` | 外部链接的 rel 属性值 |
+| `target` | `string` | — | target 属性值（例如 `"_blank"`） |
+
+## 用法
+
+```ts
+import { compile, externalLinks } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    externalLinks({
+      rel: "nofollow noopener noreferrer",
+      target: "_blank",
+    }),
+  ],
+});
+```
+
+## 示例
+
+### 外部链接与内部链接
+
+<Example data={example} />

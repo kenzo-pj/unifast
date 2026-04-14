@@ -1,0 +1,158 @@
+---
+title: "compileToReact()"
+description: "Compila input Markdown o MDX e restituisce direttamente elementi React, insieme a frontmatter, diagnostica, statistiche e TOC."
+---
+
+```ts
+import { compileToReact } from "@unifast/react";
+```
+
+## Firma
+
+```ts
+function compileToReact(
+  input: string,
+  options: CompileToReactOptions,
+): CompileToReactResult
+```
+
+## Parametri
+
+### input
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `input` | `string` | — | Sorgente Markdown o MDX |
+
+### options
+
+Opzioni di compilazione più configurazione specifica per React
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `createElement` | `CreateElement` | — | Funzione createElement di React |
+| `Fragment` | `unknown` | — | Componente Fragment di React |
+| `components?` | `ComponentMap` | — | Mappa dei nomi dei tag HTML verso componenti React |
+
+> Estende [`CompileOptions`](/docs/packages/core/overview): sono accettate anche tutte le altre opzioni di compilazione.
+
+## Valore restituito
+
+| Proprietà | Tipo | Descrizione |
+|-----------|------|-------------|
+| `element` | `unknown` | L'elemento React radice |
+| `frontmatter` | `Record<string, unknown>` | Metadati del frontmatter analizzati |
+| `diagnostics` | `Diagnostic[]` | Avvisi ed errori |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Dettaglio dei tempi (ms) |
+| `toc` | `TocEntry[]` | Tabella dei contenuti estratta |
+
+## Utilizzo
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { gfm, frontmatter, toc } from "@unifast/node";
+
+const { element, frontmatter: fm, toc: tocEntries, diagnostics, stats } = compileToReact(
+  md,
+  {
+    createElement,
+    Fragment,
+    components: {
+      h1: ({ children, ...props }) => <h1 className="title" {...props}>{children}</h1>,
+      a: ({ children, ...props }) => <a target="_blank" {...props}>{children}</a>,
+    },
+    plugins: [gfm(), frontmatter(), toc()],
+  },
+);
+```
+
+## Esempi
+
+### Utilizzo di base
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(
+  "# Hello, **world**!",
+  { createElement, Fragment },
+);
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Con componenti personalizzati
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, {
+  createElement,
+  Fragment,
+  components: {
+    h1: ({ children, ...props }) => (
+      <h1 className="text-4xl font-bold" {...props}>{children}</h1>
+    ),
+    a: ({ children, ...props }) => (
+      <a className="text-blue-500 underline" target="_blank" {...props}>{children}</a>
+    ),
+    code: ({ children, ...props }) => (
+      <code className="bg-gray-100 rounded px-1" {...props}>{children}</code>
+    ),
+  },
+});
+```
+
+### Rendering lato server
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+### Utilizzo di frontmatter e TOC
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { frontmatter, toc } from "@unifast/node";
+
+const md = `---
+title: My Page
+---
+
+# Introduction
+
+## Setup
+
+## Usage
+`;
+
+const result = compileToReact(md, {
+  createElement,
+  Fragment,
+  plugins: [frontmatter(), toc()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page" }
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Setup", slug: "setup" },
+//   { depth: 2, text: "Usage", slug: "usage" },
+// ]
+```

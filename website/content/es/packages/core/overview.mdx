@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "Definiciones de tipos TypeScript, utilidades HAST y clases de error compartidas entre los paquetes de runtime de unifast"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Visión general
+
+`@unifast/core` proporciona definiciones de tipos TypeScript compartidas para las opciones y resultados de compilación, los nodos HAST (HTML Abstract Syntax Tree), la interfaz de plugins y las clases de error. Es una dependencia de los paquetes de runtime como `@unifast/node`; normalmente **no** necesitas instalarlo directamente.
+
+Para el compilador y los plugins integrados, usa [`@unifast/node`](/docs/packages/node/overview).
+
+## Instalación
+
+<PackageInstall package="@unifast/core" />
+
+## Definiciones de tipos
+
+### CompileOptions
+
+Configuración para la función `compile()`.
+
+| Propiedad | Tipo | Por defecto | Descripción |
+|----------|------|---------|-------------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | Formato de entrada |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | Formato de salida |
+| `gfm` | `object` | - | Ajustes de GitHub Flavored Markdown |
+| `gfm.tables` | `boolean` | - | Habilitar tablas GFM |
+| `gfm.taskList` | `boolean` | - | Habilitar casillas de listas de tareas |
+| `gfm.strikethrough` | `boolean` | - | Habilitar `~~strikethrough~~` |
+| `gfm.footnotes` | `boolean` | - | Habilitar notas al pie |
+| `gfm.autolink` | `boolean` | - | Habilitar autoenlace de URLs |
+| `frontmatter` | `object` | - | Ajustes de parsing del frontmatter |
+| `frontmatter.yaml` | `boolean` | - | Parsear frontmatter YAML |
+| `frontmatter.toml` | `boolean` | - | Parsear frontmatter TOML |
+| `frontmatter.json` | `boolean` | - | Parsear frontmatter JSON |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | Cómo tratar el HTML crudo en la fuente |
+| `sanitize` | `object` | - | Ajustes de sanitización de HTML |
+| `sanitize.enabled` | `boolean` | - | Habilitar la sanitización |
+| `sanitize.schema` | `SanitizeSchema` | - | Reglas de sanitización personalizadas |
+| `highlight` | `object` | - | Ajustes de resaltado de sintaxis |
+| `highlight.enabled` | `boolean` | - | Habilitar el resaltado de sintaxis |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | Motor de resaltado |
+| `slug` | `object` | - | Ajustes de generación de slugs de encabezado |
+| `slug.mode` | `"github" \| "unicode"` | - | Algoritmo de generación de slugs |
+| `toc` | `object` | - | Ajustes de tabla de contenidos |
+| `toc.enabled` | `boolean` | - | Habilitar la extracción de TOC |
+| `toc.maxDepth` | `number` | - | Profundidad máxima de encabezado a incluir |
+| `diagnostics` | `object` | - | Ajustes de salida de diagnósticos |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | Formato de diagnóstico |
+| `cache` | `object` | - | Ajustes de caché |
+| `cache.enabled` | `boolean` | - | Habilitar el caché de resultados |
+| `cache.dir` | `string` | - | Ruta del directorio de caché |
+| `plugins` | `UnifastPlugin[]` | `[]` | Array de plugins a aplicar |
+
+### CompileResult
+
+Retornado por la función `compile()`.
+
+| Propiedad | Tipo | Descripción |
+|----------|------|-------------|
+| `output` | `string \| object` | Salida compilada (cadena HTML, JSON HAST o JSON MDAST dependiendo de `outputKind`) |
+| `frontmatter` | `Record<string, unknown>` | Metadatos del frontmatter parseados |
+| `diagnostics` | `Diagnostic[]` | Array de avisos y errores |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Desglose de tiempos en milisegundos |
+| `toc` | `TocEntry[]` | Entradas de la tabla de contenidos extraída |
+
+### Diagnostic
+
+| Propiedad | Tipo | Descripción |
+|----------|------|-------------|
+| `level` | `"error" \| "warn"` | Nivel de severidad |
+| `message` | `string` | Mensaje legible para humanos |
+| `start` | `number \| undefined` | Desplazamiento inicial en bytes dentro de la fuente |
+| `end` | `number \| undefined` | Desplazamiento final en bytes dentro de la fuente |
+| `line` | `number \| undefined` | Número de línea (empezando en 1) |
+| `column` | `number \| undefined` | Número de columna (empezando en 1) |
+
+### TocEntry
+
+Un único encabezado extraído para la tabla de contenidos.
+
+| Propiedad | Tipo | Descripción |
+|----------|------|-------------|
+| `depth` | `number` | Nivel del encabezado (1-6) |
+| `text` | `string` | Contenido de texto plano del encabezado |
+| `slug` | `string` | Slug generado para el enlace de anclaje |
+
+### SanitizeSchema
+
+Reglas de sanitización personalizadas.
+
+| Propiedad | Tipo | Descripción |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | Etiquetas HTML permitidas |
+| `allowedAttributes` | `Record<string, string[]>` | Atributos permitidos por etiqueta |
+| `allowedProtocols` | `Record<string, string[]>` | Protocolos de URL permitidos por atributo |
+
+### UnifastPlugin
+
+La interfaz de plugin para extender unifast.
+
+| Propiedad | Tipo | Descripción |
+|----------|------|-------------|
+| `name` | `string` | Nombre único del plugin |
+| `options?` | `Partial<CompileOptions>` | Opciones a combinar con las opciones de compilación |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | Transforma el árbol HAST después de la compilación |
+
+### Tipos de nodo HAST
+
+| Tipo | Campo `type` | Propiedades | Descripción |
+|------|-------------|------------|-------------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | Nodo raíz del árbol |
+| `HastElement` | `"element"` | `tagName`, `properties`, `children` | Un elemento HTML |
+| `HastText` | `"text"` | `value: string` | Un nodo de texto |
+| `HastRaw` | `"raw"` | `value: string` | HTML crudo sin procesar |
+| `HastComment` | `"comment"` | `value: string` | Un comentario HTML |
+| `HastDoctype` | `"doctype"` | - | Un nodo `<!DOCTYPE html>` |
+
+`HastNode` es el tipo unión: `HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## Clases de error
+
+| Clase | Extiende | Propiedades | Descripción |
+|-------|---------|------------|-------------|
+| `UnifastError` | `Error` | `code?: string`, `span?: { start, end }` | Clase de error base para todos los errores de unifast |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | Se lanza cuando la entrada Markdown/MDX no puede parsearse |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | Se lanza cuando la compilación falla después del parsing |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... compile something
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## Resumen de exports
+
+| Export | Tipo | Descripción |
+|--------|------|-------------|
+| `CompileOptions` | type | Configuración de compilación |
+| `CompileResult` | type | Resultado de compilación |
+| `TocEntry` | type | Entrada de tabla de contenidos |
+| `SanitizeSchema` | type | Reglas de sanitización |
+| `UnifastPlugin` | type | Interfaz de plugin |
+| `HastNode` | type | Unión de todos los tipos de nodo HAST |
+| `HastRoot` | type | Nodo raíz HAST |
+| `HastElement` | type | Nodo de elemento HAST |
+| `HastText` | type | Nodo de texto HAST |
+| `HastRaw` | type | Nodo de HTML crudo HAST |
+| `HastComment` | type | Nodo de comentario HAST |
+| `HastDoctype` | type | Nodo de doctype HAST |
+| `hastToHtml` | function | Serializador de HAST a HTML |
+| `escapeHtml` | function | Escapa caracteres especiales de HTML (`&`, `<`, `>`, `"`) |
+| `extractLang` | function | Extrae el identificador de lenguaje de un elemento HAST `<code>` |
+| `extractText` | function | Extrae el contenido de texto plano de un nodo HAST |
+| `findCodeChild` | function | Encuentra el elemento hijo `<code>` dentro de un elemento `<pre>` |
+| `visitHast` | function | Utilidad con patrón visitor para recorrer árboles HAST |
+| `UnifastError` | class | Clase de error base |
+| `ParseError` | class | Clase de error de parseo |
+| `CompileError` | class | Clase de error de compilación |

@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "HAST 변환을 통한 unifast용 highlight.js 기반 구문 강조 플러그인"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 개요
+
+`@unifast/highlight`는 [lowlight](https://github.com/wooorm/lowlight)(highlight.js 래퍼)로 구동되는 구문 강조를 제공합니다. Rust에서 강조를 실행하는 빌트인 `syntect()`와 `treeSitter()` 플러그인과 달리, 이 패키지는 컴파일 이후 JavaScript HAST 변환 단계에서 강조를 적용합니다. 덕분에 highlight.js의 방대한 언어 및 테마 생태계를 그대로 활용할 수 있습니다.
+
+## 설치
+
+<PackageInstall package="@unifast/highlight" />
+
+## 빠른 시작
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// highlight.js의 CSS 클래스로 강조된 코드 블록
+```
+
+## 동작 방식
+
+1. Rust 컴파일러가 강조되지 않은 `<pre><code>` 블록을 포함한 HAST를 생성합니다.
+2. `highlight()` 플러그인의 `hastTransform`이 HAST 트리를 순회합니다.
+3. `language-*` 클래스를 가진 각 `<code>` 요소에 대해 lowlight가 코드를 강조합니다.
+4. 강조된 HAST 노드가 원래 자식을 대체합니다.
+
+이 작업은 HAST 변환으로 실행되므로, Rust 네이티브 강조(`syntect` / `treeSitter`)가 비활성화되어야 합니다. 플러그인은 컴파일 옵션에 `highlight.enabled: false`를 자동으로 설정합니다.
+
+## Exports 요약
+
+| Export | 종류 | 설명 |
+|--------|------|-------------|
+| `highlight` | function | highlight.js HAST 변환 플러그인 생성 |

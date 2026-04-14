@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "Plugin Vite cho unifast — biến đổi các file Markdown và MDX thành module JS"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Tổng quan
+
+`@unifast/vite` là một plugin Vite biến đổi các file `.md` và `.mdx` thành các module JavaScript. Nó tích hợp trình biên dịch Markdown/MDX của unifast vào pipeline build của Vite, cho phép bạn import trực tiếp các file Markdown trong ứng dụng của mình.
+
+## Cài đặt
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` là một peer dependency (tùy chọn) — khi có sẵn, plugin sẽ sử dụng trình biên dịch Rust native để đạt hiệu năng tối đa. Không có nó, các file `.md` sẽ fallback sang render HTML cơ bản, còn các file `.mdx` thì bắt buộc phải có.
+
+## Bắt đầu nhanh
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // compile options for .md files
+      },
+      mdx: {
+        // compile options for .mdx files
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // compiled HTML string
+console.log(doc.frontmatter);  // parsed frontmatter object
+console.log(doc.toc);          // table of contents entries
+```
+
+## Các export của module
+
+### File `.md`
+
+Mỗi file `.md` được biến đổi thành một module với các export sau:
+
+| Export | Kiểu | Mô tả |
+|--------|------|-------------|
+| `html` | `string` | Chuỗi HTML đã được biên dịch |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter đã được parse |
+| `toc` | `TocEntry[]` | Mục lục đã được trích xuất |
+| `default` | `object` | Đối tượng chứa `html`, `frontmatter` và `toc` |
+
+### File `.mdx`
+
+Mỗi file `.mdx` được biên dịch thành một module JSX sử dụng `jsx-runtime` của React. Nó export một React component mặc định cùng với `frontmatter` và `toc`.
+
+## Tổng hợp các export
+
+| Export | Loại | Mô tả |
+|--------|------|-------------|
+| `default` (unifastPlugin) | function | Factory của plugin Vite |
+| `UnifastPluginOptions` | type | Interface các tùy chọn của plugin |

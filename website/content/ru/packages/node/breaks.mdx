@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "Преобразует переносы строк в тексте в элементы `<br>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Параметры
+
+Отсутствуют.
+
+## Использование
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Каждый перенос строки становится элементом <br>
+```
+
+## Примеры
+
+### Переносы строк в теги переноса
+
+Без `breaks()` эти три строки объединились бы в один абзац. С включённым плагином каждый перенос строки превращается в `<br>`:
+
+<Example data={example} />

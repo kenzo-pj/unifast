@@ -1,0 +1,77 @@
+---
+title: "highlight()"
+description: "建立一個 highlight.js 語法高亮外掛，以 lowlight 透過 HAST 轉換處理圍籬式程式碼區塊的高亮顯示。"
+---
+
+```ts
+import { highlight } from "@unifast/highlight";
+```
+
+## 函式簽名
+
+```ts
+function highlight(): UnifastPlugin
+```
+
+## 參數
+
+無。
+
+## 用法
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// <pre><code class="language-typescript hljs">
+//   <span class="hljs-keyword">const</span> ...
+// </code></pre>
+```
+
+## 範例
+
+### 搭配多種語言
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`python
+def hello():
+    print("Hello, world!")
+\`\`\`
+
+\`\`\`css
+.container {
+  display: flex;
+}
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [highlight()] });
+// Both code blocks are highlighted with appropriate highlight.js classes
+```
+
+### 搭配其他外掛
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), highlight()],
+});
+```

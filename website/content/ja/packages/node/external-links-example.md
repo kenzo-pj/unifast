@@ -1,0 +1,2 @@
+- [GitHub](https://github.com) — 外部リンク、新しいタブで開く
+- [クイックスタート](/en/docs/introduction/quick-start) — 内部リンク、変更されない

@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "GitHub Flavored Markdown uzantılarını etkinleştiren bir GFM plugin'i oluşturur."
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## Parametreler
+
+### options?
+
+Bireysel GFM özellikleri için yapılandırma
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `tables` | `boolean` | `true` | \| sözdizimi ile pipe tablolarını etkinleştir |
+| `taskList` | `boolean` | `true` | - [x] / - [ ] görev listesi onay kutularını etkinleştir |
+| `strikethrough` | `boolean` | `true` | ~~silinmiş~~ üstü çizili sözdizimini etkinleştir |
+| `footnotes` | `boolean` | `true` | [^1] dipnot referanslarını ve tanımlarını etkinleştir |
+| `autolink` | `boolean` | `true` | Çıplak URL'leri otomatik olarak bağlantıla |
+
+## Kullanım
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## Örnekler
+
+### Tablolar
+
+<Example data={tableExample} />
+
+### Görev Listeleri
+
+<Example data={taskListExample} />
+
+### Üstü Çizili ve Otomatik Bağlantı
+
+<Example data={strikethroughExample} />
+
+### Dipnotlar
+
+<Example data={footnoteExample} />

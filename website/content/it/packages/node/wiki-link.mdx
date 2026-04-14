@@ -1,0 +1,52 @@
+---
+title: "wikiLink()"
+description: "Supporta i `[[link]]` in stile wiki con alias opzionali."
+---
+
+import { Example } from "~/components/Example"
+import example from "./wiki-link-example.md?example"
+
+```ts
+import { wikiLink } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function wikiLink(options?: WikiLinkPluginOptions): UnifastPlugin
+```
+
+## Parametri
+
+### options?
+
+Configurazione del comportamento dei wiki link
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `hrefTemplate` | `string` | `"/wiki/${slug}"` | Template per generare gli URL dei link. Usa ${slug} come segnaposto per il nome della pagina trasformato in slug. |
+
+## Utilizzo
+
+```ts
+import { compile, wikiLink } from "@unifast/node";
+
+const md = `Check out [[Getting Started]] for an introduction.`;
+
+const result = compile(md, {
+  plugins: [
+    wikiLink({
+      hrefTemplate: "/docs/${slug}",
+    }),
+  ],
+});
+
+console.log(result.output);
+// <p>Check out <a href="/docs/getting-started">Getting Started</a> for an introduction.</p>
+```
+
+## Esempi
+
+### Link in stile wiki
+
+<Example data={example} />

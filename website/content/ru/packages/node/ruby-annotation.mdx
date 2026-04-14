@@ -1,0 +1,69 @@
+---
+title: "rubyAnnotation()"
+description: "Поддерживает ruby/фуригана-аннотации с синтаксисом `{漢字|かんじ}`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./ruby-annotation-example.md?example"
+
+```ts
+import { rubyAnnotation } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function rubyAnnotation(): UnifastPlugin
+```
+
+## Параметры
+
+Отсутствуют.
+
+## Использование
+
+```ts
+import { compile, rubyAnnotation } from "@unifast/node";
+
+const md = `
+{漢字|かんじ}の読み方を学びましょう。
+`;
+
+const result = compile(md, { plugins: [rubyAnnotation()] });
+// {漢字|かんじ} превращается в <ruby>漢字<rp>(</rp><rt>かんじ</rt><rp>)</rp></ruby>
+```
+
+## Примеры
+
+### Ruby-аннотации (фуригана)
+
+<Example data={example} />
+
+### Несколько аннотаций в одном предложении
+
+```ts
+import { compile, rubyAnnotation } from "@unifast/node";
+
+const md = `
+{東京|とうきょう}は{日本|にほん}の{首都|しゅと}です。
+`;
+
+const result = compile(md, { plugins: [rubyAnnotation()] });
+```
+
+### Смешанное содержимое
+
+```ts
+import { compile, rubyAnnotation } from "@unifast/node";
+
+const md = `
+# {日本語|にほんご}ガイド
+
+{漢字|かんじ}には**たくさん**の{読|よ}み{方|かた}があります。
+
+- {音読|おんよ}み — Chinese-derived reading
+- {訓読|くんよ}み — Native Japanese reading
+`;
+
+const result = compile(md, { plugins: [rubyAnnotation()] });
+```

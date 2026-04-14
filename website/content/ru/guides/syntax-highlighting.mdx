@@ -1,0 +1,130 @@
+---
+title: "Подсветка синтаксиса"
+description: "Выбирайте из четырёх движков подсветки синтаксиса в unifast: tree-sitter, syntect, Shiki и highlight.js."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast поддерживает четыре движка подсветки синтаксиса. Два работают внутри компилятора на Rust (**tree-sitter**, **syntect**), а два — в JavaScript (**Shiki**, **highlight.js**).
+
+### Сравнение
+
+| | tree-sitter | syntect | Shiki | highlight.js |
+|---|-------------|---------|-------|--------------|
+| **Среда выполнения** | Rust (встроен) | Rust (встроен) | JavaScript | JavaScript |
+| **Парсинг** | На основе AST (грамматики tree-sitter) | На основе регулярных выражений (грамматики TextMate) | На основе регулярных выражений (грамматики VS Code) | На основе регулярных выражений (грамматики highlight.js) |
+| **Скорость** | Самый быстрый | Быстрый | Медленнее | Медленнее |
+| **Языки** | 29 языков + резервный syntect | 100+ (TextMate) | Грамматики VS Code | 190+ |
+| **Вывод CSS** | На основе классов (`ts-*`) | На основе классов (`sy-*`) | Инлайн-стили или на основе классов | На основе классов (`hljs`) |
+| **Пакет** | `@unifast/node` | `@unifast/node` | `@unifast/shiki` | `@unifast/highlight` |
+| **Лучше всего подходит для** | Точной подсветки с широким охватом | Простой настройки, быстрого старта | Тонкого контроля над темой | Экосистемы тем highlight.js |
+
+### Использование tree-sitter
+
+tree-sitter использует парсинг на основе AST для точной подсветки синтаксиса. Он работает внутри компилятора на Rust и нативно поддерживает 29 языков. Для неподдерживаемых языков он автоматически переключается на syntect.
+
+tree-sitter входит в `@unifast/node` — отдельная установка не требуется.
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [treeSitter()] }
+);
+```
+
+tree-sitter генерирует имена CSS-классов с префиксом `ts-`. Вам нужно предоставить CSS-правила для этих классов в вашем стиле.
+
+#### Поддерживаемые языки
+
+TypeScript, TSX, JavaScript, HTML, CSS, Python, Rust, JSON, YAML, Go, Ruby, TOML, Swift, PHP, Java, Lua, Scala, Zig, Elixir, OCaml, R, Make, Nix, Regex, Erlang, Bash, C, C++, CMake
+
+Поддерживаются также алиасы языков (например, `ts`, `py`, `rs`, `sh`, `yml`, `rb`).
+
+### Использование syntect
+
+syntect использует грамматики TextMate и работает полностью внутри компилятора на Rust — без дополнительных накладных расходов в JavaScript.
+
+syntect входит в `@unifast/node` — отдельная установка не требуется.
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [syntect()] }
+);
+```
+
+syntect генерирует имена CSS-классов с префиксом `sy-`. Вам нужно предоставить CSS-правила для этих классов в вашем стиле.
+
+### Использование Shiki
+
+Shiki использует движок грамматик TextMate из VS Code для точной подсветки с поддержкой тем.
+
+<PackageInstall package="@unifast/shiki shiki" />
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  theme: "github-dark",
+  langs: ["typescript", "rust", "bash"],
+});
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [shiki] }
+);
+```
+
+### Использование highlight.js
+
+`@unifast/highlight` использует [lowlight](https://github.com/wooorm/lowlight) (highlight.js) и запускается как HAST-преобразование в JavaScript. Он поддерживает 190+ языков и работает с любой темой highlight.js.
+
+<PackageInstall package="@unifast/highlight" />
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [highlight()] }
+);
+```
+
+highlight.js генерирует имена классов с префиксом `hljs`. Для стилизации используйте любой [CSS-файл темы highlight.js](https://highlightjs.org/demo).
+
+### Номера строк
+
+Все движки поддерживают номера строк. Включите их в параметрах компиляции:
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [treeSitter()],
+  lineNumbers: true,
+});
+```
+
+Каждая строка оборачивается в `<span>` с атрибутом `data-line` для стилизации через CSS:
+
+```css
+[data-line]::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: 2rem;
+  text-align: right;
+  margin-right: 1rem;
+  color: #6b7280;
+}
+```
+
+### Смотрите также
+
+- [syntect()](/docs/packages/node/syntect) — справочник API syntect
+- [createShikiPlugin()](/docs/packages/shiki/create-shiki-plugin) — справочник API Shiki

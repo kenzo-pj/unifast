@@ -1,0 +1,94 @@
+---
+title: "MDX 사용하기"
+description: "unifast로 MDX를 컴파일하여 Markdown 안에서 JSX 표현식과 import 문을 사용하고, React나 다른 JSX 런타임으로 렌더링합니다."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+MDX를 사용하면 Markdown 안에서 JSX 표현식과 import 문을 쓸 수 있습니다. unifast는 MDX를 JavaScript 모듈로 컴파일하며, 이 모듈은 React나 다른 JSX 런타임으로 렌더링할 수 있습니다.
+
+### 설치
+
+<PackageInstall package="@unifast/node" />
+
+### 기본 사용법
+
+```ts
+import { compile } from "@unifast/node";
+
+const source = `
+# Hello
+
+<Counter initial={0} />
+
+export const meta = { title: "My Page" };
+`;
+
+const result = compile(source, { inputKind: "mdx" });
+// result.output은 JavaScript 모듈 문자열입니다
+```
+
+### MDX의 동작 방식
+
+MDX는 Markdown에 두 가지 기능을 더합니다.
+
+1. **JSX 표현식** - 본문 안에서 컴포넌트를 사용할 수 있습니다.
+2. **ESM import/export** - 컴포넌트를 import하고 메타데이터를 export할 수 있습니다.
+
+컴파일러는 MDX를 다음 단계로 처리합니다.
+
+```
+MDX 소스
+  → Parse (Markdown + JSX + ESM)
+  → JSX/ESM 노드를 포함한 MdAst
+  → HAst로 로우어링
+  → JavaScript 모듈로 출력
+```
+
+출력 결과는 컴포넌트 주입을 위한 `components` prop을 받는 기본 export 함수를 가진 JavaScript 모듈입니다.
+
+### React와 함께 사용하기
+
+```ts
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const source = `# Hello\n\nThis is **MDX**.`;
+
+const result = compile(source, { inputKind: "mdx" });
+const Component = compileToReact(result);
+
+// React 앱에서 렌더링
+<Component components={{ h1: MyHeading }} />
+```
+
+### MDX의 Frontmatter
+
+MDX를 frontmatter 플러그인과 조합해 메타데이터를 추출할 수 있습니다.
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const source = `---
+title: My Article
+author: Jane
+---
+
+# {frontmatter.title}
+
+Written by {frontmatter.author}.
+`;
+
+const result = compile(source, {
+  inputKind: "mdx",
+  plugins: [frontmatter()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Article", author: "Jane" }
+```
+
+### 함께 보기
+
+- [compile()](/docs/packages/node/compile) - 전체 API 레퍼런스
+- [React 연동](/docs/guides/react) - MDX를 React로 렌더링하기

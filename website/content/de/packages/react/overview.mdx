@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "Konvertiert die HAST-Ausgabe von unifast in React-Elemente mit Komponenten-Mapping"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Überblick
+
+`@unifast/react` konvertiert die HAST-Ausgabe (HTML Abstract Syntax Tree) von unifast in React-Elemente. Es stellt zwei Hauptfunktionen bereit:
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) – High-Level: kompiliert Markdown/MDX und gibt direkt React-Elemente zurück
+- [`hastToReact()`](/docs/packages/react/hast-to-react) – Low-Level: konvertiert einen HAST-Baum in React-Elemente
+
+Das Paket übernimmt automatisch die Umbenennung von HTML- zu React-Eigenschaften (`class` zu `className`, `for` zu `htmlFor` usw.) sowie das Parsen von CSS-Style-Strings.
+
+## Installation
+
+<PackageInstall package="@unifast/react" />
+
+Peer-Abhängigkeit: Für `compileToReact` wird `@unifast/node` benötigt.
+
+## Typdefinitionen
+
+### CompileToReactOptions
+
+Erweitert `CompileOptions` um React-spezifische Felder.
+
+| Eigenschaft | Typ | Beschreibung |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | Die `createElement`-Funktion von React |
+| `Fragment` | `unknown` | Die `Fragment`-Komponente von React |
+| `components?` | `ComponentMap` | Zuordnung von HTML-Tag-Namen zu React-Komponenten |
+| *(alle CompileOptions)* | - | Von `CompileOptions` geerbt |
+
+### CompileToReactResult
+
+| Eigenschaft | Typ | Beschreibung |
+|----------|------|-------------|
+| `element` | `unknown` | Das React-Wurzelelement |
+| `frontmatter` | `Record<string, unknown>` | Geparste Frontmatter-Metadaten |
+| `diagnostics` | `Diagnostic[]` | Warnungen und Fehler |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Zeitaufschlüsselung (ms) |
+| `toc` | `TocEntry[]` | Extrahiertes Inhaltsverzeichnis |
+
+### HastToReactOptions
+
+| Eigenschaft | Typ | Beschreibung |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | Die `createElement`-Funktion von React |
+| `Fragment` | `unknown` | Die `Fragment`-Komponente von React |
+| `components?` | `ComponentMap` | Zuordnung von HTML-Tag-Namen zu benutzerdefinierten React-Komponenten |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### Eigenschaftskonvertierung
+
+| HTML-Attribut | React-Prop |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+CSS-`style`-Strings werden automatisch in React-Style-Objekte geparst (z. B. wird aus `"font-size: 16px"` das Objekt `{ fontSize: "16px" }`).
+
+## Zusammenfassung der Exporte
+
+| Export | Art | Beschreibung |
+|--------|------|-------------|
+| `compileToReact` | function | Kompiliert Markdown/MDX zu React-Elementen |
+| `hastToReact` | function | Konvertiert HAST zu React-Elementen |
+| `CompileToReactOptions` | type | Optionen für `compileToReact` |
+| `CompileToReactResult` | type | Ergebnis von `compileToReact` |
+| `HastToReactOptions` | type | Optionen für `hastToReact` |
+| `CreateElement` | type | React-createElement-Signatur |
+| `ComponentMap` | type | Zuordnung von HTML-Tag zu Komponente |

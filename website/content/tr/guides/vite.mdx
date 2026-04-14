@@ -1,0 +1,93 @@
+---
+title: "Vite Entegrasyonu"
+description: "Markdown ve MDX dosyalarını derleme zamanında derlemek ve doğrudan Vite uygulamanıza import etmek için @unifast/vite'ı kullanın."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite`, Markdown ve MDX dosyalarını derleme zamanında derleyen bir Vite plugin'i sağlar. `.md` ve `.mdx` dosyalarını doğrudan uygulamanıza import edin.
+
+### Kurulum
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### Kurulum Yapılandırması
+
+Plugin'i Vite yapılandırmanıza ekleyin:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // İsteğe bağlı: derleme seçeneklerini geçirin
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### Markdown İçe Aktarma
+
+Yapılandırıldıktan sonra `.md` dosyalarını doğrudan import edin:
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Derlenmiş HTML string'i
+console.log(content.frontmatter);  // Ayrıştırılmış frontmatter
+console.log(content.toc);          // İçindekiler tablosu
+```
+
+İçe aktarılan modül şunları sağlar:
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `html` | `string` | Derlenmiş HTML çıktısı |
+| `frontmatter` | `Record<string, unknown>` | Ayrıştırılmış frontmatter üst verisi |
+| `toc` | `TocEntry[]` | Çıkarılan içindekiler tablosu |
+
+### Plugin'ler ile
+
+Plugin'leri Vite plugin seçenekleri aracılığıyla geçirin:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+Projenizdeki tüm Markdown/MDX import'ları bu plugin'leri otomatik olarak kullanacaktır.
+
+### MDX Desteği
+
+MDX dosyaları, varsayılan bir React bileşeni export'u içeren JavaScript modüllerine derlenir:
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### Hot Module Replacement
+
+Vite plugin'i HMR'yi destekler. Bir `.md` veya `.mdx` dosyasını düzenlediğinizde, sayfa tam yeniden yükleme yapmadan güncellenir.
+
+### Ayrıca Bakın
+
+- [compile()](/docs/packages/node/compile) - Temel derleme API'si
+- [React Entegrasyonu](/docs/guides/react) - Derlenmiş içeriği React'te render etme

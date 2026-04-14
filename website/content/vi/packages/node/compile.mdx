@@ -1,0 +1,141 @@
+---
+title: "compile()"
+description: "Hàm biên dịch chính. Biến đổi Markdown hoặc MDX thành HTML hoặc các định dạng đầu ra khác bằng trình biên dịch Rust native."
+---
+
+```ts
+import { compile } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function compile(input: string, options?: CompileOptions): CompileResult
+```
+
+## Tham số
+
+### input
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Chuỗi mã nguồn Markdown hoặc MDX |
+
+### options?
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `options?` | `CompileOptions` | — | Cấu hình biên dịch bao gồm cả các plugin |
+
+## Giá trị trả về
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `output` | `string \| object` | Đầu ra đã biên dịch. Mặc định là chuỗi HTML; JSON string cho HAST/MDAST. |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter đã được parse (rỗng `{}` nếu không có) |
+| `diagnostics` | `Diagnostic[]` | Mảng `{ level, message, start?, end? }` |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Thống kê thời gian (ms) |
+| `toc` | `TocEntry[]` | Bảng mục lục đã được trích xuất (rỗng `[]` nếu TOC bị tắt) |
+
+## Cách dùng
+
+```ts
+import { compile, gfm, frontmatter, toc, sanitize } from "@unifast/node";
+
+const md = `---
+title: My Document
+---
+
+# Hello, **world**!
+
+| Column A | Column B |
+|----------|----------|
+| Cell 1   | Cell 2   |
+`;
+
+const result = compile(md, {
+  inputKind: "md",       // "md" | "mdx"
+  outputKind: "html",    // "html" | "hast" | "mdast" | "mdxJs"
+  plugins: [gfm(), frontmatter(), toc({ maxDepth: 3 }), sanitize()],
+});
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+// <table>...</table>
+
+console.log(result.frontmatter);
+// { title: "My Document" }
+
+console.log(result.toc);
+// [{ depth: 1, text: "Hello, world!", slug: "hello-world" }]
+
+console.log(result.stats);
+// { parseMs: 0.12, transformMs: 0.08, emitMs: 0.05 }
+```
+
+## Ví dụ
+
+### Markdown cơ bản sang HTML
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+### Đầu vào MDX
+
+```ts
+import { compile } from "@unifast/node";
+
+const mdx = `
+import { Alert } from "./components";
+
+# Hello
+
+<Alert type="info">This is MDX!</Alert>
+`;
+
+const result = compile(mdx, { inputKind: "mdx" });
+```
+
+### Đầu ra HAST
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "hast" });
+const hast = JSON.parse(result.output as string);
+
+console.log(hast);
+// { type: "root", children: [{ type: "element", tagName: "h1", ... }] }
+```
+
+### Đầu ra MDAST
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "mdast" });
+const mdast = JSON.parse(result.output as string);
+
+console.log(mdast);
+// { type: "root", children: [{ type: "heading", depth: 1, ... }] }
+```
+
+### Đầu ra MDX JS
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile(mdxSource, {
+  inputKind: "mdx",
+  outputKind: "mdxJs",
+});
+
+console.log(result.output);
+// JavaScript module string with MDX compiled to JSX
+```

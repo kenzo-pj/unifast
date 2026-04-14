@@ -1,0 +1,4 @@
+- [x] Dokumentation schreiben
+- [x] Beispiele hinzufügen
+- [ ] Pull Request prüfen
+- [ ] In die Produktion überführen

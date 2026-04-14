@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "Vite-Plugin für unifast – wandelt Markdown- und MDX-Dateien in JS-Module um"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Überblick
+
+`@unifast/vite` ist ein Vite-Plugin, das `.md`- und `.mdx`-Dateien in JavaScript-Module umwandelt. Es integriert den Markdown-/MDX-Compiler von unifast in die Vite-Build-Pipeline und ermöglicht es Ihnen, Markdown-Dateien direkt in Ihrer Anwendung zu importieren.
+
+## Installation
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` ist eine (optionale) Peer-Abhängigkeit – wenn verfügbar, verwendet das Plugin den nativen Rust-Compiler für maximale Performance. Ohne diese Abhängigkeit greifen `.md`-Dateien auf ein einfaches HTML-Rendering zurück, während `.mdx`-Dateien sie zwingend benötigen.
+
+## Schnellstart
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // compile options for .md files
+      },
+      mdx: {
+        // compile options for .mdx files
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // compiled HTML string
+console.log(doc.frontmatter);  // parsed frontmatter object
+console.log(doc.toc);          // table of contents entries
+```
+
+## Modul-Exporte
+
+### `.md`-Dateien
+
+Jede `.md`-Datei wird in ein Modul mit den folgenden Exporten umgewandelt:
+
+| Export | Typ | Beschreibung |
+|--------|------|-------------|
+| `html` | `string` | Kompilierter HTML-String |
+| `frontmatter` | `Record<string, unknown>` | Geparste Frontmatter-Metadaten |
+| `toc` | `TocEntry[]` | Extrahiertes Inhaltsverzeichnis |
+| `default` | `object` | Objekt mit `html`, `frontmatter` und `toc` |
+
+### `.mdx`-Dateien
+
+Jede `.mdx`-Datei wird mithilfe der `jsx-runtime` von React zu einem JSX-Modul kompiliert. Sie exportiert eine standardmäßige React-Komponente zusammen mit `frontmatter` und `toc`.
+
+## Zusammenfassung der Exporte
+
+| Export | Art | Beschreibung |
+|--------|------|-------------|
+| `default` (unifastPlugin) | function | Vite-Plugin-Factory |
+| `UnifastPluginOptions` | type | Schnittstelle für die Plugin-Optionen |

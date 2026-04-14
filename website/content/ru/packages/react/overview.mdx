@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "Преобразование HAST-вывода unifast в React-элементы с сопоставлением компонентов"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Обзор
+
+`@unifast/react` преобразует HAST-вывод (HTML Abstract Syntax Tree) unifast в элементы React. Он предоставляет две основные функции:
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) — высокоуровневая: компилирует Markdown/MDX и сразу возвращает React-элементы
+- [`hastToReact()`](/docs/packages/react/hast-to-react) — низкоуровневая: преобразует HAST-дерево в React-элементы
+
+Пакет автоматически выполняет переименование HTML-свойств в React-эквиваленты (`class` в `className`, `for` в `htmlFor` и т. д.) и парсинг CSS-строк стилей.
+
+## Установка
+
+<PackageInstall package="@unifast/react" />
+
+Peer-зависимость: для `compileToReact` требуется `@unifast/node`.
+
+## Определения типов
+
+### CompileToReactOptions
+
+Расширяет `CompileOptions` специфичными для React полями.
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | Функция React `createElement` |
+| `Fragment` | `unknown` | Компонент React `Fragment` |
+| `components?` | `ComponentMap` | Отображение имён HTML-тегов в React-компоненты |
+| *(все CompileOptions)* | - | Наследуются от `CompileOptions` |
+
+### CompileToReactResult
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `element` | `unknown` | Корневой React-элемент |
+| `frontmatter` | `Record<string, unknown>` | Распарсенные метаданные frontmatter |
+| `diagnostics` | `Diagnostic[]` | Предупреждения и ошибки |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Разбивка времени (мс) |
+| `toc` | `TocEntry[]` | Извлечённое оглавление |
+
+### HastToReactOptions
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | Функция React `createElement` |
+| `Fragment` | `unknown` | Компонент React `Fragment` |
+| `components?` | `ComponentMap` | Отображение имён HTML-тегов в пользовательские React-компоненты |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### Преобразование свойств
+
+| HTML-атрибут | React-свойство |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+CSS-строки `style` автоматически разбираются в объекты стилей React (например, `"font-size: 16px"` становится `{ fontSize: "16px" }`).
+
+## Сводка экспортов
+
+| Экспорт | Вид | Описание |
+|--------|------|-------------|
+| `compileToReact` | функция | Компилирует Markdown/MDX в React-элементы |
+| `hastToReact` | функция | Преобразует HAST в React-элементы |
+| `CompileToReactOptions` | тип | Параметры для `compileToReact` |
+| `CompileToReactResult` | тип | Результат `compileToReact` |
+| `HastToReactOptions` | тип | Параметры для `hastToReact` |
+| `CreateElement` | тип | Сигнатура React `createElement` |
+| `ComponentMap` | тип | Отображение HTML-тегов в компоненты |

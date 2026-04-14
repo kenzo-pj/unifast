@@ -1,0 +1,58 @@
+---
+title: "directive()"
+description: "支持使用 `:::name` 语法编写容器型指令。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./directive-example.md?example"
+
+```ts
+import { directive } from "@unifast/node";
+```
+
+## 签名
+
+```ts
+function directive(): UnifastPlugin
+```
+
+## 参数
+
+无。
+
+## 用法
+
+```ts
+import { compile, directive } from "@unifast/node";
+
+const result = compile(md, { plugins: [directive()] });
+```
+
+## 示例
+
+### 容器型指令
+
+<Example data={example} />
+
+你可以通过 `.directive-note`、`.directive-warning` 等类名使用 CSS 来设置样式，其效果类似于 GitHub Alerts，但名称可以完全自定义。
+
+### 带属性的容器
+
+```md
+:::warning title="Deprecation Notice"
+This API will be removed in the next major version.
+:::
+```
+
+### 嵌套内容
+
+指令内部支持完整的 Markdown，包括列表、代码块和行内格式。
+
+```md
+:::note
+You can include **bold**, *italic*, and other Markdown inside containers.
+
+- List items work too
+- As does `inline code`
+:::
+```

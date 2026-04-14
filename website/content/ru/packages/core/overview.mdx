@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "Определения типов TypeScript, утилиты HAST и классы ошибок, общие для рантайм-пакетов unifast"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Обзор
+
+`@unifast/core` предоставляет общие определения типов TypeScript для параметров и результатов компиляции, узлов HAST (HTML Abstract Syntax Tree), интерфейса плагинов и классов ошибок. Он является зависимостью рантайм-пакетов вроде `@unifast/node` — обычно **не нужно** устанавливать его напрямую.
+
+Для самого компилятора и встроенных плагинов используйте [`@unifast/node`](/docs/packages/node/overview).
+
+## Установка
+
+<PackageInstall package="@unifast/core" />
+
+## Определения типов
+
+### CompileOptions
+
+Конфигурация функции `compile()`.
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | Формат входных данных |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | Формат вывода |
+| `gfm` | `object` | - | Настройки GitHub Flavored Markdown |
+| `gfm.tables` | `boolean` | - | Включить таблицы GFM |
+| `gfm.taskList` | `boolean` | - | Включить чекбоксы списков задач |
+| `gfm.strikethrough` | `boolean` | - | Включить `~~зачёркивание~~` |
+| `gfm.footnotes` | `boolean` | - | Включить сноски |
+| `gfm.autolink` | `boolean` | - | Включить автосвязывание URL |
+| `frontmatter` | `object` | - | Настройки парсинга frontmatter |
+| `frontmatter.yaml` | `boolean` | - | Парсить YAML frontmatter |
+| `frontmatter.toml` | `boolean` | - | Парсить TOML frontmatter |
+| `frontmatter.json` | `boolean` | - | Парсить JSON frontmatter |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | Как обрабатывать сырой HTML в источнике |
+| `sanitize` | `object` | - | Настройки санитизации HTML |
+| `sanitize.enabled` | `boolean` | - | Включить санитизацию |
+| `sanitize.schema` | `SanitizeSchema` | - | Пользовательские правила санитизации |
+| `highlight` | `object` | - | Настройки подсветки синтаксиса |
+| `highlight.enabled` | `boolean` | - | Включить подсветку синтаксиса |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | Движок подсветки |
+| `slug` | `object` | - | Настройки генерации слагов заголовков |
+| `slug.mode` | `"github" \| "unicode"` | - | Алгоритм генерации слагов |
+| `toc` | `object` | - | Настройки оглавления |
+| `toc.enabled` | `boolean` | - | Включить извлечение TOC |
+| `toc.maxDepth` | `number` | - | Максимальная глубина заголовков для включения |
+| `diagnostics` | `object` | - | Настройки диагностики |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | Формат диагностики |
+| `cache` | `object` | - | Настройки кэширования |
+| `cache.enabled` | `boolean` | - | Включить кэширование результатов |
+| `cache.dir` | `string` | - | Путь к каталогу кэша |
+| `plugins` | `UnifastPlugin[]` | `[]` | Массив применяемых плагинов |
+
+### CompileResult
+
+Возвращается функцией `compile()`.
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `output` | `string \| object` | Скомпилированный вывод (строка HTML, HAST JSON или MDAST JSON в зависимости от `outputKind`) |
+| `frontmatter` | `Record<string, unknown>` | Распарсенные метаданные frontmatter |
+| `diagnostics` | `Diagnostic[]` | Массив предупреждений и ошибок |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Разбивка времени в миллисекундах |
+| `toc` | `TocEntry[]` | Извлечённые элементы оглавления |
+
+### Diagnostic
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `level` | `"error" \| "warn"` | Уровень серьёзности |
+| `message` | `string` | Человекочитаемое сообщение |
+| `start` | `number \| undefined` | Начальное байтовое смещение в источнике |
+| `end` | `number \| undefined` | Конечное байтовое смещение в источнике |
+| `line` | `number \| undefined` | Номер строки (начиная с 1) |
+| `column` | `number \| undefined` | Номер колонки (начиная с 1) |
+
+### TocEntry
+
+Отдельный заголовок, извлечённый для оглавления.
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `depth` | `number` | Уровень заголовка (1–6) |
+| `text` | `string` | Простое текстовое содержимое заголовка |
+| `slug` | `string` | Сгенерированный слаг для якорной ссылки |
+
+### SanitizeSchema
+
+Пользовательские правила санитизации.
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | Разрешённые HTML-теги |
+| `allowedAttributes` | `Record<string, string[]>` | Разрешённые атрибуты для каждого тега |
+| `allowedProtocols` | `Record<string, string[]>` | Разрешённые протоколы URL для каждого атрибута |
+
+### UnifastPlugin
+
+Интерфейс плагина для расширения unifast.
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `name` | `string` | Уникальное имя плагина |
+| `options?` | `Partial<CompileOptions>` | Параметры для слияния с параметрами компиляции |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | Преобразование HAST-дерева после компиляции |
+
+### Типы узлов HAST
+
+| Тип | Поле `type` | Свойства | Описание |
+|------|-------------|------------|-------------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | Корневой узел дерева |
+| `HastElement` | `"element"` | `tagName`, `properties`, `children` | HTML-элемент |
+| `HastText` | `"text"` | `value: string` | Текстовый узел |
+| `HastRaw` | `"raw"` | `value: string` | Передача сырого HTML |
+| `HastComment` | `"comment"` | `value: string` | HTML-комментарий |
+| `HastDoctype` | `"doctype"` | - | Узел `<!DOCTYPE html>` |
+
+`HastNode` — тип-объединение: `HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## Классы ошибок
+
+| Класс | Наследует | Свойства | Описание |
+|-------|---------|------------|-------------|
+| `UnifastError` | `Error` | `code?: string`, `span?: { start, end }` | Базовый класс ошибок для всех ошибок unifast |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | Бросается, когда входные данные Markdown/MDX не удаётся распарсить |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | Бросается, когда компиляция завершается неудачей после парсинга |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... compile something
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## Сводка экспортов
+
+| Экспорт | Вид | Описание |
+|--------|------|-------------|
+| `CompileOptions` | тип | Конфигурация компиляции |
+| `CompileResult` | тип | Результат компиляции |
+| `TocEntry` | тип | Элемент оглавления |
+| `SanitizeSchema` | тип | Правила санитизации |
+| `UnifastPlugin` | тип | Интерфейс плагина |
+| `HastNode` | тип | Объединение всех типов узлов HAST |
+| `HastRoot` | тип | Корневой узел HAST |
+| `HastElement` | тип | Узел-элемент HAST |
+| `HastText` | тип | Текстовый узел HAST |
+| `HastRaw` | тип | Узел сырого HTML в HAST |
+| `HastComment` | тип | Узел-комментарий HAST |
+| `HastDoctype` | тип | Узел doctype HAST |
+| `hastToHtml` | функция | Сериализатор HAST в HTML |
+| `escapeHtml` | функция | Экранирование специальных HTML-символов (`&`, `<`, `>`, `"`) |
+| `extractLang` | функция | Извлечение идентификатора языка из HAST-элемента `<code>` |
+| `extractText` | функция | Извлечение простого текста из HAST-узла |
+| `findCodeChild` | функция | Поиск дочернего элемента `<code>` внутри элемента `<pre>` |
+| `visitHast` | функция | Утилита обхода HAST-деревьев по шаблону «visitor» |
+| `UnifastError` | класс | Базовый класс ошибок |
+| `ParseError` | класс | Класс ошибок парсинга |
+| `CompileError` | класс | Класс ошибок компиляции |

@@ -1,0 +1,139 @@
+---
+title: "sanitize()"
+description: "एक sanitization plugin बनाएँ जो compiled output से खतरनाक HTML tags, attributes, और URL protocols को strip करता है।"
+---
+
+```ts
+import { sanitize } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function sanitize(options?: SanitizePluginOptions): UnifastPlugin
+```
+
+## Parameters
+
+### options?
+
+Sanitization configuration
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `enabled` | `boolean` | `true` | sanitization enable या disable करें |
+| `schema` | `SanitizeSchema` | — | Custom sanitization schema |
+
+#### SanitizeSchema
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | अनुमत HTML tag names (अन्य सभी strip हो जाते हैं) |
+| `allowedAttributes` | `Record<string, string[]>` | tag name का अनुमत attribute names पर map |
+| `allowedProtocols` | `Record<string, string[]>` | attribute name का अनुमत URL protocols पर map |
+
+## उपयोग
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      enabled: true,
+      schema: {
+        allowedTags: ["h1", "h2", "h3", "p", "a", "strong", "em", "code", "pre", "img", "ul", "ol", "li", "blockquote", "table", "thead", "tbody", "tr", "th", "td"],
+        allowedAttributes: {
+          a: ["href", "title", "target"],
+          img: ["src", "alt", "width", "height"],
+          code: ["class"],
+          pre: ["class"],
+        },
+        allowedProtocols: {
+          href: ["https", "http", "mailto"],
+          src: ["https", "http"],
+        },
+      },
+    }),
+  ],
+});
+```
+
+## उदाहरण
+
+### खतरनाक HTML strip करें
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const untrustedMd = `
+# Hello
+
+<script>alert("xss")</script>
+
+<img src="x" onerror="alert('xss')">
+
+[Click me](javascript:alert('xss'))
+`;
+
+const result = compile(untrustedMd, {
+  plugins: [sanitize()],
+});
+
+console.log(result.output);
+// <script> tags, onerror attributes, और javascript: URLs हटा दिए जाते हैं
+```
+
+### Custom allowed tags
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      schema: {
+        allowedTags: ["p", "a", "strong", "em", "code", "pre"],
+      },
+    }),
+  ],
+});
+
+console.log(result.output);
+// केवल निर्दिष्ट tags रखे जाते हैं; अन्य सभी strip हो जाते हैं
+```
+
+### URL protocols restrict करें
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      schema: {
+        allowedProtocols: {
+          href: ["https", "mailto"],
+          src: ["https"],
+        },
+      },
+    }),
+  ],
+});
+
+console.log(result.output);
+// केवल https: और mailto: links अनुमत हैं
+```
+
+### Sanitization disable करें
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [sanitize({ enabled: false })],
+});
+
+console.log(result.output);
+// कोई sanitization लागू नहीं — केवल विश्वसनीय input के साथ उपयोग करें
+```

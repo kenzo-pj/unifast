@@ -1,0 +1,86 @@
+---
+title: "syntect()"
+description: "Erstellt ein syntect-Plugin, das Rust-native Syntax-Hervorhebung für eingezäunte Code-Blöcke aktiviert. Basiert auf Sublime-Text-Syntaxdefinitionen und unterstützt über 100 Sprachen."
+---
+
+```ts
+import { syntect } from "@unifast/node";
+```
+
+## Signatur
+
+```ts
+function syntect(options?: SyntectPluginOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfiguration der Hervorhebungs-Engine
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "syntect"` | `"syntect"` | "syntect" verwendet den syntect-Highlighter; "none" deaktiviert die Hervorhebung |
+
+## Verwendung
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    syntect({
+      engine: "syntect",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## Beispiele
+
+### Syntax-Hervorhebung aktivieren
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [syntect()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Hervorhebung deaktivieren
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [syntect({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

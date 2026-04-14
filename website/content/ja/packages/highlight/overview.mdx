@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "HAST 変換を通じて unifast に highlight.js ベースのシンタックスハイライトを追加するプラグインです。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概要
+
+`@unifast/highlight` は、[lowlight](https://github.com/wooorm/lowlight) (highlight.js のラッパー) を利用したシンタックスハイライトを提供します。組み込みの `syntect()` や `treeSitter()` プラグインが Rust 内部でハイライトを実行するのに対し、本パッケージはコンパイル後に JavaScript の HAST 変換としてハイライトを適用します。これにより highlight.js の豊富な言語とテーマのエコシステムを利用できます。
+
+## インストール
+
+<PackageInstall package="@unifast/highlight" />
+
+## クイックスタート
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with highlight.js CSS classes
+```
+
+## しくみ
+
+1. Rust コンパイラは、ハイライトされていない `<pre><code>` ブロックを含む HAST を出力します
+2. `highlight()` プラグインの `hastTransform` が HAST ツリーを走査します
+3. `language-*` クラスを持つ各 `<code>` 要素に対して、lowlight がコードをハイライトします
+4. ハイライトされた HAST ノードが元の子ノードを置き換えます
+
+この処理は HAST 変換として実行されるため、ネイティブの Rust ハイライト (`syntect` / `treeSitter`) を無効にする必要があります。本プラグインは compile オプションで自動的に `highlight.enabled: false` を設定します。
+
+## エクスポート一覧
+
+| エクスポート | 種類 | 説明 |
+|--------|------|-------------|
+| `highlight` | function | highlight.js の HAST 変換プラグインを生成する |

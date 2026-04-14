@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "Plugin Vite pour unifast — transforme les fichiers Markdown et MDX en modules JS"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Vue d'ensemble
+
+`@unifast/vite` est un plugin Vite qui transforme les fichiers `.md` et `.mdx` en modules JavaScript. Il intègre le compilateur Markdown/MDX d'unifast au pipeline de build de Vite, ce qui vous permet d'importer vos fichiers Markdown directement dans votre application.
+
+## Installation
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` est une dépendance par les pairs (optionnelle) — lorsqu'il est disponible, le plugin utilise le compilateur natif Rust pour des performances maximales. À défaut, les fichiers `.md` se replient sur un rendu HTML de base, et les fichiers `.mdx` en ont absolument besoin.
+
+## Démarrage rapide
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // compile options for .md files
+      },
+      mdx: {
+        // compile options for .mdx files
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // compiled HTML string
+console.log(doc.frontmatter);  // parsed frontmatter object
+console.log(doc.toc);          // table of contents entries
+```
+
+## Exports des modules
+
+### Fichiers `.md`
+
+Chaque fichier `.md` est transformé en un module comportant les exports suivants :
+
+| Export | Type | Description |
+|--------|------|-------------|
+| `html` | `string` | Chaîne HTML compilée |
+| `frontmatter` | `Record<string, unknown>` | Métadonnées frontmatter analysées |
+| `toc` | `TocEntry[]` | Table des matières extraite |
+| `default` | `object` | Objet contenant `html`, `frontmatter` et `toc` |
+
+### Fichiers `.mdx`
+
+Chaque fichier `.mdx` est compilé en un module JSX à l'aide de la `jsx-runtime` de React. Il exporte un composant React par défaut, accompagné de `frontmatter` et `toc`.
+
+## Résumé des exports
+
+| Export | Nature | Description |
+|--------|------|-------------|
+| `default` (unifastPlugin) | fonction | Fabrique de plugin Vite |
+| `UnifastPluginOptions` | type | Interface des options du plugin |

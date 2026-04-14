@@ -1,0 +1,158 @@
+---
+title: "compileToReact()"
+description: "Kompiliert Markdown- oder MDX-Eingaben und gibt direkt React-Elemente zusammen mit Frontmatter, Diagnostik, Statistiken und TOC zurück."
+---
+
+```ts
+import { compileToReact } from "@unifast/react";
+```
+
+## Signatur
+
+```ts
+function compileToReact(
+  input: string,
+  options: CompileToReactOptions,
+): CompileToReactResult
+```
+
+## Parameter
+
+### input
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Markdown- oder MDX-Quelle |
+
+### options
+
+Kompilierungsoptionen plus React-spezifische Konfiguration
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | Die `createElement`-Funktion von React |
+| `Fragment` | `unknown` | — | Die `Fragment`-Komponente von React |
+| `components?` | `ComponentMap` | — | Zuordnung von HTML-Tag-Namen zu React-Komponenten |
+
+> Erweitert [`CompileOptions`](/docs/packages/core/overview) – alle weiteren Kompilierungsoptionen werden ebenfalls akzeptiert.
+
+## Rückgabewert
+
+| Eigenschaft | Typ | Beschreibung |
+|----------|------|-------------|
+| `element` | `unknown` | Das React-Wurzelelement |
+| `frontmatter` | `Record<string, unknown>` | Geparste Frontmatter-Metadaten |
+| `diagnostics` | `Diagnostic[]` | Warnungen und Fehler |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Zeitaufschlüsselung (ms) |
+| `toc` | `TocEntry[]` | Extrahiertes Inhaltsverzeichnis |
+
+## Verwendung
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { gfm, frontmatter, toc } from "@unifast/node";
+
+const { element, frontmatter: fm, toc: tocEntries, diagnostics, stats } = compileToReact(
+  md,
+  {
+    createElement,
+    Fragment,
+    components: {
+      h1: ({ children, ...props }) => <h1 className="title" {...props}>{children}</h1>,
+      a: ({ children, ...props }) => <a target="_blank" {...props}>{children}</a>,
+    },
+    plugins: [gfm(), frontmatter(), toc()],
+  },
+);
+```
+
+## Beispiele
+
+### Einfache Verwendung
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(
+  "# Hello, **world**!",
+  { createElement, Fragment },
+);
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Mit benutzerdefinierten Komponenten
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, {
+  createElement,
+  Fragment,
+  components: {
+    h1: ({ children, ...props }) => (
+      <h1 className="text-4xl font-bold" {...props}>{children}</h1>
+    ),
+    a: ({ children, ...props }) => (
+      <a className="text-blue-500 underline" target="_blank" {...props}>{children}</a>
+    ),
+    code: ({ children, ...props }) => (
+      <code className="bg-gray-100 rounded px-1" {...props}>{children}</code>
+    ),
+  },
+});
+```
+
+### Server-seitiges Rendering
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+### Verwendung von Frontmatter und TOC
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { frontmatter, toc } from "@unifast/node";
+
+const md = `---
+title: My Page
+---
+
+# Introduction
+
+## Setup
+
+## Usage
+`;
+
+const result = compileToReact(md, {
+  createElement,
+  Fragment,
+  plugins: [frontmatter(), toc()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page" }
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Setup", slug: "setup" },
+//   { depth: 2, text: "Usage", slug: "usage" },
+// ]
+```

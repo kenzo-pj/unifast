@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "제목 그룹을 `<section>` 요소로 감쌉니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// 각 제목과 뒤따르는 콘텐츠가 <section> 요소로 감싸집니다
+```
+
+## 예시
+
+### 제목별 섹션
+
+<Example data={example} />

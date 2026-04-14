@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "基于原生 Rust 的 unifast Markdown/MDX 编译器的 Node.js 绑定。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概述
+
+`@unifast/node` 是在 Node.js 中使用 unifast 的主要入口。它提供了 [`compile()`](/docs/packages/node/compile) 函数，通过 napi-rs 调用原生 Rust 编译器，以获得最佳性能。它同时支持插件系统，允许在 Rust 编译阶段之后在 JavaScript 中应用 HAST 转换。
+
+## 安装
+
+<PackageInstall package="@unifast/node" />
+
+> 原生 Rust 扩展必须预先构建。如果原生二进制文件不可用，请运行 `cargo build -p unifast-bindings-node --release`。
+
+## 快速开始
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## 插件流水线
+
+当传入插件时，`compile()` 会按以下流程执行：
+
+1. **抽离插件** —— 将 `plugins` 与其他选项分开
+2. **合并选项** —— 深度合并每个插件的 `options` 到编译选项中
+3. **强制 HAST** —— 只要有任一插件带有 `hastTransform`，原生调用就会使用 `outputKind: "hast"`
+4. **原生编译** —— 通过 napi-rs 调用 Rust 编译器
+5. **HAST 转换** —— 按顺序应用每个插件的 `hastTransform`
+6. **转换输出** —— 如果用户没有请求 HAST 输出，则通过 `hastToHtml` 转换回 HTML
+
+## 内置插件
+
+包中已内置以下插件工厂函数 —— 无需单独安装：
+
+`gfm`、`frontmatter`、`sanitize`、`syntect`、`treeSitter`、`toc`、`externalLinks`、`autolinkHeadings`、`smartypants`、`wikiLink`、`codeImport`、`emoji`、`breaks`、`math`、`githubAlert`、`sectionize`、`directive`、`definitionList`、`rubyAnnotation`、`cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## 导出列表
+
+| 导出 | 类别 | 描述 |
+|--------|------|-------------|
+| `compile` | function | 将 Markdown/MDX 编译为 HTML 或其他格式 |
+| `gfm`、`frontmatter`、... | function | 内置插件工厂（共 20 个） |
+| `hastToHtml` | function | HAST 到 HTML 的序列化函数（从 `@unifast/core` 重新导出） |
+| `CompileOptions` | type | 编译配置 |
+| `CompileResult` | type | 编译结果 |
+| `UnifastPlugin` | type | 插件接口 |
+| `TocEntry` | type | 目录条目 |
+| `HastRoot` | type | HAST 根节点 |
+| `HastElement` | type | HAST 元素节点 |
+| `HastText` | type | HAST 文本节点 |
+| `HastNode` | type | 所有 HAST 节点类型的联合 |
+| `UnifastError` | class | 错误基类 |
+| `ParseError` | class | 解析错误类 |
+| `CompileError` | class | 编译错误类 |

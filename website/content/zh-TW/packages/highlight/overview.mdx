@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "透過 HAST 轉換為 unifast 提供以 highlight.js 為核心的語法高亮外掛"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概觀
+
+`@unifast/highlight` 透過 [lowlight](https://github.com/wooorm/lowlight)（highlight.js 的封裝）提供語法高亮功能。與在 Rust 中執行高亮的內建 `syntect()` 與 `treeSitter()` 外掛不同，本套件會在編譯完成後以 JavaScript HAST 轉換的方式套用高亮──讓您能使用 highlight.js 廣大的語言與佈景主題生態系。
+
+## 安裝
+
+<PackageInstall package="@unifast/highlight" />
+
+## 快速開始
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with highlight.js CSS classes
+```
+
+## 運作原理
+
+1. Rust 編譯器會產生尚未經過高亮處理的 `<pre><code>` 區塊 HAST 輸出
+2. `highlight()` 外掛的 `hastTransform` 會走訪整棵 HAST 樹
+3. 對於每個帶有 `language-*` class 的 `<code>` 元素，lowlight 會對程式碼進行高亮處理
+4. 經過高亮處理的 HAST 節點會取代原有的子節點
+
+由於本外掛以 HAST 轉換的方式執行，必須停用原生 Rust 的高亮功能（`syntect` / `treeSitter`）。此外掛會自動將 compile 選項中的 `highlight.enabled` 設為 `false`。
+
+## 匯出列表
+
+| 匯出名稱 | 類別 | 說明 |
+|--------|------|-------------|
+| `highlight` | function | 建立 highlight.js HAST 轉換外掛 |
