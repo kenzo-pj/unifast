@@ -1,0 +1,23 @@
+* text=auto eol=lf
+
+*.node  binary
+*.wasm  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.webp  binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+
+pnpm-lock.yaml linguist-generated=true -diff
+Cargo.lock     linguist-generated=true -diff
+
+website/content/**                  linguist-documentation=true
+crates/unifast-core/tests/corpus/** linguist-documentation=true
+packages/benchmark/fixtures/**      linguist-documentation=true
+
+crates/unifast-core/queries/**      linguist-vendored=true
