@@ -24,7 +24,7 @@ website/src/data/sponsors.json
 packages/node/native/
 
 # Local docs (plans, specs, notes — not shipped)
-docs/
+/docs/
 
 # Playwright MCP
 .playwright-mcp/
