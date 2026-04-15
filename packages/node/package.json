@@ -34,7 +34,6 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
-    "./native/*": "./native/*",
     "./package.json": "./package.json"
   },
   "publishConfig": {
