@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "unifast HAST çıktısını bileşen eşlemesiyle React elemanlarına dönüştürün"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Genel Bakış
+
+`@unifast/react`, unifast HAST (HTML Soyut Sözdizimi Ağacı) çıktısını React elemanlarına dönüştürür. İki ana fonksiyon sağlar:
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) - Yüksek seviyeli: Markdown/MDX'i derler ve doğrudan React elemanları döndürür
+- [`hastToReact()`](/docs/packages/react/hast-to-react) - Düşük seviyeli: bir HAST ağacını React elemanlarına dönüştürür
+
+Paket, HTML'den React'e özellik yeniden adlandırmasını (`class` → `className`, `for` → `htmlFor`, vb.) ve CSS stil string ayrıştırmasını otomatik olarak yönetir.
+
+## Kurulum
+
+<PackageInstall package="@unifast/react" />
+
+Peer bağımlılık: `compileToReact` için `@unifast/node` gereklidir.
+
+## Tip Tanımları
+
+### CompileToReactOptions
+
+`CompileOptions`'ı React'e özgü alanlarla genişletir.
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `createElement` | `CreateElement` | React'in `createElement` fonksiyonu |
+| `Fragment` | `unknown` | React'in `Fragment` bileşeni |
+| `components?` | `ComponentMap` | HTML etiket adlarının React bileşenlerine eşlemesi |
+| *(tüm CompileOptions)* | - | `CompileOptions`'tan devralınmıştır |
+
+### CompileToReactResult
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `element` | `unknown` | Kök React elemanı |
+| `frontmatter` | `Record<string, unknown>` | Ayrıştırılmış frontmatter üst verisi |
+| `diagnostics` | `Diagnostic[]` | Uyarılar ve hatalar |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Zamanlama dökümü (ms) |
+| `toc` | `TocEntry[]` | Çıkarılan içindekiler tablosu |
+
+### HastToReactOptions
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `createElement` | `CreateElement` | React'in `createElement` fonksiyonu |
+| `Fragment` | `unknown` | React'in `Fragment` bileşeni |
+| `components?` | `ComponentMap` | HTML etiket adlarının özel React bileşenlerine eşlemesi |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### Özellik Dönüşümü
+
+| HTML Özniteliği | React Prop |
+|-----------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+CSS `style` string'leri otomatik olarak React stil nesnelerine ayrıştırılır (örn. `"font-size: 16px"` → `{ fontSize: "16px" }`).
+
+## Export Özeti
+
+| Export | Tür | Açıklama |
+|--------|-----|----------|
+| `compileToReact` | function | Markdown/MDX'i React elemanlarına derle |
+| `hastToReact` | function | HAST'i React elemanlarına dönüştür |
+| `CompileToReactOptions` | type | `compileToReact` için seçenekler |
+| `CompileToReactResult` | type | `compileToReact` sonucu |
+| `HastToReactOptions` | type | `hastToReact` için seçenekler |
+| `CreateElement` | type | React createElement imzası |
+| `ComponentMap` | type | HTML etiketten bileşene eşleme |

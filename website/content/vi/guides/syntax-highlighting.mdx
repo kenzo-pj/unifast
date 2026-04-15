@@ -1,0 +1,130 @@
+---
+title: "Syntax Highlighting"
+description: "Lựa chọn từ bốn engine syntax highlighting trong unifast: tree-sitter, syntect, Shiki và highlight.js."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast hỗ trợ bốn engine syntax highlighting. Hai engine chạy bên trong trình biên dịch Rust (**tree-sitter**, **syntect**), và hai engine chạy trong JavaScript (**Shiki**, **highlight.js**).
+
+### So sánh
+
+| | tree-sitter | syntect | Shiki | highlight.js |
+|---|-------------|---------|-------|--------------|
+| **Runtime** | Rust (built-in) | Rust (built-in) | JavaScript | JavaScript |
+| **Parsing** | Dựa trên AST (tree-sitter grammars) | Dựa trên regex (TextMate grammars) | Dựa trên regex (VS Code grammars) | Dựa trên regex (highlight.js grammars) |
+| **Tốc độ** | Nhanh nhất | Nhanh | Chậm hơn | Chậm hơn |
+| **Ngôn ngữ** | 29 ngôn ngữ + fallback qua syntect | 100+ (TextMate) | VS Code grammars | 190+ |
+| **Output CSS** | Dựa trên class (`ts-*`) | Dựa trên class (`sy-*`) | Inline style hoặc dựa trên class | Dựa trên class (`hljs`) |
+| **Gói** | `@unifast/node` | `@unifast/node` | `@unifast/shiki` | `@unifast/highlight` |
+| **Phù hợp nhất cho** | Highlight chính xác, phạm vi rộng | Cài đặt đơn giản, khởi động nhanh | Kiểm soát theme chi tiết | Hệ sinh thái theme của highlight.js |
+
+### Sử dụng tree-sitter
+
+tree-sitter sử dụng parsing dựa trên AST để highlight cú pháp một cách chính xác. Nó chạy bên trong trình biên dịch Rust và hỗ trợ sẵn 29 ngôn ngữ. Với những ngôn ngữ không được hỗ trợ, nó tự động fallback sang syntect.
+
+tree-sitter được đi kèm trong `@unifast/node` — không cần cài đặt thêm gói nào.
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [treeSitter()] }
+);
+```
+
+tree-sitter sinh ra các tên class CSS có tiền tố `ts-`. Bạn cần cung cấp các quy tắc CSS cho những class này trong stylesheet của mình.
+
+#### Các ngôn ngữ được hỗ trợ
+
+TypeScript, TSX, JavaScript, HTML, CSS, Python, Rust, JSON, YAML, Go, Ruby, TOML, Swift, PHP, Java, Lua, Scala, Zig, Elixir, OCaml, R, Make, Nix, Regex, Erlang, Bash, C, C++, CMake
+
+Các alias ngôn ngữ cũng được hỗ trợ (ví dụ `ts`, `py`, `rs`, `sh`, `yml`, `rb`).
+
+### Sử dụng syntect
+
+syntect sử dụng TextMate grammars và chạy hoàn toàn bên trong trình biên dịch Rust — không có chi phí JavaScript phát sinh.
+
+syntect được đi kèm trong `@unifast/node` — không cần cài đặt thêm gói nào.
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [syntect()] }
+);
+```
+
+syntect sinh ra các tên class CSS có tiền tố `sy-`. Bạn cần cung cấp các quy tắc CSS cho những class này trong stylesheet của mình.
+
+### Sử dụng Shiki
+
+Shiki sử dụng engine TextMate grammar của VS Code để highlight chính xác cùng khả năng hỗ trợ theme đầy đủ.
+
+<PackageInstall package="@unifast/shiki shiki" />
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  theme: "github-dark",
+  langs: ["typescript", "rust", "bash"],
+});
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [shiki] }
+);
+```
+
+### Sử dụng highlight.js
+
+`@unifast/highlight` sử dụng [lowlight](https://github.com/wooorm/lowlight) (highlight.js) và chạy dưới dạng một phép biến đổi HAST trong JavaScript. Nó hỗ trợ hơn 190 ngôn ngữ và hoạt động với bất kỳ theme nào của highlight.js.
+
+<PackageInstall package="@unifast/highlight" />
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(
+  '```typescript\nconst x: number = 42;\n```',
+  { plugins: [highlight()] }
+);
+```
+
+highlight.js sinh ra các tên class với tiền tố `hljs`. Bạn có thể dùng bất kỳ [CSS theme nào của highlight.js](https://highlightjs.org/demo) để tạo kiểu.
+
+### Số dòng
+
+Tất cả các engine đều hỗ trợ số dòng. Bật tính năng này trong tùy chọn biên dịch:
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [treeSitter()],
+  lineNumbers: true,
+});
+```
+
+Mỗi dòng được bọc trong một `<span>` kèm thuộc tính `data-line` để tạo kiểu qua CSS:
+
+```css
+[data-line]::before {
+  content: attr(data-line);
+  display: inline-block;
+  width: 2rem;
+  text-align: right;
+  margin-right: 1rem;
+  color: #6b7280;
+}
+```
+
+### Xem thêm
+
+- [syntect()](/docs/packages/node/syntect) - Tài liệu tham chiếu API syntect
+- [createShikiPlugin()](/docs/packages/shiki/create-shiki-plugin) - Tài liệu tham chiếu API Shiki

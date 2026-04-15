@@ -1,0 +1,93 @@
+---
+title: "Vite 연동"
+description: "@unifast/vite로 빌드 타임에 Markdown과 MDX 파일을 컴파일하고 Vite 애플리케이션에서 직접 import합니다."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite`는 빌드 타임에 Markdown과 MDX 파일을 컴파일해 주는 Vite 플러그인입니다. 애플리케이션에서 `.md`와 `.mdx` 파일을 직접 import할 수 있습니다.
+
+### 설치
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### 설정
+
+Vite 설정 파일에 플러그인을 추가합니다.
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // 선택 사항: compile 옵션 전달
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### Markdown import
+
+설정이 끝나면 `.md` 파일을 곧바로 import할 수 있습니다.
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // 컴파일된 HTML 문자열
+console.log(content.frontmatter);  // 파싱된 frontmatter
+console.log(content.toc);          // 목차
+```
+
+import된 모듈은 다음을 제공합니다.
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `html` | `string` | 컴파일된 HTML 출력 |
+| `frontmatter` | `Record<string, unknown>` | 파싱된 frontmatter 메타데이터 |
+| `toc` | `TocEntry[]` | 추출된 목차 |
+
+### 플러그인과 함께 사용
+
+Vite 플러그인 옵션을 통해 플러그인을 전달합니다.
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+프로젝트 내 모든 Markdown/MDX import에 지정한 플러그인이 자동으로 적용됩니다.
+
+### MDX 지원
+
+MDX 파일은 기본 React 컴포넌트를 export하는 JavaScript 모듈로 컴파일됩니다.
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### 핫 모듈 교체(HMR)
+
+Vite 플러그인은 HMR을 지원합니다. `.md`나 `.mdx` 파일을 편집하면 전체 페이지를 새로고침하지 않고도 페이지가 갱신됩니다.
+
+### 함께 보기
+
+- [compile()](/docs/packages/node/compile) - 내부적으로 사용되는 compile API
+- [React 연동](/docs/guides/react) - 컴파일된 콘텐츠를 React로 렌더링하기

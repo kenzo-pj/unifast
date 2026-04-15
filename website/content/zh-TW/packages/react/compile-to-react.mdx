@@ -1,0 +1,158 @@
+---
+title: "compileToReact()"
+description: "編譯 Markdown 或 MDX 輸入並直接回傳 React 元素，同時提供 frontmatter、診斷訊息、效能統計與目錄。"
+---
+
+```ts
+import { compileToReact } from "@unifast/react";
+```
+
+## 函式簽名
+
+```ts
+function compileToReact(
+  input: string,
+  options: CompileToReactOptions,
+): CompileToReactResult
+```
+
+## 參數
+
+### input
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Markdown 或 MDX 原始碼 |
+
+### options
+
+Compile 選項加上 React 專屬設定
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | React 的 createElement 函式 |
+| `Fragment` | `unknown` | — | React 的 Fragment 元件 |
+| `components?` | `ComponentMap` | — | HTML 標籤名稱到 React 元件的對應表 |
+
+> 繼承自 [`CompileOptions`](/docs/packages/core/overview)──所有其他 compile 選項也都可以使用。
+
+## 回傳值
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `element` | `unknown` | 根 React 元素 |
+| `frontmatter` | `Record<string, unknown>` | 已解析的 frontmatter 後設資料 |
+| `diagnostics` | `Diagnostic[]` | 警告與錯誤 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 各階段耗時（毫秒） |
+| `toc` | `TocEntry[]` | 擷取而得的目錄 |
+
+## 用法
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { gfm, frontmatter, toc } from "@unifast/node";
+
+const { element, frontmatter: fm, toc: tocEntries, diagnostics, stats } = compileToReact(
+  md,
+  {
+    createElement,
+    Fragment,
+    components: {
+      h1: ({ children, ...props }) => <h1 className="title" {...props}>{children}</h1>,
+      a: ({ children, ...props }) => <a target="_blank" {...props}>{children}</a>,
+    },
+    plugins: [gfm(), frontmatter(), toc()],
+  },
+);
+```
+
+## 範例
+
+### 基本用法
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(
+  "# Hello, **world**!",
+  { createElement, Fragment },
+);
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### 搭配自訂元件
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, {
+  createElement,
+  Fragment,
+  components: {
+    h1: ({ children, ...props }) => (
+      <h1 className="text-4xl font-bold" {...props}>{children}</h1>
+    ),
+    a: ({ children, ...props }) => (
+      <a className="text-blue-500 underline" target="_blank" {...props}>{children}</a>
+    ),
+    code: ({ children, ...props }) => (
+      <code className="bg-gray-100 rounded px-1" {...props}>{children}</code>
+    ),
+  },
+});
+```
+
+### 伺服器端渲染
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+### 使用 frontmatter 與目錄
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { frontmatter, toc } from "@unifast/node";
+
+const md = `---
+title: My Page
+---
+
+# Introduction
+
+## Setup
+
+## Usage
+`;
+
+const result = compileToReact(md, {
+  createElement,
+  Fragment,
+  plugins: [frontmatter(), toc()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page" }
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Setup", slug: "setup" },
+//   { depth: 2, text: "Usage", slug: "usage" },
+// ]
+```

@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "Plugin de coloration syntaxique pour unifast basé sur Shiki, appliqué via des transformations HAST"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Vue d'ensemble
+
+`@unifast/shiki` fournit une coloration syntaxique propulsée par [Shiki](https://shiki.style/), avec la prise en charge de plus de 200 langages et d'une large variété de thèmes. Contrairement au plugin de coloration intégré, Shiki s'exécute sous forme de transformation HAST en JavaScript, en remplaçant les blocs `<pre><code>` par une sortie finement stylisée.
+
+Le plugin désactive automatiquement le surligneur Rust intégré afin d'éviter un double traitement.
+
+## Installation
+
+<PackageInstall package="@unifast/shiki" />
+
+## Définitions de types
+
+### ShikiTransformerOptions
+
+| Propriété | Type | Défaut | Description |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Thèmes Shiki à charger |
+| `defaultTheme` | `BundledTheme` | Premier thème de `themes` | Thème par défaut pour le rendu |
+| `langs` | `BundledLanguage[]` | `[]` | Langages à charger. Seuls les langages chargés seront colorés. |
+
+> `BundledTheme` et `BundledLanguage` sont des types issus du paquet `shiki`.
+
+### ShikiTransformer
+
+| Propriété | Type | Description |
+|----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | Applique la coloration Shiki à tous les blocs `<pre><code class="language-*">` |
+
+## Résumé des exports
+
+| Export | Nature | Description |
+|--------|------|-------------|
+| `createShikiPlugin` | fonction | Crée un UnifastPlugin Shiki (asynchrone) |
+| `createShikiTransformer` | fonction | Crée un transformer Shiki autonome (asynchrone) |
+| `ShikiTransformerOptions` | type | Options de configuration de Shiki |
+| `ShikiTransformer` | type | Interface du transformer |
+| `hastToHtml` | fonction | Sérialiseur HAST vers HTML (réexporté) |
+| `HastNode`, `HastRoot`, etc. | types | Types de nœuds HAST (réexportés) |

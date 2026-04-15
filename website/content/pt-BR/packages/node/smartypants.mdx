@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Aplica substituições tipográficas para aspas, traços e reticências."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Assinatura
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Parâmetros
+
+### options?
+
+Configuração de quais substituições aplicar
+
+| Propriedade | Tipo | Padrão | Descrição |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | Substitui aspas retas por aspas curvas |
+| `dashes` | `boolean` | `true` | Substitui -- por en-dash e --- por em-dash |
+| `ellipses` | `boolean` | `true` | Substitui ... por um caractere de reticências |
+
+## Uso
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Exemplos
+
+### Substituições tipográficas
+
+<Example data={example} />
+
+| Origem | Resultado |
+|--------|--------|
+| `"Hello"` | aspas duplas curvas |
+| `'Hi'` | aspas simples curvas |
+| `--` | en-dash (–) |
+| `---` | em-dash (—) |
+| `...` | reticências (…) |

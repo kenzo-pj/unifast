@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "Plugin de resaltado de sintaxis para unifast basado en Shiki con transformaciones HAST"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Visión general
+
+`@unifast/shiki` proporciona resaltado de sintaxis impulsado por [Shiki](https://shiki.style/), con soporte para más de 200 lenguajes y una amplia variedad de temas. A diferencia del plugin de resaltado integrado, Shiki se ejecuta como una transformación HAST en JavaScript, reemplazando los bloques `<pre><code>` por una salida con estilos detallados.
+
+El plugin desactiva automáticamente el resaltador nativo en Rust para evitar un doble procesamiento.
+
+## Instalación
+
+<PackageInstall package="@unifast/shiki" />
+
+## Definiciones de tipos
+
+### ShikiTransformerOptions
+
+| Propiedad | Tipo | Por defecto | Descripción |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Temas de Shiki a cargar |
+| `defaultTheme` | `BundledTheme` | Primer tema en `themes` | Tema por defecto para el renderizado |
+| `langs` | `BundledLanguage[]` | `[]` | Lenguajes a cargar. Solo se resaltarán los lenguajes cargados. |
+
+> `BundledTheme` y `BundledLanguage` son tipos del paquete `shiki`.
+
+### ShikiTransformer
+
+| Propiedad | Tipo | Descripción |
+|----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | Aplica el resaltado de Shiki a todos los bloques `<pre><code class="language-*">` |
+
+## Resumen de exports
+
+| Export | Tipo | Descripción |
+|--------|------|-------------|
+| `createShikiPlugin` | function | Crea un UnifastPlugin con Shiki (async) |
+| `createShikiTransformer` | function | Crea un transformador independiente de Shiki (async) |
+| `ShikiTransformerOptions` | type | Opciones de configuración de Shiki |
+| `ShikiTransformer` | type | Interfaz del transformador |
+| `hastToHtml` | function | Serializador de HAST a HTML (reexportado) |
+| `HastNode`, `HastRoot`, etc. | types | Tipos de nodo HAST (reexportados) |

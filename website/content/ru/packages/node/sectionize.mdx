@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "Оборачивает группы заголовков в элементы `<section>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## Параметры
+
+Отсутствуют.
+
+## Использование
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// Каждый заголовок и следующее за ним содержимое оборачиваются в элемент <section>
+```
+
+## Примеры
+
+### Секции заголовков
+
+<Example data={example} />

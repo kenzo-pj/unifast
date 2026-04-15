@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "Bọc các nhóm tiêu đề trong phần tử `<section>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## Tham số
+
+Không có.
+
+## Cách dùng
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// Each heading and its following content are wrapped in a <section> element
+```
+
+## Ví dụ
+
+### Section tiêu đề
+
+<Example data={example} />

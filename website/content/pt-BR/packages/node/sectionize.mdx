@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "Envolve grupos de headings em elementos `<section>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## Assinatura
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## Parâmetros
+
+Nenhum.
+
+## Uso
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// Each heading and its following content are wrapped in a <section> element
+```
+
+## Exemplos
+
+### Seções de heading
+
+<Example data={example} />

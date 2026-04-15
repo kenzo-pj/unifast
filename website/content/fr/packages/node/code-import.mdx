@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "Importe du code depuis des fichiers externes dans les blocs de code clôturés."
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## Paramètres
+
+### options?
+
+Configuration du comportement d'import de code
+
+| Propriété | Type | Défaut | Description |
+|----------|------|---------|-------------|
+| `rootDir` | `string` | — | Répertoire racine pour résoudre les chemins de fichiers. Si omis, les chemins sont résolus par rapport au répertoire de travail courant. |
+
+## Utilisation
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// The code block is replaced with the contents of ./src/example.ts
+```
+
+## Exemples
+
+### Import de fichier basique
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+Le contenu du bloc de code est remplacé par celui du fichier, en conservant le langage pour la coloration syntaxique.
+
+### Avec rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// File paths are resolved relative to rootDir
+```
+
+### Sans rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// File paths are resolved relative to the current working directory
+```

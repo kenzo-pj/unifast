@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "unifast HAST 출력을 컴포넌트 매핑과 함께 React 엘리먼트로 변환"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 개요
+
+`@unifast/react`는 unifast의 HAST(HTML Abstract Syntax Tree) 출력을 React 엘리먼트로 변환합니다. 두 가지 주요 함수를 제공합니다.
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) - 고수준: Markdown/MDX를 컴파일하고 React 엘리먼트를 바로 반환합니다.
+- [`hastToReact()`](/docs/packages/react/hast-to-react) - 저수준: HAST 트리를 React 엘리먼트로 변환합니다.
+
+이 패키지는 HTML에서 React로의 속성 이름 변환(`class`에서 `className`, `for`에서 `htmlFor` 등)과 CSS 스타일 문자열 파싱을 자동으로 처리합니다.
+
+## 설치
+
+<PackageInstall package="@unifast/react" />
+
+peer 의존성: `compileToReact`를 사용하려면 `@unifast/node`가 필요합니다.
+
+## 타입 정의
+
+### CompileToReactOptions
+
+React 관련 필드가 추가된 `CompileOptions` 확장 타입.
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React의 `createElement` 함수 |
+| `Fragment` | `unknown` | React의 `Fragment` 컴포넌트 |
+| `components?` | `ComponentMap` | HTML 태그 이름과 React 컴포넌트의 매핑 |
+| *(모든 CompileOptions)* | - | `CompileOptions`에서 상속 |
+
+### CompileToReactResult
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `element` | `unknown` | 루트 React 엘리먼트 |
+| `frontmatter` | `Record<string, unknown>` | 파싱된 frontmatter 메타데이터 |
+| `diagnostics` | `Diagnostic[]` | 경고와 오류 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 단계별 소요 시간(ms) |
+| `toc` | `TocEntry[]` | 추출된 목차 |
+
+### HastToReactOptions
+
+| 속성 | 타입 | 설명 |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React의 `createElement` 함수 |
+| `Fragment` | `unknown` | React의 `Fragment` 컴포넌트 |
+| `components?` | `ComponentMap` | HTML 태그 이름과 커스텀 React 컴포넌트의 매핑 |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### 속성 변환
+
+| HTML 속성 | React prop |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+CSS `style` 문자열은 React 스타일 객체로 자동 변환됩니다(예: `"font-size: 16px"`는 `{ fontSize: "16px" }`가 됩니다).
+
+## Exports 요약
+
+| Export | 종류 | 설명 |
+|--------|------|-------------|
+| `compileToReact` | function | Markdown/MDX를 React 엘리먼트로 컴파일 |
+| `hastToReact` | function | HAST를 React 엘리먼트로 변환 |
+| `CompileToReactOptions` | type | `compileToReact` 옵션 |
+| `CompileToReactResult` | type | `compileToReact` 결과 |
+| `HastToReactOptions` | type | `hastToReact` 옵션 |
+| `CreateElement` | type | React createElement 시그니처 |
+| `ComponentMap` | type | HTML 태그-컴포넌트 매핑 |

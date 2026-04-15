@@ -1,0 +1,79 @@
+---
+title: "क्विक स्टार्ट"
+description: "unifast इंस्टॉल करें और एक मिनट से भी कम समय में अपना पहला Markdown document कंपाइल करें।"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast इंस्टॉल करें और एक मिनट से भी कम समय में अपना पहला Markdown document कंपाइल करें।
+
+### इंस्टॉलेशन
+
+<PackageInstall package="@unifast/node" />
+
+### मूल उपयोग
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, unifast!\n\nThis is **Markdown**.");
+
+console.log(result.html);
+// <h1>Hello, unifast!</h1>
+// <p>This is <strong>Markdown</strong>.</p>
+```
+
+बस इतना ही। एक import, एक function call, HTML output।
+
+### Plugins जोड़ना
+
+Plugins कंपाइलर को अतिरिक्त features के साथ विस्तारित करते हैं। अधिकांश plugins `@unifast/node` में शामिल हैं और अंतर्निहित passes को configure करते हैं।
+
+```ts
+import { compile, frontmatter, gfm } from "@unifast/node";
+
+const source = `---
+title: My Post
+date: 2025-01-15
+---
+
+# My Post
+
+A table:
+
+| Feature | Status |
+|---------|--------|
+| GFM     | Yes    |
+
+- [x] Task complete
+- [ ] Task pending
+`;
+
+const result = compile(source, {
+  plugins: [frontmatter(), gfm()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Post", date: "2025-01-15" }
+
+console.log(result.html);
+// GFM table और task list के साथ rendered HTML
+```
+
+### Syntax Highlighting जोड़ना
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```js\nconsole.log("highlighted");\n```',
+  { plugins: [syntect()] }
+);
+// syntax highlighting classes के साथ code block
+```
+
+### आगे क्या
+
+- [मुख्य अवधारणाएँ](/docs/introduction/key-concepts) - compilation pipeline और architecture को समझें।
+- [Syntax Highlighting](/docs/guides/syntax-highlighting) - विस्तार से code block highlighting configure करें।
+- [compile()](/docs/packages/node/compile) - compile function के लिए पूर्ण API reference।

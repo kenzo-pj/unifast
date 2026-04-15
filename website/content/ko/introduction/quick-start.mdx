@@ -1,0 +1,79 @@
+---
+title: "빠른 시작"
+description: "unifast를 설치하고 1분 안에 첫 Markdown 문서를 컴파일해 봅니다."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast를 설치하고 1분 안에 첫 Markdown 문서를 컴파일해 봅니다.
+
+### 설치
+
+<PackageInstall package="@unifast/node" />
+
+### 기본 사용법
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, unifast!\n\nThis is **Markdown**.");
+
+console.log(result.html);
+// <h1>Hello, unifast!</h1>
+// <p>This is <strong>Markdown</strong>.</p>
+```
+
+이게 전부입니다. import 하나, 함수 호출 하나로 HTML 출력을 얻습니다.
+
+### 플러그인 추가
+
+플러그인은 컴파일러에 기능을 더합니다. 대부분의 플러그인은 `@unifast/node`에 포함되어 있으며 빌트인 패스를 설정합니다.
+
+```ts
+import { compile, frontmatter, gfm } from "@unifast/node";
+
+const source = `---
+title: My Post
+date: 2025-01-15
+---
+
+# My Post
+
+A table:
+
+| Feature | Status |
+|---------|--------|
+| GFM     | Yes    |
+
+- [x] Task complete
+- [ ] Task pending
+`;
+
+const result = compile(source, {
+  plugins: [frontmatter(), gfm()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Post", date: "2025-01-15" }
+
+console.log(result.html);
+// GFM 표와 작업 목록이 적용된 HTML
+```
+
+### 구문 강조 추가
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```js\nconsole.log("highlighted");\n```',
+  { plugins: [syntect()] }
+);
+// 구문 강조 클래스가 적용된 코드 블록
+```
+
+### 다음 단계
+
+- [핵심 개념](/docs/introduction/key-concepts) - 컴파일 파이프라인과 아키텍처를 이해합니다.
+- [구문 강조](/docs/guides/syntax-highlighting) - 코드 블록 강조를 자세히 설정합니다.
+- [compile()](/docs/packages/node/compile) - compile 함수의 전체 API 레퍼런스.

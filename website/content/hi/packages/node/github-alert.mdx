@@ -1,0 +1,37 @@
+---
+title: "githubAlert()"
+description: "blockquotes में GitHub-शैली के alerts को सपोर्ट करें (NOTE, TIP, WARNING, आदि)।"
+---
+
+import { Example } from "~/components/Example"
+import example from "./github-alert-example.md?example"
+
+```ts
+import { githubAlert } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function githubAlert(): UnifastPlugin
+```
+
+## Parameters
+
+कोई नहीं।
+
+## उपयोग
+
+```ts
+import { compile, githubAlert } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [githubAlert()],
+});
+```
+
+## उदाहरण
+
+### GitHub-शैली के alerts
+
+<Example data={example} />

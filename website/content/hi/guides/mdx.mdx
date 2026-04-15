@@ -1,0 +1,94 @@
+---
+title: "MDX का उपयोग"
+description: "Markdown के अंदर JSX expressions और import statements का उपयोग करने के लिए unifast के साथ MDX कंपाइल करें, जो React या अन्य JSX runtimes के साथ render होता है।"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+MDX आपको Markdown के अंदर JSX expressions और import statements का उपयोग करने देता है। unifast MDX को JavaScript modules में कंपाइल करता है जिन्हें React या अन्य JSX runtimes के साथ render किया जा सकता है।
+
+### इंस्टॉलेशन
+
+<PackageInstall package="@unifast/node" />
+
+### मूल उपयोग
+
+```ts
+import { compile } from "@unifast/node";
+
+const source = `
+# Hello
+
+<Counter initial={0} />
+
+export const meta = { title: "My Page" };
+`;
+
+const result = compile(source, { inputKind: "mdx" });
+// result.output एक JavaScript module string है
+```
+
+### MDX कैसे काम करता है
+
+MDX Markdown को दो क्षमताओं के साथ विस्तारित करता है:
+
+1. **JSX expressions** - अपने content के साथ inline components का उपयोग करें।
+2. **ESM imports/exports** - components import करें और metadata export करें।
+
+कंपाइलर MDX को इन steps में process करता है:
+
+```
+MDX source
+  → Parse (Markdown + JSX + ESM)
+  → MdAst with JSX/ESM nodes
+  → Lower to HAst
+  → Emit as JavaScript module
+```
+
+Output एक JavaScript module है जिसमें एक default export function होता है जो component injection के लिए `components` prop स्वीकार करता है।
+
+### React के साथ उपयोग
+
+```ts
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const source = `# Hello\n\nThis is **MDX**.`;
+
+const result = compile(source, { inputKind: "mdx" });
+const Component = compileToReact(result);
+
+// अपने React app में render करें
+<Component components={{ h1: MyHeading }} />
+```
+
+### MDX में Frontmatter
+
+Metadata निकालने के लिए MDX को frontmatter plugin के साथ मिलाएँ:
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const source = `---
+title: My Article
+author: Jane
+---
+
+# {frontmatter.title}
+
+Written by {frontmatter.author}.
+`;
+
+const result = compile(source, {
+  inputKind: "mdx",
+  plugins: [frontmatter()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Article", author: "Jane" }
+```
+
+### यह भी देखें
+
+- [compile()](/docs/packages/node/compile) - पूर्ण API reference
+- [React Integration](/docs/guides/react) - React के साथ MDX को render करना

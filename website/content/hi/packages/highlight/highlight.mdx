@@ -1,0 +1,77 @@
+---
+title: "highlight()"
+description: "एक highlight.js syntax highlighting plugin बनाएँ जो lowlight का उपयोग करके HAST transforms के माध्यम से fenced code blocks को highlight करता है।"
+---
+
+```ts
+import { highlight } from "@unifast/highlight";
+```
+
+## Signature
+
+```ts
+function highlight(): UnifastPlugin
+```
+
+## Parameters
+
+कोई नहीं।
+
+## उपयोग
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// <pre><code class="language-typescript hljs">
+//   <span class="hljs-keyword">const</span> ...
+// </code></pre>
+```
+
+## उदाहरण
+
+### कई भाषाओं के साथ
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`python
+def hello():
+    print("Hello, world!")
+\`\`\`
+
+\`\`\`css
+.container {
+  display: flex;
+}
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [highlight()] });
+// दोनों code blocks उपयुक्त highlight.js classes के साथ highlight होते हैं
+```
+
+### अन्य plugins के साथ
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), highlight()],
+});
+```

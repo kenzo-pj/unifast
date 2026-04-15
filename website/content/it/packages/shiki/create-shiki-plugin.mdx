@@ -1,0 +1,99 @@
+---
+title: "createShikiPlugin()"
+description: "Crea un plugin di evidenziazione della sintassi basato su Shiki. Una funzione async che inizializza l'highlighter Shiki e restituisce un UnifastPlugin con una trasformazione HAST."
+---
+
+```ts
+import { createShikiPlugin } from "@unifast/shiki";
+```
+
+## Firma
+
+```ts
+async function createShikiPlugin(
+  options?: ShikiTransformerOptions,
+): Promise<UnifastPlugin>
+```
+
+## Parametri
+
+### options?
+
+Configurazione di Shiki (temi, linguaggi)
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | Temi Shiki da caricare |
+| `defaultTheme` | `BundledTheme` | Primo tema di themes | Tema predefinito per il rendering |
+| `langs` | `BundledLanguage[]` | `[]` | Linguaggi da caricare. Verranno evidenziati solo i linguaggi caricati. |
+
+## Utilizzo
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark", "github-light"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "json", "html", "css"],
+});
+
+const result = compile(md, {
+  plugins: [shiki],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with Shiki-generated <span> elements
+```
+
+## Esempi
+
+### Tema singolo
+
+```ts
+import { compile } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile("```ts\nconst x = 1;\n```", {
+  plugins: [shiki],
+});
+
+console.log(result.output);
+// <pre> with Shiki-highlighted <span> elements
+```
+
+### Più temi
+
+```ts
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark", "github-light", "dracula"],
+  defaultTheme: "github-dark",
+  langs: ["typescript", "rust", "python"],
+});
+
+// Use with compile() — defaultTheme is applied to code blocks
+```
+
+### Con altri plugin
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { createShikiPlugin } from "@unifast/shiki";
+
+const shiki = await createShikiPlugin({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, {
+  plugins: [gfm(), frontmatter(), shiki],
+});
+```

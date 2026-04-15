@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "unifast runtime packages में साझा TypeScript type definitions, HAST utilities, और error classes"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## अवलोकन
+
+`@unifast/core` compile options, results, HAST (HTML Abstract Syntax Tree) nodes, plugin interface, और error classes के लिए साझा TypeScript type definitions प्रदान करता है। यह `@unifast/node` जैसे runtime packages की एक dependency है — आपको आमतौर पर इसे सीधे install करने की **ज़रूरत नहीं होती**।
+
+कंपाइलर और अंतर्निहित plugins के लिए, [`@unifast/node`](/docs/packages/node/overview) का उपयोग करें।
+
+## इंस्टॉलेशन
+
+<PackageInstall package="@unifast/core" />
+
+## Type Definitions
+
+### CompileOptions
+
+`compile()` function के लिए configuration।
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | Input format |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | Output format |
+| `gfm` | `object` | - | GitHub Flavored Markdown settings |
+| `gfm.tables` | `boolean` | - | GFM tables enable करें |
+| `gfm.taskList` | `boolean` | - | task list checkboxes enable करें |
+| `gfm.strikethrough` | `boolean` | - | `~~strikethrough~~` enable करें |
+| `gfm.footnotes` | `boolean` | - | footnotes enable करें |
+| `gfm.autolink` | `boolean` | - | URL auto-linking enable करें |
+| `frontmatter` | `object` | - | Frontmatter parsing settings |
+| `frontmatter.yaml` | `boolean` | - | YAML frontmatter parse करें |
+| `frontmatter.toml` | `boolean` | - | TOML frontmatter parse करें |
+| `frontmatter.json` | `boolean` | - | JSON frontmatter parse करें |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | source में raw HTML को कैसे handle करें |
+| `sanitize` | `object` | - | HTML sanitization settings |
+| `sanitize.enabled` | `boolean` | - | sanitization enable करें |
+| `sanitize.schema` | `SanitizeSchema` | - | custom sanitization rules |
+| `highlight` | `object` | - | Syntax highlighting settings |
+| `highlight.enabled` | `boolean` | - | syntax highlighting enable करें |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | Highlighting engine |
+| `slug` | `object` | - | Heading slug generation settings |
+| `slug.mode` | `"github" \| "unicode"` | - | Slug generation algorithm |
+| `toc` | `object` | - | Table of contents settings |
+| `toc.enabled` | `boolean` | - | TOC extraction enable करें |
+| `toc.maxDepth` | `number` | - | शामिल करने के लिए अधिकतम heading depth |
+| `diagnostics` | `object` | - | Diagnostic output settings |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | Diagnostic format |
+| `cache` | `object` | - | Caching settings |
+| `cache.enabled` | `boolean` | - | result caching enable करें |
+| `cache.dir` | `string` | - | Cache directory path |
+| `plugins` | `UnifastPlugin[]` | `[]` | लागू करने के लिए plugins का array |
+
+### CompileResult
+
+`compile()` function द्वारा returned।
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `output` | `string \| object` | Compiled output (`outputKind` के आधार पर HTML string, HAST JSON, या MDAST JSON) |
+| `frontmatter` | `Record<string, unknown>` | Parsed frontmatter metadata |
+| `diagnostics` | `Diagnostic[]` | warnings और errors का array |
+| `stats` | `{ parseMs, transformMs, emitMs }` | milliseconds में timing breakdown |
+| `toc` | `TocEntry[]` | निकाले गए table of contents entries |
+
+### Diagnostic
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `level` | `"error" \| "warn"` | Severity level |
+| `message` | `string` | मानव-पठनीय message |
+| `start` | `number \| undefined` | source में Start byte offset |
+| `end` | `number \| undefined` | source में End byte offset |
+| `line` | `number \| undefined` | Line number (1-based) |
+| `column` | `number \| undefined` | Column number (1-based) |
+
+### TocEntry
+
+Table of contents के लिए निकाला गया एक heading।
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `depth` | `number` | Heading level (1-6) |
+| `text` | `string` | heading का plain text content |
+| `slug` | `string` | anchor linking के लिए उत्पन्न slug |
+
+### SanitizeSchema
+
+Custom sanitization rules।
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | अनुमत HTML tags |
+| `allowedAttributes` | `Record<string, string[]>` | प्रति tag अनुमत attributes |
+| `allowedProtocols` | `Record<string, string[]>` | प्रति attribute अनुमत URL protocols |
+
+### UnifastPlugin
+
+unifast को विस्तारित करने के लिए plugin interface।
+
+| Property | Type | विवरण |
+|----------|------|-------------|
+| `name` | `string` | विशिष्ट plugin नाम |
+| `options?` | `Partial<CompileOptions>` | compile options में merge किए जाने वाले options |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | compilation के बाद HAST tree को transform करें |
+
+### HAST Node Types
+
+| Type | `type` field | Properties | विवरण |
+|------|-------------|------------|-------------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | tree का root node |
+| `HastElement` | `"element"` | `tagName`, `properties`, `children` | एक HTML element |
+| `HastText` | `"text"` | `value: string` | एक text node |
+| `HastRaw` | `"raw"` | `value: string` | Raw HTML passthrough |
+| `HastComment` | `"comment"` | `value: string` | एक HTML comment |
+| `HastDoctype` | `"doctype"` | - | एक `<!DOCTYPE html>` node |
+
+`HastNode` union type है: `HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## Error Classes
+
+| Class | Extends | Properties | विवरण |
+|-------|---------|------------|-------------|
+| `UnifastError` | `Error` | `code?: string`, `span?: { start, end }` | सभी unifast errors के लिए base error class |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | जब Markdown/MDX input parse नहीं हो पाता तो throw किया जाता है |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | parsing के बाद compilation fail होने पर throw किया जाता है |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... कुछ compile करें
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## Exports सारांश
+
+| Export | Kind | विवरण |
+|--------|------|-------------|
+| `CompileOptions` | type | Compilation configuration |
+| `CompileResult` | type | Compilation result |
+| `TocEntry` | type | Table of contents entry |
+| `SanitizeSchema` | type | Sanitization rules |
+| `UnifastPlugin` | type | Plugin interface |
+| `HastNode` | type | सभी HAST node types का union |
+| `HastRoot` | type | HAST root node |
+| `HastElement` | type | HAST element node |
+| `HastText` | type | HAST text node |
+| `HastRaw` | type | HAST raw HTML node |
+| `HastComment` | type | HAST comment node |
+| `HastDoctype` | type | HAST doctype node |
+| `hastToHtml` | function | HAST-to-HTML serializer |
+| `escapeHtml` | function | HTML special characters escape करें (`&`, `<`, `>`, `"`) |
+| `extractLang` | function | एक HAST `<code>` element से language identifier निकालें |
+| `extractText` | function | एक HAST node से plain text content निकालें |
+| `findCodeChild` | function | एक `<pre>` element के अंदर `<code>` child element खोजें |
+| `visitHast` | function | HAST trees को walk करने के लिए visitor pattern utility |
+| `UnifastError` | class | Base error class |
+| `ParseError` | class | Parse error class |
+| `CompileError` | class | Compile error class |

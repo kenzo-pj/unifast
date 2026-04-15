@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "텍스트의 개행 문자를 `<br>` 요소로 변환합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// 각 개행이 <br> 요소가 됩니다
+```
+
+## 예시
+
+### 개행을 줄 바꿈으로
+
+`breaks()` 없이는 이 세 줄이 하나의 문단으로 합쳐집니다. 플러그인을 활성화하면 각 개행이 `<br>`이 됩니다.
+
+<Example data={example} />

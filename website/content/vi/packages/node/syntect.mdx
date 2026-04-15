@@ -1,0 +1,86 @@
+---
+title: "syntect()"
+description: "Tạo plugin syntect để bật syntax highlighting native Rust cho các khối mã fenced. Được cung cấp bởi các định nghĩa cú pháp của Sublime Text với hỗ trợ hơn 100 ngôn ngữ."
+---
+
+```ts
+import { syntect } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function syntect(options?: SyntectPluginOptions): UnifastPlugin
+```
+
+## Tham số
+
+### options?
+
+Cấu hình engine highlighting
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "syntect"` | `"syntect"` | "syntect" sử dụng highlighter syntect; "none" sẽ tắt highlighting |
+
+## Cách dùng
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    syntect({
+      engine: "syntect",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## Ví dụ
+
+### Bật syntax highlighting
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [syntect()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Tắt highlighting
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [syntect({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

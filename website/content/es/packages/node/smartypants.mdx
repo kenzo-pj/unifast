@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Aplica sustituciones tipográficas para comillas, guiones y puntos suspensivos."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Parámetros
+
+### options?
+
+Configuración de qué sustituciones aplicar
+
+| Propiedad | Tipo | Por defecto | Descripción |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | Reemplaza las comillas rectas por comillas tipográficas |
+| `dashes` | `boolean` | `true` | Reemplaza -- por un guion corto (en-dash) y --- por un guion largo (em-dash) |
+| `ellipses` | `boolean` | `true` | Reemplaza ... por el carácter de puntos suspensivos |
+
+## Uso
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Ejemplos
+
+### Sustituciones tipográficas
+
+<Example data={example} />
+
+| Fuente | Resultado |
+|--------|--------|
+| `"Hello"` | comillas dobles tipográficas |
+| `'Hi'` | comillas simples tipográficas |
+| `--` | guion corto (–) |
+| `---` | guion largo (—) |
+| `...` | puntos suspensivos (…) |

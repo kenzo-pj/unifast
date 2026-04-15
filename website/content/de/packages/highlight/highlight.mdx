@@ -1,0 +1,77 @@
+---
+title: "highlight()"
+description: "Erstellt ein Plugin zur Syntax-Hervorhebung mit highlight.js, das eingezäunte Code-Blöcke über HAST-Transformationen mithilfe von lowlight hervorhebt."
+---
+
+```ts
+import { highlight } from "@unifast/highlight";
+```
+
+## Signatur
+
+```ts
+function highlight(): UnifastPlugin
+```
+
+## Parameter
+
+Keine.
+
+## Verwendung
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// <pre><code class="language-typescript hljs">
+//   <span class="hljs-keyword">const</span> ...
+// </code></pre>
+```
+
+## Beispiele
+
+### Mit mehreren Sprachen
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`python
+def hello():
+    print("Hello, world!")
+\`\`\`
+
+\`\`\`css
+.container {
+  display: flex;
+}
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [highlight()] });
+// Both code blocks are highlighted with appropriate highlight.js classes
+```
+
+### Mit anderen Plugins
+
+```ts
+import { compile, gfm, frontmatter } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), highlight()],
+});
+```

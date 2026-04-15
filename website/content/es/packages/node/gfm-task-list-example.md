@@ -1,0 +1,4 @@
+- [x] Escribir la documentación
+- [x] Añadir ejemplos
+- [ ] Revisar el pull request
+- [ ] Desplegar a producción

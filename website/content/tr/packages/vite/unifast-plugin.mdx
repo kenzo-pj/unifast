@@ -1,0 +1,83 @@
+---
+title: "unifastPlugin()"
+description: "Markdown ve MDX dosyalarını içe aktarılabilir JavaScript modüllerine dönüştüren bir Vite plugin'i oluşturur."
+---
+
+```ts
+import unifast from "@unifast/vite";
+```
+
+## İmza
+
+```ts
+function unifastPlugin(options?: UnifastPluginOptions): Plugin
+```
+
+## Parametreler
+
+### options?
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `md` | `CompileOptions` | `{}` | `.md` dosyalarına uygulanan derleme seçenekleri |
+| `mdx` | `CompileOptions` | `md` seçeneklerini kullanır | `.mdx` dosyalarına uygulanan derleme seçenekleri. Belirtilmezse `md`'ye geri döner |
+
+## Dönüş Değeri
+
+Şunlara sahip bir Vite `Plugin` nesnesi:
+- **`name`**: `"vite-plugin-unifast"`
+- **`enforce`**: `"pre"` — diğer plugin'lerden önce çalışır
+- **`transform`**: `.md` / `.mdx` dosyalarını JS modüllerine derler
+- **`handleHotUpdate`**: Markdown dosyaları değiştiğinde HMR'yi tetikler
+
+## Kullanım
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { gfm, frontmatter, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        plugins: [gfm(), frontmatter(), syntect()],
+      },
+    }),
+  ],
+});
+```
+
+## Örnekler
+
+### Ayrı MD ve MDX seçenekleri
+
+```ts
+import unifast from "@unifast/vite";
+import { gfm, frontmatter } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        plugins: [gfm(), frontmatter()],
+      },
+      mdx: {
+        plugins: [gfm(), frontmatter()],
+        // MDX'e özgü seçenekler farklı olabilir
+      },
+    }),
+  ],
+});
+```
+
+### Bileşenlerde Markdown içe aktarma
+
+```ts
+import doc from "./README.md";
+
+// doc.html — derlenmiş HTML string'i
+// doc.frontmatter — ayrıştırılmış frontmatter nesnesi
+// doc.toc — içindekiler tablosu girişleri
+```

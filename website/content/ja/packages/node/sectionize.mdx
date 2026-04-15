@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "見出しのグループを `<section>` 要素でラップします。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## パラメータ
+
+なし。
+
+## 使い方
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// Each heading and its following content are wrapped in a <section> element
+```
+
+## 使用例
+
+### 見出しのセクション化
+
+<Example data={example} />

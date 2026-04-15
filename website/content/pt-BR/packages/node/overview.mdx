@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "Binding Node.js para o compilador Markdown/MDX do unifast, alimentado por Rust nativo"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Visão Geral
+
+O `@unifast/node` é o ponto de entrada principal para usar o unifast no Node.js. Ele fornece a função [`compile()`](/docs/packages/node/compile) que invoca o compilador Rust nativo via napi-rs para máxima performance. Também suporta o sistema de plugins, permitindo que transformações HAST sejam aplicadas em JavaScript após a etapa de compilação em Rust.
+
+## Instalação
+
+<PackageInstall package="@unifast/node" />
+
+> O addon Rust nativo precisa estar pré-construído. Execute `cargo build -p unifast-bindings-node --release` se o binário nativo não estiver disponível.
+
+## Início Rápido
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## Pipeline de Plugins
+
+Quando plugins são fornecidos, `compile()` executa a seguinte pipeline:
+
+1. **Extrair plugins** - Separa `plugins` do restante das opções
+2. **Mesclar opções** - Faz deep-merge das `options` de cada plugin nas opções de compilação
+3. **Forçar HAST** - Se algum plugin tem um `hastTransform`, a chamada nativa usa `outputKind: "hast"`
+4. **Compilação nativa** - Chama o compilador Rust via napi-rs
+5. **Transformações HAST** - Aplica o `hastTransform` de cada plugin em ordem
+6. **Converter saída** - Se o usuário não solicitou saída HAST, converte de volta para HTML via `hastToHtml`
+
+## Plugins Integrados
+
+As seguintes funções factory de plugins estão incluídas — sem necessidade de instalação separada:
+
+`gfm`, `frontmatter`, `sanitize`, `syntect`, `treeSitter`, `toc`, `externalLinks`, `autolinkHeadings`, `smartypants`, `wikiLink`, `codeImport`, `emoji`, `breaks`, `math`, `githubAlert`, `sectionize`, `directive`, `definitionList`, `rubyAnnotation`, `cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## Resumo de Exports
+
+| Export | Tipo | Descrição |
+|--------|------|-------------|
+| `compile` | function | Compila Markdown/MDX para HTML ou outros formatos |
+| `gfm`, `frontmatter`, ... | function | Factories de plugins integrados (20 no total) |
+| `hastToHtml` | function | Serializador de HAST para HTML (re-exportado de `@unifast/core`) |
+| `CompileOptions` | type | Configuração de compilação |
+| `CompileResult` | type | Resultado da compilação |
+| `UnifastPlugin` | type | Interface de plugin |
+| `TocEntry` | type | Entrada da table of contents |
+| `HastRoot` | type | Nó raiz HAST |
+| `HastElement` | type | Nó de elemento HAST |
+| `HastText` | type | Nó de texto HAST |
+| `HastNode` | type | União de todos os tipos de nós HAST |
+| `UnifastError` | class | Classe base de erro |
+| `ParseError` | class | Classe de erro de parse |
+| `CompileError` | class | Classe de erro de compilação |

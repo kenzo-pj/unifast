@@ -1,0 +1,58 @@
+---
+title: "directive()"
+description: "Suporta container directives com a sintaxe `:::name`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./directive-example.md?example"
+
+```ts
+import { directive } from "@unifast/node";
+```
+
+## Assinatura
+
+```ts
+function directive(): UnifastPlugin
+```
+
+## Parâmetros
+
+Nenhum.
+
+## Uso
+
+```ts
+import { compile, directive } from "@unifast/node";
+
+const result = compile(md, { plugins: [directive()] });
+```
+
+## Exemplos
+
+### Container directives
+
+<Example data={example} />
+
+Você pode estilizá-los com CSS usando as classes `.directive-note`, `.directive-warning`, similar aos GitHub Alerts mas com nomes totalmente customizados.
+
+### Containers com atributos
+
+```md
+:::warning title="Deprecation Notice"
+This API will be removed in the next major version.
+:::
+```
+
+### Conteúdo aninhado
+
+Directives suportam Markdown completo dentro deles, incluindo listas, code blocks e formatação inline.
+
+```md
+:::note
+You can include **bold**, *italic*, and other Markdown inside containers.
+
+- List items work too
+- As does `inline code`
+:::
+```

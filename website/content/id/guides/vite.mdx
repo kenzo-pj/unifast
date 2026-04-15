@@ -1,0 +1,93 @@
+---
+title: "Integrasi Vite"
+description: "Gunakan @unifast/vite untuk meng-compile file Markdown dan MDX pada saat build dan mengimpornya secara langsung di aplikasi Vite Anda."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite` menyediakan plugin Vite yang meng-compile file Markdown dan MDX pada saat build. Impor file `.md` dan `.mdx` secara langsung di aplikasi Anda.
+
+### Instalasi
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### Setup
+
+Tambahkan plugin ke konfigurasi Vite Anda:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // Optional: pass compile options
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### Mengimpor Markdown
+
+Setelah dikonfigurasi, impor file `.md` secara langsung:
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Compiled HTML string
+console.log(content.frontmatter);  // Parsed frontmatter
+console.log(content.toc);          // Table of contents
+```
+
+Modul yang diimpor menyediakan:
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `html` | `string` | Output HTML hasil kompilasi |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter yang sudah di-parse |
+| `toc` | `TocEntry[]` | Daftar isi yang diekstrak |
+
+### Dengan Plugin
+
+Teruskan plugin melalui opsi plugin Vite:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+Semua import Markdown/MDX di proyek Anda akan menggunakan plugin ini secara otomatis.
+
+### Dukungan MDX
+
+File MDX di-compile menjadi modul JavaScript dengan default export berupa komponen React:
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### Hot Module Replacement
+
+Plugin Vite mendukung HMR. Ketika Anda mengedit file `.md` atau `.mdx`, halaman akan diperbarui tanpa full reload.
+
+### Lihat Juga
+
+- [compile()](/docs/packages/node/compile) - API compile yang mendasari
+- [Integrasi React](/docs/guides/react) - Merender konten yang sudah di-compile di React

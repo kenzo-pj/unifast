@@ -1,0 +1,45 @@
+---
+title: "@unifast/shiki"
+description: "透過 HAST 轉換為 unifast 提供以 Shiki 為核心的語法高亮外掛"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概觀
+
+`@unifast/shiki` 透過 [Shiki](https://shiki.style/) 提供語法高亮功能，支援 200 種以上的語言與多樣的佈景主題。與內建的高亮外掛不同，Shiki 是以 JavaScript HAST 轉換的方式執行，會將 `<pre><code>` 區塊替換為具備完整樣式的輸出內容。
+
+此外掛會自動停用內建的 Rust 高亮器，以避免重複處理。
+
+## 安裝
+
+<PackageInstall package="@unifast/shiki" />
+
+## 型別定義
+
+### ShikiTransformerOptions
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `themes` | `BundledTheme[]` | `["github-dark"]` | 要載入的 Shiki 佈景主題 |
+| `defaultTheme` | `BundledTheme` | `themes` 中的第一個主題 | 渲染時使用的預設主題 |
+| `langs` | `BundledLanguage[]` | `[]` | 要載入的語言。只有已載入的語言會被高亮處理。 |
+
+> `BundledTheme` 與 `BundledLanguage` 皆為 `shiki` 套件提供的型別。
+
+### ShikiTransformer
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `transform` | `(hast: HastRoot) => HastRoot` | 對所有 `<pre><code class="language-*">` 區塊套用 Shiki 高亮 |
+
+## 匯出列表
+
+| 匯出名稱 | 類別 | 說明 |
+|--------|------|-------------|
+| `createShikiPlugin` | function | 建立 Shiki 版的 UnifastPlugin（非同步） |
+| `createShikiTransformer` | function | 建立獨立的 Shiki 轉換器（非同步） |
+| `ShikiTransformerOptions` | type | Shiki 設定選項 |
+| `ShikiTransformer` | type | 轉換器介面 |
+| `hastToHtml` | function | HAST 轉 HTML 序列化器（重新匯出） |
+| `HastNode`、`HastRoot` 等 | types | HAST 節點型別（重新匯出） |

@@ -1,0 +1,94 @@
+---
+title: "Menggunakan MDX"
+description: "Compile MDX dengan unifast untuk menggunakan ekspresi JSX dan statement import di dalam Markdown, dirender dengan React atau runtime JSX lainnya."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+MDX memungkinkan Anda menggunakan ekspresi JSX dan statement import di dalam Markdown. unifast meng-compile MDX menjadi modul JavaScript yang dapat dirender dengan React atau runtime JSX lainnya.
+
+### Instalasi
+
+<PackageInstall package="@unifast/node" />
+
+### Penggunaan Dasar
+
+```ts
+import { compile } from "@unifast/node";
+
+const source = `
+# Hello
+
+<Counter initial={0} />
+
+export const meta = { title: "My Page" };
+`;
+
+const result = compile(source, { inputKind: "mdx" });
+// result.output is a JavaScript module string
+```
+
+### Cara Kerja MDX
+
+MDX memperluas Markdown dengan dua kemampuan:
+
+1. **Ekspresi JSX** - Gunakan komponen secara inline dengan konten Anda.
+2. **Import/export ESM** - Import komponen dan export metadata.
+
+Compiler memproses MDX dalam langkah-langkah berikut:
+
+```
+MDX source
+  → Parse (Markdown + JSX + ESM)
+  → MdAst with JSX/ESM nodes
+  → Lower to HAst
+  → Emit as JavaScript module
+```
+
+Outputnya adalah modul JavaScript dengan fungsi default export yang menerima prop `components` untuk injeksi komponen.
+
+### Penggunaan dengan React
+
+```ts
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const source = `# Hello\n\nThis is **MDX**.`;
+
+const result = compile(source, { inputKind: "mdx" });
+const Component = compileToReact(result);
+
+// Render in your React app
+<Component components={{ h1: MyHeading }} />
+```
+
+### Frontmatter dalam MDX
+
+Gabungkan MDX dengan plugin frontmatter untuk mengekstrak metadata:
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const source = `---
+title: My Article
+author: Jane
+---
+
+# {frontmatter.title}
+
+Written by {frontmatter.author}.
+`;
+
+const result = compile(source, {
+  inputKind: "mdx",
+  plugins: [frontmatter()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Article", author: "Jane" }
+```
+
+### Lihat Juga
+
+- [compile()](/docs/packages/node/compile) - Referensi API lengkap
+- [Integrasi React](/docs/guides/react) - Merender MDX dengan React

@@ -142,7 +142,7 @@ describe(smartypants, () => {
   });
 
   it("disables quotes", () => {
-    expect(smartypants({ quotes: false }).options!.smartypants!.quotes).toBeFalsy();
+    expect(smartypants({ quotes: false }).options!.smartypants!.quotes).toBe(false);
   });
 });
 
@@ -188,8 +188,8 @@ describe("simple toggle plugins", () => {
     const plugin = factory();
     expect(plugin.name).toBe(expectedName);
     const optionKey = Object.keys(plugin.options!)[0];
-    expect(
-      (plugin.options as Record<string, Record<string, unknown>>)[optionKey].enabled,
-    ).toBeTruthy();
+    expect((plugin.options as Record<string, Record<string, unknown>>)[optionKey].enabled).toBe(
+      true,
+    );
   });
 });

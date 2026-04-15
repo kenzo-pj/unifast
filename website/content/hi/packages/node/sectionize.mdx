@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "heading groups को `<section>` elements में wrap करें।"
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## Parameters
+
+कोई नहीं।
+
+## उपयोग
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// प्रत्येक heading और उसके बाद के content को एक <section> element में wrap किया जाता है
+```
+
+## उदाहरण
+
+### Heading sections
+
+<Example data={example} />

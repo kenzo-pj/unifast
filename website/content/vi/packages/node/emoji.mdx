@@ -1,0 +1,40 @@
+---
+title: "emoji()"
+description: "Chuyển các shortcode emoji như `:smile:` thành emoji unicode."
+---
+
+import { Example } from "~/components/Example"
+import example from "./emoji-example.md?example"
+
+```ts
+import { emoji } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function emoji(): UnifastPlugin
+```
+
+## Tham số
+
+Không có.
+
+## Cách dùng
+
+```ts
+import { compile, emoji } from "@unifast/node";
+
+const md = `This is great :thumbsup: and I'm happy :smile:!`;
+
+const result = compile(md, {
+  plugins: [emoji()],
+});
+// :thumbsup: → 👍, :smile: → 😄
+```
+
+## Ví dụ
+
+### Shortcode emoji
+
+<Example data={example} />

@@ -1,0 +1,107 @@
+---
+title: "definitionList()"
+description: "支持以 `term` 和 `: description` 形式编写的定义列表语法。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./definition-list-example.md?example"
+
+```ts
+import { definitionList } from "@unifast/node";
+```
+
+## 签名
+
+```ts
+function definitionList(): UnifastPlugin
+```
+
+## 参数
+
+无。
+
+## 用法
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+Markdown
+: A lightweight markup language for creating formatted text.
+
+HTML
+: The standard markup language for documents designed to be displayed in a web browser.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+上述 Markdown 会生成如下 HTML：
+
+```html
+<dl>
+  <dt>Markdown</dt>
+  <dd>A lightweight markup language for creating formatted text.</dd>
+  <dt>HTML</dt>
+  <dd>The standard markup language for documents designed to be displayed in a web browser.</dd>
+</dl>
+```
+
+## 示例
+
+### 定义列表
+
+<Example data={example} />
+
+### 每个术语包含多个描述
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+unifast
+: A fast Markdown/MDX compiler.
+: Built with Rust for maximum performance.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+输出：
+
+```html
+<dl>
+  <dt>unifast</dt>
+  <dd>A fast Markdown/MDX compiler.</dd>
+  <dd>Built with Rust for maximum performance.</dd>
+</dl>
+```
+
+### 多个术语对多个描述
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+Plugin
+Extension
+: A module that adds functionality to the core system.
+
+Transformer
+: A function that modifies the AST during compilation.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+输出：
+
+```html
+<dl>
+  <dt>Plugin</dt>
+  <dt>Extension</dt>
+  <dd>A module that adds functionality to the core system.</dd>
+  <dt>Transformer</dt>
+  <dd>A function that modifies the AST during compilation.</dd>
+</dl>
+```

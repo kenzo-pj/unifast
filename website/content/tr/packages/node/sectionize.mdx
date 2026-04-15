@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "Başlık gruplarını `<section>` elemanlarıyla sarmalar."
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## Parametreler
+
+Yok.
+
+## Kullanım
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// Her başlık ve onu takip eden içerik bir <section> elemanıyla sarmalanır
+```
+
+## Örnekler
+
+### Başlık bölümleri
+
+<Example data={example} />

@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "对引号、短横线和省略号进行排版层面的替换。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## 签名
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## 参数
+
+### options?
+
+控制应用哪些替换规则的配置
+
+| 属性 | 类型 | 默认值 | 描述 |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | 将直引号替换为弯引号 |
+| `dashes` | `boolean` | `true` | 将 -- 替换为短破折号，将 --- 替换为长破折号 |
+| `ellipses` | `boolean` | `true` | 将 ... 替换为省略号字符 |
+
+## 用法
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## 示例
+
+### 排版替换
+
+<Example data={example} />
+
+| 源文本 | 结果 |
+|--------|--------|
+| `"Hello"` | 弯双引号 |
+| `'Hi'` | 弯单引号 |
+| `--` | 短破折号（–） |
+| `---` | 长破折号（—） |
+| `...` | 省略号（…） |

@@ -1,8 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export const LOCALES = ["en", "ja"] as const;
-export const DEFAULT_LOCALE = "en";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type LocaleCode } from "../src/i18n";
+import { pageRouteToApiPath } from "../src/api-path";
+
+export const LOCALES = SUPPORTED_LOCALES;
+export { DEFAULT_LOCALE };
 export const SITE_URL = "https://unifast.dev";
 
 const SITE_NAME = "unifast";
@@ -285,31 +288,58 @@ export function buildSitemapXsl(): string {
 `;
 }
 
+function localeUrl(route: string, locale: LocaleCode): string {
+  return locale === DEFAULT_LOCALE ? `${SITE_URL}${route}` : `${SITE_URL}/${locale}${route}`;
+}
+
+function buildAlternateLinks(
+  route: string,
+  routesByLocale: Map<LocaleCode, Set<string>>,
+): string {
+  const links: string[] = [];
+  for (const locale of LOCALES) {
+    const has = locale === DEFAULT_LOCALE || routesByLocale.get(locale)?.has(route);
+    if (!has) continue;
+    links.push(
+      `\n    <xhtml:link rel="alternate" hreflang="${locale}" href="${localeUrl(route, locale)}" />`,
+    );
+  }
+  links.push(
+    `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${localeUrl(route, DEFAULT_LOCALE)}" />`,
+  );
+  return links.join("");
+}
+
+function jsonAlternateLink(localizedRoute: string): string {
+  return `\n    <xhtml:link rel="alternate" type="application/json" href="${SITE_URL}${pageRouteToApiPath(localizedRoute)}" />`;
+}
+
 export function buildSitemap(contentDir: string): string {
   const today = new Date().toISOString().split("T")[0];
-  const enRoutes = collectRoutes(path.resolve(contentDir, "en"));
-  const jaRoutes = new Set(collectRoutes(path.resolve(contentDir, "ja")));
+  const defaultRoutes = collectRoutes(path.resolve(contentDir, DEFAULT_LOCALE));
+
+  const routesByLocale = new Map<LocaleCode, Set<string>>();
+  for (const locale of LOCALES) {
+    if (locale === DEFAULT_LOCALE) continue;
+    routesByLocale.set(locale, new Set(collectRoutes(path.resolve(contentDir, locale))));
+  }
 
   const urls: string[] = [];
-  for (const route of enRoutes) {
-    const enUrl = `${SITE_URL}${route}`;
-    const jaUrl = `${SITE_URL}/ja${route}`;
-    const hasJa = jaRoutes.has(route);
+  for (const route of defaultRoutes) {
+    const alternates = buildAlternateLinks(route, routesByLocale);
 
-    let entry = `  <url>\n    <loc>${enUrl}</loc>\n    <lastmod>${today}</lastmod>`;
-    entry += `\n    <xhtml:link rel="alternate" hreflang="en" href="${enUrl}" />`;
-    if (hasJa) entry += `\n    <xhtml:link rel="alternate" hreflang="ja" href="${jaUrl}" />`;
-    entry += `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${enUrl}" />`;
-    entry += `\n  </url>`;
-    urls.push(entry);
+    // Default-locale URL entry
+    urls.push(
+      `  <url>\n    <loc>${localeUrl(route, DEFAULT_LOCALE)}</loc>\n    <lastmod>${today}</lastmod>${alternates}${jsonAlternateLink(route)}\n  </url>`,
+    );
 
-    if (hasJa) {
-      let jaEntry = `  <url>\n    <loc>${jaUrl}</loc>\n    <lastmod>${today}</lastmod>`;
-      jaEntry += `\n    <xhtml:link rel="alternate" hreflang="en" href="${enUrl}" />`;
-      jaEntry += `\n    <xhtml:link rel="alternate" hreflang="ja" href="${jaUrl}" />`;
-      jaEntry += `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${enUrl}" />`;
-      jaEntry += `\n  </url>`;
-      urls.push(jaEntry);
+    // Per-locale URL entries (one per locale that has the file)
+    for (const locale of LOCALES) {
+      if (locale === DEFAULT_LOCALE) continue;
+      if (!routesByLocale.get(locale)?.has(route)) continue;
+      urls.push(
+        `  <url>\n    <loc>${localeUrl(route, locale)}</loc>\n    <lastmod>${today}</lastmod>${alternates}${jsonAlternateLink(`/${locale}${route}`)}\n  </url>`,
+      );
     }
   }
 
@@ -392,24 +422,64 @@ function buildBreadcrumb(route: string, title: string): string {
 
 export interface PageMeta {
   route: string;
-  locale: string;
+  locale: LocaleCode;
   title: string;
   description: string;
   noindex?: boolean;
 }
 
+const OG_LOCALE_MAP: Record<LocaleCode, string> = {
+  "en": "en_US",
+  "ja": "ja_JP",
+  "zh-CN": "zh_CN",
+  "zh-TW": "zh_TW",
+  "ko": "ko_KR",
+  "fr": "fr_FR",
+  "it": "it_IT",
+  "es": "es_ES",
+  "pt-BR": "pt_BR",
+  "de": "de_DE",
+  "ru": "ru_RU",
+  "hi": "hi_IN",
+  "id": "id_ID",
+  "tr": "tr_TR",
+  "vi": "vi_VN",
+};
+
+function stripLocalePrefix(route: string): string {
+  for (const loc of LOCALES) {
+    if (loc === DEFAULT_LOCALE) continue;
+    if (route === `/${loc}` || route === `/${loc}/`) return "/";
+    if (route.startsWith(`/${loc}/`)) return route.slice(loc.length + 1);
+  }
+  return route;
+}
+
+function localePrefix(locale: LocaleCode, route: string): string {
+  const baseRoute = stripLocalePrefix(route);
+  return locale === DEFAULT_LOCALE ? baseRoute : `/${locale}${baseRoute}`;
+}
+
 export function buildHeadMeta(meta: PageMeta): string {
-  const isHome = /^\/(ja\/?)?$/.test(meta.route);
+  const baseRoute = stripLocalePrefix(meta.route);
+  const isHome = baseRoute === "/";
   const pageTitle = isHome ? `${SITE_NAME} - ${SITE_DESCRIPTION}` : `${meta.title} | ${SITE_NAME}`;
   const desc = escapeHtml(meta.description || SITE_DESCRIPTION);
   const canonicalUrl = `${SITE_URL}${meta.route}`;
-  const locale = meta.locale;
-  const altLocale = locale === "en" ? "ja" : "en";
-  const altRoute = locale === "en"
-    ? (meta.route === "/" ? "/ja/" : `/ja${meta.route}`)
-    : meta.route.replace(/^\/ja/, "") || "/";
-  const ogLocale = locale === "en" ? "en_US" : "ja_JP";
+  const ogLocale = OG_LOCALE_MAP[meta.locale];
   const ogType = isHome ? "website" : "article";
+
+  const alternateLinks = LOCALES.map(
+    (loc) =>
+      `<link rel="alternate" hreflang="${loc}" href="${SITE_URL}${localePrefix(loc, meta.route)}" />`,
+  );
+  alternateLinks.push(
+    `<link rel="alternate" hreflang="x-default" href="${SITE_URL}${localePrefix(DEFAULT_LOCALE, meta.route)}" />`,
+  );
+
+  const ogAlternateLocales = LOCALES.filter((l) => l !== meta.locale).map(
+    (l) => `<meta property="og:locale:alternate" content="${OG_LOCALE_MAP[l]}" />`,
+  );
 
   const tags: string[] = [
     `<title>${escapeHtml(pageTitle)}</title>`,
@@ -418,16 +488,14 @@ export function buildHeadMeta(meta: PageMeta): string {
       : `<meta name="robots" content="index, follow" />`,
     `<meta name="description" content="${desc}" />`,
     `<link rel="canonical" href="${canonicalUrl}" />`,
-    `<link rel="alternate" hreflang="${locale}" href="${canonicalUrl}" />`,
-    `<link rel="alternate" hreflang="${altLocale}" href="${SITE_URL}${altRoute}" />`,
-    `<link rel="alternate" hreflang="x-default" href="${SITE_URL}${locale === "en" ? meta.route : altRoute}" />`,
+    ...alternateLinks,
     `<meta property="og:title" content="${escapeHtml(pageTitle)}" />`,
     `<meta property="og:description" content="${desc}" />`,
     `<meta property="og:url" content="${canonicalUrl}" />`,
     `<meta property="og:site_name" content="${SITE_NAME}" />`,
     `<meta property="og:type" content="${ogType}" />`,
     `<meta property="og:locale" content="${ogLocale}" />`,
-    `<meta property="og:locale:alternate" content="${altLocale === "en" ? "en_US" : "ja_JP"}" />`,
+    ...ogAlternateLocales,
     `<meta name="twitter:card" content="summary" />`,
     `<meta name="twitter:title" content="${escapeHtml(pageTitle)}" />`,
     `<meta name="twitter:description" content="${desc}" />`,
@@ -440,7 +508,7 @@ export function buildHeadMeta(meta: PageMeta): string {
       "name": SITE_NAME,
       "url": SITE_URL,
       "description": SITE_DESCRIPTION,
-      "inLanguage": [locale, altLocale],
+      "inLanguage": LOCALES,
       "potentialAction": {
         "@type": "SearchAction",
         "target": { "@type": "EntryPoint", "urlTemplate": `${SITE_URL}/?q={search_term_string}` },
@@ -468,7 +536,7 @@ export function buildHeadMeta(meta: PageMeta): string {
       "headline": meta.title,
       "description": meta.description || SITE_DESCRIPTION,
       "url": canonicalUrl,
-      "inLanguage": locale,
+      "inLanguage": meta.locale,
       "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": SITE_URL },
       "publisher": { "@type": "Organization", "name": SITE_NAME, "url": SITE_URL },
     })}</script>`);
@@ -497,6 +565,85 @@ export function collectAllEntries(contentDir: string): Map<string, ContentEntry>
   return map;
 }
 
+export interface PageEntry {
+  route: string;
+  apiPath: string;
+  locale: LocaleCode;
+  title: string;
+  description: string;
+  body: string;
+}
+
+export function collectPageEntries(contentDir: string): PageEntry[] {
+  const result: PageEntry[] = [];
+  for (const locale of LOCALES) {
+    const entries = collectContentEntries(path.resolve(contentDir, locale));
+    for (const entry of entries) {
+      const localizedRoute =
+        locale === DEFAULT_LOCALE ? entry.route : `/${locale}${entry.route}`;
+      const description = entry.description || extractDescription(entry.body);
+      result.push({
+        route: localizedRoute,
+        apiPath: pageRouteToApiPath(localizedRoute),
+        locale,
+        title: entry.title,
+        description,
+        body: entry.body,
+      });
+    }
+  }
+  return result;
+}
+
+export function buildPageJson(
+  entry: PageEntry,
+  allEntries: PageEntry[],
+): Record<string, unknown> {
+  const baseRoute = stripLocalePrefix(entry.route);
+
+  const byLocale = new Map<LocaleCode, PageEntry>();
+  for (const e of allEntries) {
+    if (stripLocalePrefix(e.route) === baseRoute) byLocale.set(e.locale, e);
+  }
+
+  const alternates = LOCALES.filter((loc) => byLocale.has(loc)).map((loc) => {
+    const e = byLocale.get(loc) as PageEntry;
+    return {
+      locale: loc,
+      url: `${SITE_URL}${e.route}`,
+      api: `${SITE_URL}/${e.apiPath}`,
+    };
+  });
+
+  const section =
+    baseRoute === "/"
+      ? null
+      : (baseRoute.replace(/^\/docs\//, "").split("/")[0] ?? null);
+
+  return {
+    url: `${SITE_URL}${entry.route}`,
+    locale: entry.locale,
+    title: entry.title,
+    description: entry.description,
+    section,
+    body: entry.body.trim(),
+    alternates,
+  };
+}
+
+export function writePageJsonFiles(contentDir: string, distDir: string): number {
+  const entries = collectPageEntries(contentDir);
+  for (const entry of entries) {
+    const filePath = path.join(distDir, entry.apiPath);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(
+      filePath,
+      `${JSON.stringify(buildPageJson(entry, entries), null, 2)}\n`,
+    );
+  }
+  return entries.length;
+}
+
 export default function metaPlugin() {
   let contentDir: string;
 
@@ -514,7 +661,19 @@ export default function metaPlugin() {
       };
 
       server.middlewares.use((req: any, res: any, next: any) => {
-        const handler = handlers[req.url];
+        const url: string = req.url ?? "";
+
+        if (url.startsWith("/api/") && url.endsWith(".json")) {
+          const entries = collectPageEntries(contentDir);
+          const entry = entries.find((e) => e.apiPath === url);
+          if (entry) {
+            res.setHeader("Content-Type", "application/json; charset=utf-8");
+            res.end(`${JSON.stringify(buildPageJson(entry, entries), null, 2)}\n`);
+            return;
+          }
+        }
+
+        const handler = handlers[url];
         if (!handler) return next();
         const { content, type } = handler();
         res.setHeader("Content-Type", `${type}; charset=utf-8`);

@@ -1,0 +1,79 @@
+---
+title: "Hızlı Başlangıç"
+description: "unifast'i yükleyin ve ilk Markdown belgenizi bir dakikadan kısa sürede derleyin."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+unifast'i yükleyin ve ilk Markdown belgenizi bir dakikadan kısa sürede derleyin.
+
+### Kurulum
+
+<PackageInstall package="@unifast/node" />
+
+### Temel Kullanım
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, unifast!\n\nThis is **Markdown**.");
+
+console.log(result.html);
+// <h1>Hello, unifast!</h1>
+// <p>This is <strong>Markdown</strong>.</p>
+```
+
+Hepsi bu kadar. Tek import, tek fonksiyon çağrısı, HTML çıktısı.
+
+### Plugin Ekleme
+
+Plugin'ler, derleyiciyi ek özelliklerle genişletir. Plugin'lerin çoğu `@unifast/node` içinde yer alır ve dahili geçişleri yapılandırır.
+
+```ts
+import { compile, frontmatter, gfm } from "@unifast/node";
+
+const source = `---
+title: My Post
+date: 2025-01-15
+---
+
+# My Post
+
+A table:
+
+| Feature | Status |
+|---------|--------|
+| GFM     | Yes    |
+
+- [x] Task complete
+- [ ] Task pending
+`;
+
+const result = compile(source, {
+  plugins: [frontmatter(), gfm()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Post", date: "2025-01-15" }
+
+console.log(result.html);
+// GFM tablosu ve görev listesi ile render edilmiş HTML
+```
+
+### Sözdizimi Vurgulama Ekleme
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```js\nconsole.log("highlighted");\n```',
+  { plugins: [syntect()] }
+);
+// Sözdizimi vurgulama sınıflarına sahip kod bloğu
+```
+
+### Sırada Ne Var?
+
+- [Temel Kavramlar](/docs/introduction/key-concepts) - Derleme ardışık düzenini ve mimariyi anlayın.
+- [Sözdizimi Vurgulama](/docs/guides/syntax-highlighting) - Kod bloğu vurgulamasını ayrıntılı olarak yapılandırın.
+- [compile()](/docs/packages/node/compile) - `compile` fonksiyonu için tam API referansı.

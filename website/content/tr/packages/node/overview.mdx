@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "Native Rust tarafından desteklenen unifast Markdown/MDX derleyicisi için Node.js bağlayıcısı"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Genel Bakış
+
+`@unifast/node`, unifast'i Node.js'te kullanmak için birincil giriş noktasıdır. Maksimum performans için napi-rs aracılığıyla native Rust derleyicisini çağıran [`compile()`](/docs/packages/node/compile) fonksiyonunu sağlar. Ayrıca plugin sistemini destekleyerek HAST dönüşümlerinin Rust derleme adımından sonra JavaScript'te uygulanmasına izin verir.
+
+## Kurulum
+
+<PackageInstall package="@unifast/node" />
+
+> Native Rust eklentisi önceden derlenmiş olmalıdır. Native ikili dosya mevcut değilse `cargo build -p unifast-bindings-node --release` komutunu çalıştırın.
+
+## Hızlı Başlangıç
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## Plugin Ardışık Düzeni
+
+Plugin'ler sağlandığında, `compile()` aşağıdaki ardışık düzeni yürütür:
+
+1. **Plugin'leri ayır** - `plugins`'i diğer seçeneklerden ayırır
+2. **Seçenekleri birleştir** - Her plugin'in `options` değerini derleme seçenekleriyle derinlemesine birleştirir
+3. **HAST'i zorla** - Herhangi bir plugin'in `hastTransform`'u varsa, native çağrı `outputKind: "hast"` kullanır
+4. **Native derleme** - Rust derleyicisini napi-rs aracılığıyla çağırır
+5. **HAST dönüşümleri** - Her plugin'in `hastTransform`'unu sırayla uygular
+6. **Çıktıyı dönüştür** - Kullanıcı HAST çıktısı istemediyse, `hastToHtml` aracılığıyla HTML'e geri dönüştürür
+
+## Dahili Plugin'ler
+
+Aşağıdaki plugin fabrika fonksiyonları dahildir — ayrı bir kurulum gerekmez:
+
+`gfm`, `frontmatter`, `sanitize`, `syntect`, `treeSitter`, `toc`, `externalLinks`, `autolinkHeadings`, `smartypants`, `wikiLink`, `codeImport`, `emoji`, `breaks`, `math`, `githubAlert`, `sectionize`, `directive`, `definitionList`, `rubyAnnotation`, `cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## Export Özeti
+
+| Export | Tür | Açıklama |
+|--------|-----|----------|
+| `compile` | function | Markdown/MDX'i HTML veya diğer biçimlere derle |
+| `gfm`, `frontmatter`, ... | function | Dahili plugin fabrikaları (toplam 20) |
+| `hastToHtml` | function | HAST'den HTML'e serileştirici (`@unifast/core`'dan yeniden export edilmiş) |
+| `CompileOptions` | type | Derleme yapılandırması |
+| `CompileResult` | type | Derleme sonucu |
+| `UnifastPlugin` | type | Plugin arayüzü |
+| `TocEntry` | type | İçindekiler tablosu girişi |
+| `HastRoot` | type | HAST kök düğümü |
+| `HastElement` | type | HAST eleman düğümü |
+| `HastText` | type | HAST metin düğümü |
+| `HastNode` | type | Tüm HAST düğüm türlerinin birleşimi |
+| `UnifastError` | class | Temel hata sınıfı |
+| `ParseError` | class | Ayrıştırma hatası sınıfı |
+| `CompileError` | class | Derleme hatası sınıfı |

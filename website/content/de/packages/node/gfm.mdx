@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "Erstellt ein GFM-Plugin, das die Erweiterungen von GitHub Flavored Markdown aktiviert."
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## Signatur
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfiguration der einzelnen GFM-Funktionen
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | Pipe-Tabellen mit \|-Syntax aktivieren |
+| `taskList` | `boolean` | `true` | - [x] / - [ ]-Aufgabenlisten-Checkboxen aktivieren |
+| `strikethrough` | `boolean` | `true` | ~~Durchstreichungs~~-Syntax aktivieren |
+| `footnotes` | `boolean` | `true` | [^1]-Fußnotenreferenzen und -definitionen aktivieren |
+| `autolink` | `boolean` | `true` | Bare URLs automatisch verlinken |
+
+## Verwendung
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## Beispiele
+
+### Tabellen
+
+<Example data={tableExample} />
+
+### Aufgabenlisten
+
+<Example data={taskListExample} />
+
+### Durchstreichung & Autolink
+
+<Example data={strikethroughExample} />
+
+### Fußnoten
+
+<Example data={footnoteExample} />

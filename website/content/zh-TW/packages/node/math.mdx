@@ -1,0 +1,87 @@
+---
+title: "math()"
+description: "啟用數學運算式，支援行內與顯示模式語法。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./math-example.md?example"
+
+```ts
+import { math } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function math(): UnifastPlugin
+```
+
+## 參數
+
+無。
+
+## 用法
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+Einstein's famous equation: $E = mc^2$
+
+The sum of integers from 1 to n:
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+## 範例
+
+### 數學運算式
+
+<Example data={example} renderMath />
+
+### 行內數學
+
+使用單一 `$` 分隔符即可書寫行內數學運算式。
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ and is used to solve quadratic equations.
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### 顯示模式數學
+
+使用 `$$` 分隔符，或以 `math` 語言標示的程式碼區塊來書寫顯示模式數學。
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+$$
+\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### 載入 KaTeX CSS
+
+此外掛會將數學語法轉換為對應的 HTML 結構，但您必須另外載入 KaTeX CSS，才能在瀏覽器中正確顯示。
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+```

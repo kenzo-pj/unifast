@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "Auf highlight.js basierendes Plugin zur Syntax-Hervorhebung für unifast über HAST-Transformationen"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Überblick
+
+`@unifast/highlight` stellt eine Syntax-Hervorhebung bereit, die von [lowlight](https://github.com/wooorm/lowlight) (einem Wrapper für highlight.js) unterstützt wird. Anders als die integrierten Plugins `syntect()` und `treeSitter()`, die die Hervorhebung in Rust ausführen, wendet dieses Paket die Hervorhebung nach der Kompilierung als JavaScript-HAST-Transformation an – so erhalten Sie Zugriff auf das umfangreiche Sprach- und Theme-Ökosystem von highlight.js.
+
+## Installation
+
+<PackageInstall package="@unifast/highlight" />
+
+## Schnellstart
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with highlight.js CSS classes
+```
+
+## Funktionsweise
+
+1. Der Rust-Compiler erzeugt HAST-Ausgabe mit nicht hervorgehobenen `<pre><code>`-Blöcken
+2. Die `hastTransform` des `highlight()`-Plugins durchläuft den HAST-Baum
+3. Für jedes `<code>`-Element mit einer `language-*`-Klasse hebt lowlight den Code hervor
+4. Die hervorgehobenen HAST-Knoten ersetzen die ursprünglichen Kinder
+
+Da dies als HAST-Transformation ausgeführt wird, muss die native Rust-Hervorhebung (`syntect` / `treeSitter`) deaktiviert sein. Das Plugin setzt automatisch `highlight.enabled: false` in den Kompilierungsoptionen.
+
+## Zusammenfassung der Exporte
+
+| Export | Art | Beschreibung |
+|--------|------|-------------|
+| `highlight` | function | Erstellt ein highlight.js-HAST-Transformations-Plugin |

@@ -1,0 +1,53 @@
+---
+title: "autolinkHeadings()"
+description: "Adiciona automaticamente links de âncora aos headings."
+---
+
+import { Example } from "~/components/Example"
+import example from "./autolink-headings-example.md?example"
+
+```ts
+import { autolinkHeadings } from "@unifast/node";
+```
+
+## Assinatura
+
+```ts
+function autolinkHeadings(options?: AutolinkHeadingsOptions): UnifastPlugin
+```
+
+## Parâmetros
+
+### options?
+
+Configuração para o comportamento dos links de heading
+
+| Propriedade | Tipo | Padrão | Descrição |
+|----------|------|---------|-------------|
+| `behavior` | `"prepend" \| "append" \| "wrap"` | `"prepend"` | Onde colocar o link de âncora em relação ao conteúdo do heading |
+
+## Uso
+
+```ts
+import { compile, autolinkHeadings } from "@unifast/node";
+
+const md = `# Introduction
+
+## Getting Started
+
+### Installation`;
+
+const result = compile(md, {
+  plugins: [
+    autolinkHeadings({
+      behavior: "prepend", // "prepend" | "append" | "wrap"
+    }),
+  ],
+});
+```
+
+## Exemplos
+
+### Headings com links de âncora
+
+<Example data={example} />

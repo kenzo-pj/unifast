@@ -1,0 +1,139 @@
+---
+title: "sanitize()"
+description: "Создаёт плагин санитизации, который удаляет опасные HTML-теги, атрибуты и URL-протоколы из скомпилированного вывода."
+---
+
+```ts
+import { sanitize } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function sanitize(options?: SanitizePluginOptions): UnifastPlugin
+```
+
+## Параметры
+
+### options?
+
+Конфигурация санитизации
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `enabled` | `boolean` | `true` | Включить или отключить санитизацию |
+| `schema` | `SanitizeSchema` | — | Пользовательская схема санитизации |
+
+#### SanitizeSchema
+
+| Свойство | Тип | Описание |
+|----------|------|-------------|
+| `allowedTags` | `string[]` | Имена разрешённых HTML-тегов (все остальные удаляются) |
+| `allowedAttributes` | `Record<string, string[]>` | Отображение имён тегов в списки разрешённых атрибутов |
+| `allowedProtocols` | `Record<string, string[]>` | Отображение имён атрибутов в списки разрешённых URL-протоколов |
+
+## Использование
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      enabled: true,
+      schema: {
+        allowedTags: ["h1", "h2", "h3", "p", "a", "strong", "em", "code", "pre", "img", "ul", "ol", "li", "blockquote", "table", "thead", "tbody", "tr", "th", "td"],
+        allowedAttributes: {
+          a: ["href", "title", "target"],
+          img: ["src", "alt", "width", "height"],
+          code: ["class"],
+          pre: ["class"],
+        },
+        allowedProtocols: {
+          href: ["https", "http", "mailto"],
+          src: ["https", "http"],
+        },
+      },
+    }),
+  ],
+});
+```
+
+## Примеры
+
+### Удаление опасного HTML
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const untrustedMd = `
+# Hello
+
+<script>alert("xss")</script>
+
+<img src="x" onerror="alert('xss')">
+
+[Click me](javascript:alert('xss'))
+`;
+
+const result = compile(untrustedMd, {
+  plugins: [sanitize()],
+});
+
+console.log(result.output);
+// Теги <script>, атрибуты onerror и URL javascript: удаляются
+```
+
+### Пользовательский список разрешённых тегов
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      schema: {
+        allowedTags: ["p", "a", "strong", "em", "code", "pre"],
+      },
+    }),
+  ],
+});
+
+console.log(result.output);
+// Сохраняются только указанные теги; все остальные удаляются
+```
+
+### Ограничение URL-протоколов
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    sanitize({
+      schema: {
+        allowedProtocols: {
+          href: ["https", "mailto"],
+          src: ["https"],
+        },
+      },
+    }),
+  ],
+});
+
+console.log(result.output);
+// Разрешены только ссылки https: и mailto:
+```
+
+### Отключение санитизации
+
+```ts
+import { compile, sanitize } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [sanitize({ enabled: false })],
+});
+
+console.log(result.output);
+// Санитизация не применяется — используйте только с доверенным входом
+```

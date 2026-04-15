@@ -1,0 +1,121 @@
+---
+title: "Интеграция с React"
+description: "Отрисовывайте вывод unifast в приложениях React с помощью @unifast/react — от простого рендеринга HTML до полного сопоставления компонентов MDX."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/react` предоставляет утилиты для отрисовки вывода unifast в приложениях React — от простого рендеринга HTML до полного сопоставления компонентов MDX.
+
+### Установка
+
+<PackageInstall package="@unifast/node @unifast/react" />
+
+### Использование hastToReact
+
+Преобразуйте HAst (HTML AST) в элементы React. Это позволяет сопоставлять HTML-элементы с пользовательскими React-компонентами без инъекции сырого HTML.
+
+```tsx
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+const result = compile(source, { outputKind: "hast" });
+const elements = hastToReact(result.output, {
+  components: {
+    h1: (props) => <h1 className="heading" {...props} />,
+    a: (props) => <a className="link" target="_blank" {...props} />,
+    pre: CodeBlock,
+  },
+});
+
+function Page() {
+  return <article>{elements}</article>;
+}
+```
+
+Этот подход безопасен по умолчанию — AST преобразуется в элементы React без сырого HTML.
+
+### Отрисовка MDX
+
+Для содержимого MDX используйте `compileToReact`, чтобы сразу получить React-компонент:
+
+```tsx
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const result = compile(source, { inputKind: "mdx" });
+const Content = compileToReact(result);
+
+function Page() {
+  return (
+    <Content
+      components={{
+        Alert: MyAlertComponent,
+        CodeBlock: MyCodeBlock,
+      }}
+    />
+  );
+}
+```
+
+### Сопоставление компонентов
+
+Как `hastToReact`, так и `compileToReact` принимают отображение `components`. Используйте его, чтобы заменить стандартные HTML-элементы пользовательскими компонентами React:
+
+```tsx
+const components = {
+  // Заменяем заголовки
+  h1: ({ children }) => <h1 className="text-3xl font-bold">{children}</h1>,
+
+  // Пользовательские блоки кода
+  pre: ({ children, ...props }) => <CodeBlock {...props}>{children}</CodeBlock>,
+
+  // Внешние ссылки открываются в новой вкладке
+  a: ({ href, children }) => (
+    <a href={href} target={href?.startsWith("http") ? "_blank" : undefined}>
+      {children}
+    </a>
+  ),
+};
+```
+
+### Серверный рендеринг
+
+Компиляция unifast синхронна и выполняется в Node.js, что делает её идеальной для SSR:
+
+```tsx
+// server.tsx
+import { compile, frontmatter } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+
+export async function getStaticProps() {
+  const source = await readFile("content/post.md", "utf8");
+  const result = compile(source, {
+    plugins: [frontmatter()],
+    outputKind: "hast",
+  });
+
+  return {
+    props: {
+      hast: result.output,
+      meta: result.frontmatter,
+    },
+  };
+}
+
+function Post({ hast, meta }) {
+  const content = hastToReact(hast);
+  return (
+    <article>
+      <h1>{meta.title}</h1>
+      {content}
+    </article>
+  );
+}
+```
+
+### Смотрите также
+
+- [compileToReact()](/docs/packages/react/compile-to-react) — справочник API
+- [hastToReact()](/docs/packages/react/hast-to-react) — справочник API
+- [Использование MDX](/docs/guides/mdx) — руководство по компиляции MDX

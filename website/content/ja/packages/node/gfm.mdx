@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "GitHub Flavored Markdown の拡張を有効にする GFM プラグインを生成します。"
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## パラメータ
+
+### options?
+
+GFM の各機能の設定
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | \| 構文のパイプテーブルを有効にする |
+| `taskList` | `boolean` | `true` | - [x] / - [ ] のタスクリストチェックボックスを有効にする |
+| `strikethrough` | `boolean` | `true` | ~~deleted~~ の取り消し線構文を有効にする |
+| `footnotes` | `boolean` | `true` | [^1] の脚注参照と定義を有効にする |
+| `autolink` | `boolean` | `true` | URL を自動的にリンクにする |
+
+## 使い方
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## 使用例
+
+### テーブル
+
+<Example data={tableExample} />
+
+### タスクリスト
+
+<Example data={taskListExample} />
+
+### 取り消し線と自動リンク
+
+<Example data={strikethroughExample} />
+
+### 脚注
+
+<Example data={footnoteExample} />

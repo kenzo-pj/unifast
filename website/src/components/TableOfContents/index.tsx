@@ -9,12 +9,17 @@ interface TocEntry {
 }
 
 const TocItem = memo(function TocItem({ entry, isActive }: { entry: TocEntry; isActive: boolean }) {
+  const className = `${styles.link}${entry.depth >= 3 ? ` ${styles.depth3}` : ""}${isActive ? ` ${styles.linkActive}` : ""}`;
+  if (!entry.slug) {
+    return (
+      <li className={styles.item}>
+        <span className={className}>{entry.text}</span>
+      </li>
+    );
+  }
   return (
     <li className={styles.item}>
-      <a
-        href={`#${entry.slug}`}
-        className={`${styles.link}${entry.depth >= 3 ? ` ${styles.depth3}` : ""}${isActive ? ` ${styles.linkActive}` : ""}`}
-      >
+      <a href={`#${entry.slug}`} className={className}>
         {entry.text}
       </a>
     </li>
@@ -32,10 +37,12 @@ export const TableOfContents = memo(function TableOfContents({ toc }: TableOfCon
   useEffect(() => {
     if (toc.length === 0) return;
 
-    const slugs = toc.map((e) => e.slug);
-    const headings = slugs
-      .map((s) => document.querySelector(`#${s}`))
-      .filter(Boolean) as HTMLElement[];
+    const headings: HTMLElement[] = [];
+    for (const entry of toc) {
+      if (!entry.slug) continue;
+      const el = document.querySelector(`#${CSS.escape(entry.slug)}`);
+      if (el instanceof HTMLElement) headings.push(el);
+    }
 
     if (headings.length === 0) return;
 
@@ -64,8 +71,12 @@ export const TableOfContents = memo(function TableOfContents({ toc }: TableOfCon
     <nav className={styles.nav} aria-label="Table of contents">
       <div className={styles.title}>On this page</div>
       <ul className={styles.list}>
-        {toc.map((entry) => (
-          <TocItem key={entry.slug} entry={entry} isActive={activeSlug === entry.slug} />
+        {toc.map((entry, i) => (
+          <TocItem
+            key={`${i}-${entry.slug}`}
+            entry={entry}
+            isActive={Boolean(entry.slug) && activeSlug === entry.slug}
+          />
         ))}
       </ul>
     </nav>

@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "將外部檔案的程式碼匯入圍籬式程式碼區塊中。"
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## 參數
+
+### options?
+
+程式碼匯入行為的設定
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `rootDir` | `string` | — | 解析檔案路徑時所使用的根目錄。若未指定，則會以目前工作目錄為基準解析路徑。 |
+
+## 用法
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// The code block is replaced with the contents of ./src/example.ts
+```
+
+## 範例
+
+### 基本的檔案匯入
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+程式碼區塊的內容會被替換為該檔案的內容，同時保留語言資訊以便進行語法高亮。
+
+### 搭配 rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// File paths are resolved relative to rootDir
+```
+
+### 未指定 rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// File paths are resolved relative to the current working directory
+```

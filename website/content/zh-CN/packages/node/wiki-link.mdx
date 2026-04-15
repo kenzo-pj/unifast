@@ -1,0 +1,52 @@
+---
+title: "wikiLink()"
+description: "支持 wiki 风格的 `[[links]]` 语法，并可选设置别名。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./wiki-link-example.md?example"
+
+```ts
+import { wikiLink } from "@unifast/node";
+```
+
+## 签名
+
+```ts
+function wikiLink(options?: WikiLinkPluginOptions): UnifastPlugin
+```
+
+## 参数
+
+### options?
+
+wiki 链接行为的配置
+
+| 属性 | 类型 | 默认值 | 描述 |
+|----------|------|---------|-------------|
+| `hrefTemplate` | `string` | `"/wiki/${slug}"` | 生成链接 URL 时使用的模板。可使用 `${slug}` 作为页面名的 slug 占位符。 |
+
+## 用法
+
+```ts
+import { compile, wikiLink } from "@unifast/node";
+
+const md = `Check out [[Getting Started]] for an introduction.`;
+
+const result = compile(md, {
+  plugins: [
+    wikiLink({
+      hrefTemplate: "/docs/${slug}",
+    }),
+  ],
+});
+
+console.log(result.output);
+// <p>Check out <a href="/docs/getting-started">Getting Started</a> for an introduction.</p>
+```
+
+## 示例
+
+### wiki 风格链接
+
+<Example data={example} />

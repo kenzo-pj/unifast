@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "unifast 的 Vite 外掛──將 Markdown 與 MDX 檔案轉換為 JS 模組"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概觀
+
+`@unifast/vite` 是一個 Vite 外掛，可將 `.md` 與 `.mdx` 檔案轉換為 JavaScript 模組。它將 unifast 的 Markdown/MDX 編譯器整合進 Vite 的建置管線，讓您可以在應用程式中直接匯入 Markdown 檔案。
+
+## 安裝
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` 為對等相依套件（選用）──當它存在時，外掛會使用原生 Rust 編譯器以獲得最佳效能。若未安裝，`.md` 檔案會退回使用基本的 HTML 渲染，而 `.mdx` 檔案則必須安裝該套件才能運作。
+
+## 快速開始
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // compile options for .md files
+      },
+      mdx: {
+        // compile options for .mdx files
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // compiled HTML string
+console.log(doc.frontmatter);  // parsed frontmatter object
+console.log(doc.toc);          // table of contents entries
+```
+
+## 模組匯出內容
+
+### `.md` 檔案
+
+每個 `.md` 檔案會被轉換為帶有下列匯出的模組：
+
+| 匯出名稱 | 型別 | 說明 |
+|--------|------|-------------|
+| `html` | `string` | 編譯後的 HTML 字串 |
+| `frontmatter` | `Record<string, unknown>` | 已解析的 frontmatter 後設資料 |
+| `toc` | `TocEntry[]` | 擷取而得的目錄 |
+| `default` | `object` | 包含 `html`、`frontmatter` 與 `toc` 的物件 |
+
+### `.mdx` 檔案
+
+每個 `.mdx` 檔案會使用 React 的 `jsx-runtime` 編譯為 JSX 模組。它會匯出一個預設的 React 元件，並同時匯出 `frontmatter` 與 `toc`。
+
+## 匯出列表
+
+| 匯出名稱 | 類別 | 說明 |
+|--------|------|-------------|
+| `default`（unifastPlugin） | function | Vite 外掛工廠函式 |
+| `UnifastPluginOptions` | type | 外掛選項介面 |

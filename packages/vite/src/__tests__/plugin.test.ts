@@ -41,7 +41,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
     "transform returns null for %s files",
     async (ext) => {
       const plugin = await getPlugin();
-      const transform = plugin.transform as Function;
+      const transform = plugin.transform as MockTransform;
       const result = transform.call({}, "", `file${ext}`);
       expect(result).toBeNull();
     },
@@ -49,14 +49,14 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("transform returns null for .MD (case-sensitive regex)", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "", "FILE.MD");
     expect(result).toBeNull();
   });
 
   it(".md transform returns code with all expected exports", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "Hello world", "test.md");
 
     expect(result).not.toBeNull();
@@ -68,7 +68,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it(".md transform returns map: null", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "Hello", "test.md");
 
     expect(result.map).toBeNull();
@@ -76,7 +76,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("parses simple frontmatter key-value pairs", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "---\ntitle: Hello\n---\nBody text", "test.md");
 
     const { code } = result;
@@ -85,7 +85,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("returns empty frontmatter when none present", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "Just a body", "test.md");
 
     const { code } = result;
@@ -94,7 +94,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("handles Windows line endings in frontmatter", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "---\r\ntitle: Win\r\n---\r\nBody", "test.md");
 
     const { code } = result;
@@ -103,7 +103,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("splits frontmatter only on the first colon", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "---\ntime: 12:30:45\n---\nBody", "test.md");
 
     const { code } = result;
@@ -112,7 +112,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("handles frontmatter key with empty value", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "---\ndraft:\n---\nBody", "test.md");
 
     const { code } = result;
@@ -121,7 +121,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("escapes < to &lt; in fallback HTML", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "<script>alert(1)</script>", "test.md");
 
     const { code } = result;
@@ -131,7 +131,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("converts newlines to <br> in fallback HTML", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "line1\nline2\nline3", "test.md");
 
     const { code } = result;
@@ -140,7 +140,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("handles empty body (frontmatter only)", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "---\ntitle: OnlyMeta\n---\n", "test.md");
 
     expect(result).not.toBeNull();
@@ -149,7 +149,7 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it(".mdx transform returns null when compiler is not available", async () => {
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "# Hello MDX", "component.mdx");
 
     expect(result).toBeNull();
@@ -157,13 +157,13 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("handleHotUpdate returns module array for .md file", async () => {
     const plugin = await getPlugin();
-    const handleHotUpdate = plugin.handleHotUpdate as Function;
+    const handleHotUpdate = plugin.handleHotUpdate as MockHandleHotUpdate;
     const mockMod = { id: "test.md" };
     const ctx = {
       file: "docs/readme.md",
       server: {
         moduleGraph: {
-          getModuleById: vi.fn().mockReturnValue(mockMod),
+          getModuleById: vi.fn<(id: string) => unknown>().mockReturnValue(mockMod),
         },
       },
     };
@@ -173,13 +173,13 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("handleHotUpdate returns module array for .mdx file", async () => {
     const plugin = await getPlugin();
-    const handleHotUpdate = plugin.handleHotUpdate as Function;
+    const handleHotUpdate = plugin.handleHotUpdate as MockHandleHotUpdate;
     const mockMod = { id: "component.mdx" };
     const ctx = {
       file: "src/component.mdx",
       server: {
         moduleGraph: {
-          getModuleById: vi.fn().mockReturnValue(mockMod),
+          getModuleById: vi.fn<(id: string) => unknown>().mockReturnValue(mockMod),
         },
       },
     };
@@ -189,12 +189,12 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("handleHotUpdate returns undefined for non-md file", async () => {
     const plugin = await getPlugin();
-    const handleHotUpdate = plugin.handleHotUpdate as Function;
+    const handleHotUpdate = plugin.handleHotUpdate as MockHandleHotUpdate;
     const ctx = {
       file: "src/index.ts",
       server: {
         moduleGraph: {
-          getModuleById: vi.fn(),
+          getModuleById: vi.fn<(id: string) => unknown>(),
         },
       },
     };
@@ -204,12 +204,12 @@ describe("unifastPlugin (fallback – no compiler)", () => {
 
   it("handleHotUpdate returns undefined when module not in graph", async () => {
     const plugin = await getPlugin();
-    const handleHotUpdate = plugin.handleHotUpdate as Function;
+    const handleHotUpdate = plugin.handleHotUpdate as MockHandleHotUpdate;
     const ctx = {
       file: "docs/missing.md",
       server: {
         moduleGraph: {
-          getModuleById: vi.fn().mockReturnValue(),
+          getModuleById: vi.fn<(id: string) => unknown>(),
         },
       },
     };
@@ -218,15 +218,22 @@ describe("unifastPlugin (fallback – no compiler)", () => {
   });
 });
 
+type MockTransform = (this: unknown, code: string, id: string) => { code: string } | null;
+type MockHmrCtx = {
+  file: string;
+  server: { moduleGraph: { getModuleById: (id: string) => unknown } };
+};
+type MockHandleHotUpdate = (this: unknown, ctx: MockHmrCtx) => unknown[] | undefined;
+
 describe("unifastPlugin (with compiler)", () => {
-  const mockCompile = vi.fn();
+  const mockCompile = vi.fn<(input: string, opts?: unknown) => unknown>();
 
   beforeEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();
     mockCompile.mockReset();
 
-    vi.doMock("node:module", () => ({
+    vi.doMock(import("node:module"), () => ({
       createRequire: () => (id: string) => {
         if (id === "@unifast/node") {
           return { compile: mockCompile };
@@ -249,7 +256,7 @@ describe("unifastPlugin (with compiler)", () => {
     });
 
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "# Hello", "page.md");
 
     expect(result).not.toBeNull();
@@ -271,7 +278,7 @@ describe("unifastPlugin (with compiler)", () => {
     });
 
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "Bad <content>", "broken.md");
 
     expect(result).not.toBeNull();
@@ -293,7 +300,7 @@ describe("unifastPlugin (with compiler)", () => {
     });
 
     const plugin = await getPlugin();
-    const transform = plugin.transform as Function;
+    const transform = plugin.transform as MockTransform;
     const result = transform.call({}, "# MDX Content", "doc.mdx");
 
     expect(result).not.toBeNull();

@@ -1,0 +1,103 @@
+---
+title: "frontmatter()"
+description: "Crea un plugin de frontmatter que habilita el parsing de bloques de metadatos YAML, TOML o JSON al inicio de los documentos Markdown/MDX."
+---
+
+```ts
+import { frontmatter } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function frontmatter(options?: FrontmatterPluginOptions): UnifastPlugin
+```
+
+## Parámetros
+
+### options?
+
+Configuración de los formatos de frontmatter
+
+| Propiedad | Tipo | Por defecto | Descripción |
+|----------|------|---------|-------------|
+| `yaml` | `boolean` | `true` | Habilita frontmatter YAML (delimitadores ---) |
+| `toml` | `boolean` | `false` | Habilita frontmatter TOML (delimitadores +++) |
+| `json` | `boolean` | `false` | Habilita frontmatter JSON (delimitadores ;;;) |
+
+## Uso
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    frontmatter({
+      yaml: true,
+      toml: true,
+      json: true,
+    }),
+  ],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+## Ejemplos
+
+### Frontmatter YAML
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `---
+title: My Page
+date: 2024-01-01
+tags:
+  - markdown
+  - docs
+---
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter()] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+### Frontmatter TOML
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `+++
+title = "My Page"
+date = 2024-01-01
++++
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ toml: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01" }
+```
+
+### Frontmatter JSON
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `;;;
+{"title": "My Page", "draft": false}
+;;;
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ json: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", draft: false }
+```

@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "Konvertiert Zeilenumbrüche in Text in `<br>`-Elemente."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## Signatur
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Parameter
+
+Keine.
+
+## Verwendung
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Each newline becomes a <br> element
+```
+
+## Beispiele
+
+### Zeilenumbrüche in Zeilenenden umwandeln
+
+Ohne `breaks()` würden diese drei Zeilen zu einem einzigen Absatz zusammengeführt. Mit aktiviertem Plugin wird jeder Zeilenumbruch zu einem `<br>`:
+
+<Example data={example} />

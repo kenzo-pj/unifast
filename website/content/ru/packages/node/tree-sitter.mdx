@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "Создаёт плагин Tree-sitter, который включает подсветку синтаксиса для огороженных блоков кода с помощью библиотеки парсинга Tree-sitter."
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## Параметры
+
+### options?
+
+Конфигурация движка подсветки
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | "treeSitter" использует подсветчик Tree-sitter; "none" отключает подсветку |
+
+## Использование
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Блоки кода подсвечены элементами <span> и CSS-классами
+```
+
+## Примеры
+
+### Включение подсветки синтаксиса
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Отключение подсветки
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// Блоки кода отрисовываются без подсветки синтаксиса
+```

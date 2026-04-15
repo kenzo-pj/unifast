@@ -1,0 +1,103 @@
+---
+title: "frontmatter()"
+description: "Создаёт плагин frontmatter, который включает парсинг блоков метаданных YAML, TOML или JSON в начале документов Markdown/MDX."
+---
+
+```ts
+import { frontmatter } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function frontmatter(options?: FrontmatterPluginOptions): UnifastPlugin
+```
+
+## Параметры
+
+### options?
+
+Конфигурация форматов frontmatter
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `yaml` | `boolean` | `true` | Включить YAML frontmatter (разделители ---) |
+| `toml` | `boolean` | `false` | Включить TOML frontmatter (разделители +++) |
+| `json` | `boolean` | `false` | Включить JSON frontmatter (разделители ;;;) |
+
+## Использование
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    frontmatter({
+      yaml: true,
+      toml: true,
+      json: true,
+    }),
+  ],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+## Примеры
+
+### YAML frontmatter
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `---
+title: My Page
+date: 2024-01-01
+tags:
+  - markdown
+  - docs
+---
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter()] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+### TOML frontmatter
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `+++
+title = "My Page"
+date = 2024-01-01
++++
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ toml: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01" }
+```
+
+### JSON frontmatter
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `;;;
+{"title": "My Page", "draft": false}
+;;;
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ json: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", draft: false }
+```

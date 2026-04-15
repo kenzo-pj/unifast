@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "Schließt Gruppen von Überschriften in `<section>`-Elemente ein."
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## Signatur
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## Parameter
+
+Keine.
+
+## Verwendung
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// Each heading and its following content are wrapped in a <section> element
+```
+
+## Beispiele
+
+### Abschnitte aus Überschriften
+
+<Example data={example} />

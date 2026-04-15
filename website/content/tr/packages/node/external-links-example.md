@@ -1,0 +1,2 @@
+- [GitHub](https://github.com) — dış, yeni sekmede açılır
+- [Hızlı Başlangıç](/tr/docs/introduction/quick-start) — iç, değişmez

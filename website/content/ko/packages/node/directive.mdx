@@ -1,0 +1,58 @@
+---
+title: "directive()"
+description: "`:::name` 문법으로 컨테이너 디렉티브를 지원합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./directive-example.md?example"
+
+```ts
+import { directive } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function directive(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile, directive } from "@unifast/node";
+
+const result = compile(md, { plugins: [directive()] });
+```
+
+## 예시
+
+### 컨테이너 디렉티브
+
+<Example data={example} />
+
+`.directive-note`, `.directive-warning` 같은 클래스로 CSS 스타일을 지정할 수 있으며, GitHub Alerts와 유사하지만 이름을 완전히 자유롭게 지을 수 있습니다.
+
+### 속성이 있는 컨테이너
+
+```md
+:::warning title="Deprecation Notice"
+This API will be removed in the next major version.
+:::
+```
+
+### 중첩된 내용
+
+디렉티브는 목록, 코드 블록, 인라인 포매팅을 포함한 Markdown 전체 기능을 내부에 담을 수 있습니다.
+
+```md
+:::note
+You can include **bold**, *italic*, and other Markdown inside containers.
+
+- List items work too
+- As does `inline code`
+:::
+```

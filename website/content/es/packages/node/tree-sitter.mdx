@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "Crea un plugin Tree-sitter que habilita el resaltado de sintaxis para bloques de código fenced usando la librería de parsing Tree-sitter."
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## Parámetros
+
+### options?
+
+Configuración del motor de resaltado
+
+| Propiedad | Tipo | Por defecto | Descripción |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | "treeSitter" usa el highlighter de Tree-sitter; "none" desactiva el resaltado |
+
+## Uso
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Code blocks are syntax highlighted with <span> elements and CSS classes
+```
+
+## Ejemplos
+
+### Habilitar el resaltado de sintaxis
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Desactivar el resaltado
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// Code blocks are rendered without syntax highlighting
+```

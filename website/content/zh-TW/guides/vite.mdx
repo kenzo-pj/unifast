@@ -1,0 +1,93 @@
+---
+title: "Vite 整合"
+description: "透過 @unifast/vite 在建置階段編譯 Markdown 與 MDX 檔案，並直接於您的 Vite 應用程式中匯入使用。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite` 提供了一個 Vite 外掛，可在建置階段編譯 Markdown 與 MDX 檔案。您可以直接在應用程式中匯入 `.md` 與 `.mdx` 檔案。
+
+### 安裝
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### 設定
+
+將外掛加入您的 Vite 設定檔：
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // Optional: pass compile options
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### 匯入 Markdown
+
+設定完成後，即可直接匯入 `.md` 檔案：
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Compiled HTML string
+console.log(content.frontmatter);  // Parsed frontmatter
+console.log(content.toc);          // Table of contents
+```
+
+匯入的模組會提供下列屬性：
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `html` | `string` | 編譯後的 HTML 輸出 |
+| `frontmatter` | `Record<string, unknown>` | 已解析的 frontmatter 後設資料 |
+| `toc` | `TocEntry[]` | 擷取而得的目錄 |
+
+### 搭配外掛使用
+
+您可以透過 Vite 外掛選項來傳入其他外掛：
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+專案中所有 Markdown/MDX 的匯入都會自動套用這些外掛。
+
+### MDX 支援
+
+MDX 檔案會被編譯為 JavaScript 模組，並預設匯出一個 React 元件：
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### 熱模組替換（HMR）
+
+此 Vite 外掛支援 HMR。當您編輯 `.md` 或 `.mdx` 檔案時，頁面會自動更新，不必完整重新載入。
+
+### 另請參閱
+
+- [compile()](/docs/packages/node/compile) - 底層的 compile API
+- [React 整合](/docs/guides/react) - 在 React 中渲染編譯後的內容

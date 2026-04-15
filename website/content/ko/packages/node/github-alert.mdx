@@ -1,0 +1,37 @@
+---
+title: "githubAlert()"
+description: "blockquote에서 GitHub 스타일의 알림(NOTE, TIP, WARNING 등)을 지원합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./github-alert-example.md?example"
+
+```ts
+import { githubAlert } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function githubAlert(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile, githubAlert } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [githubAlert()],
+});
+```
+
+## 예시
+
+### GitHub 스타일 알림
+
+<Example data={example} />

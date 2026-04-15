@@ -1,0 +1,123 @@
+---
+title: "hastToReact()"
+description: "HAST のルートノードを React 要素に変換します。コンパイルパイプラインを細かく制御したいときに使う低レベルの関数です。"
+---
+
+```ts
+import { hastToReact } from "@unifast/react";
+```
+
+## シグネチャ
+
+```ts
+function hastToReact(
+  hast: HastRoot,
+  options: HastToReactOptions,
+): unknown
+```
+
+## パラメータ
+
+### hast
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `type` | `"root"` | — | ノード種別の識別子 |
+| `children` | `HastNode[]` | — | ツリーの子ノード |
+
+### options
+
+React 要素の生成設定です
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | React の createElement 関数 |
+| `Fragment` | `unknown` | — | React の Fragment コンポーネント |
+| `components?` | `ComponentMap` | — | HTML タグ名からカスタム React コンポーネントへのマップ |
+
+## 使い方
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+
+const element = hastToReact(hast, {
+  createElement,
+  Fragment,
+  components: {
+    pre: ({ children, ...props }) => <pre className="code-block" {...props}>{children}</pre>,
+    a: ({ children, ...props }) => <a target="_blank" rel="noopener" {...props}>{children}</a>,
+  },
+});
+```
+
+## 使用例
+
+### 基本的な使い方
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile("# Hello, **world**!", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Shiki によってハイライトされた HAST と組み合わせて使う
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```
+
+### サーバーサイドレンダリング
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+## 動作
+
+- **プロパティ名の変換:** HTML 属性は React の相当するプロパティ (`class` から `className`、`for` から `htmlFor` など) に変換されます
+- **スタイルのパース:** CSS のスタイル文字列は React のスタイルオブジェクトにパースされます
+- **className 配列:** HAST の `className` 配列はスペースで結合されます
+- **真偽値属性:** `true` の場合は属性がレンダリングされ、`false`/`null`/`undefined` の場合は省略されます
+- **raw ノード:** インライン HTML としてレンダリングされます。信頼できない入力を処理する場合は (`@unifast/node` の) `sanitize` プラグインを使用してください
+- **コメントと doctype:** 無視されます (`null` を返します)

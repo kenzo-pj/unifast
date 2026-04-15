@@ -1,0 +1,53 @@
+---
+title: "autolinkHeadings()"
+description: "自動為標題加上錨點連結。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./autolink-headings-example.md?example"
+
+```ts
+import { autolinkHeadings } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function autolinkHeadings(options?: AutolinkHeadingsOptions): UnifastPlugin
+```
+
+## 參數
+
+### options?
+
+設定標題連結的行為
+
+| 屬性 | 型別 | 預設值 | 說明 |
+|----------|------|---------|-------------|
+| `behavior` | `"prepend" \| "append" \| "wrap"` | `"prepend"` | 錨點連結相對於標題內容的放置位置 |
+
+## 用法
+
+```ts
+import { compile, autolinkHeadings } from "@unifast/node";
+
+const md = `# Introduction
+
+## Getting Started
+
+### Installation`;
+
+const result = compile(md, {
+  plugins: [
+    autolinkHeadings({
+      behavior: "prepend", // "prepend" | "append" | "wrap"
+    }),
+  ],
+});
+```
+
+## 範例
+
+### 帶有錨點連結的標題
+
+<Example data={example} />

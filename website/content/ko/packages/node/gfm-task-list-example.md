@@ -1,0 +1,4 @@
+- [x] Write documentation
+- [x] Add examples
+- [ ] Review pull request
+- [ ] Deploy to production

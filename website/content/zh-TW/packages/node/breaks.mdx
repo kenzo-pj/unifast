@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "將文字中的換行轉換為 `<br>` 元素。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## 函式簽名
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## 參數
+
+無。
+
+## 用法
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Each newline becomes a <br> element
+```
+
+## 範例
+
+### 將換行轉為換行元素
+
+若未啟用 `breaks()`，這三行會合併成單一段落。啟用此外掛後，每個換行都會變成 `<br>`：
+
+<Example data={example} />

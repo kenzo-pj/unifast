@@ -1,0 +1,87 @@
+---
+title: "math()"
+description: "Habilita expresiones matemáticas con sintaxis en línea y en bloque."
+---
+
+import { Example } from "~/components/Example"
+import example from "./math-example.md?example"
+
+```ts
+import { math } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function math(): UnifastPlugin
+```
+
+## Parámetros
+
+Ninguno.
+
+## Uso
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+Einstein's famous equation: $E = mc^2$
+
+The sum of integers from 1 to n:
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+## Ejemplos
+
+### Expresiones matemáticas
+
+<Example data={example} renderMath />
+
+### Matemáticas en línea
+
+Usa delimitadores `$` sencillos para expresiones matemáticas en línea.
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ and is used to solve quadratic equations.
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### Matemáticas en bloque
+
+Usa delimitadores `$$` o un bloque de código con el lenguaje `math` para matemáticas en bloque.
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+$$
+\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### Incluir el CSS de KaTeX
+
+El plugin convierte la sintaxis matemática en la estructura HTML adecuada, pero necesitas incluir el CSS de KaTeX por separado para un renderizado correcto en el navegador.
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+```

@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "unifast için Vite plugin'i — Markdown ve MDX dosyalarını JS modüllerine dönüştürür"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Genel Bakış
+
+`@unifast/vite`, `.md` ve `.mdx` dosyalarını JavaScript modüllerine dönüştüren bir Vite plugin'idir. unifast'in Markdown/MDX derleyicisini Vite derleme ardışık düzenine entegre ederek Markdown dosyalarını doğrudan uygulamanıza import etmenize olanak tanır.
+
+## Kurulum
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` bir peer bağımlılıktır (isteğe bağlı) — mevcut olduğunda plugin, maksimum performans için native Rust derleyicisini kullanır. O olmadan `.md` dosyaları temel HTML render'a geri döner ve `.mdx` dosyaları onu gerektirir.
+
+## Hızlı Başlangıç
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // .md dosyaları için derleme seçenekleri
+      },
+      mdx: {
+        // .mdx dosyaları için derleme seçenekleri
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // derlenmiş HTML string'i
+console.log(doc.frontmatter);  // ayrıştırılmış frontmatter nesnesi
+console.log(doc.toc);          // içindekiler tablosu girişleri
+```
+
+## Modül Export'ları
+
+### `.md` dosyaları
+
+Her `.md` dosyası aşağıdaki export'lara sahip bir modüle dönüştürülür:
+
+| Export | Tür | Açıklama |
+|--------|-----|----------|
+| `html` | `string` | Derlenmiş HTML string'i |
+| `frontmatter` | `Record<string, unknown>` | Ayrıştırılmış frontmatter üst verisi |
+| `toc` | `TocEntry[]` | Çıkarılan içindekiler tablosu |
+| `default` | `object` | `html`, `frontmatter` ve `toc` içeren nesne |
+
+### `.mdx` dosyaları
+
+Her `.mdx` dosyası, React'in `jsx-runtime`'ı kullanılarak bir JSX modülüne derlenir. `frontmatter` ve `toc` ile birlikte varsayılan bir React bileşeni export eder.
+
+## Export Özeti
+
+| Export | Tür | Açıklama |
+|--------|-----|----------|
+| `default` (unifastPlugin) | function | Vite plugin fabrikası |
+| `UnifastPluginOptions` | type | Plugin seçenekleri arayüzü |

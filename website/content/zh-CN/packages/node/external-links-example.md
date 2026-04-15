@@ -1,0 +1,2 @@
+- [GitHub](https://github.com) —— 外部链接，在新标签页中打开
+- [快速开始](/en/docs/introduction/quick-start) —— 内部链接，保持不变

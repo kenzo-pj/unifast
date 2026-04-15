@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "네이티브 Rust로 구동되는 unifast Markdown/MDX 컴파일러의 Node.js 바인딩"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 개요
+
+`@unifast/node`는 Node.js에서 unifast를 사용할 때의 주요 진입점입니다. [`compile()`](/docs/packages/node/compile) 함수를 제공하며, 이 함수는 napi-rs를 통해 네이티브 Rust 컴파일러를 호출하여 최고 수준의 성능을 냅니다. 또한 플러그인 시스템을 지원하므로, Rust 컴파일 이후에 JavaScript에서 HAST 변환을 적용할 수 있습니다.
+
+## 설치
+
+<PackageInstall package="@unifast/node" />
+
+> 네이티브 Rust 애드온이 사전 빌드되어 있어야 합니다. 네이티브 바이너리가 없다면 `cargo build -p unifast-bindings-node --release`를 실행하세요.
+
+## 빠른 시작
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## 플러그인 파이프라인
+
+플러그인이 제공되면 `compile()`은 다음 파이프라인을 실행합니다.
+
+1. **플러그인 분리** - `plugins`를 나머지 옵션에서 분리합니다.
+2. **옵션 병합** - 각 플러그인의 `options`를 컴파일 옵션에 깊은 병합합니다.
+3. **HAST 강제** - `hastTransform`을 가진 플러그인이 있으면 네이티브 호출에서 `outputKind: "hast"`를 사용합니다.
+4. **네이티브 컴파일** - napi-rs를 통해 Rust 컴파일러를 호출합니다.
+5. **HAST 변환** - 각 플러그인의 `hastTransform`을 순서대로 적용합니다.
+6. **출력 변환** - 사용자가 HAST 출력을 요청하지 않았다면 `hastToHtml`로 HTML로 변환합니다.
+
+## 빌트인 플러그인
+
+다음 플러그인 팩토리 함수가 포함되어 있으며, 별도의 설치가 필요하지 않습니다.
+
+`gfm`, `frontmatter`, `sanitize`, `syntect`, `treeSitter`, `toc`, `externalLinks`, `autolinkHeadings`, `smartypants`, `wikiLink`, `codeImport`, `emoji`, `breaks`, `math`, `githubAlert`, `sectionize`, `directive`, `definitionList`, `rubyAnnotation`, `cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## Exports 요약
+
+| Export | 종류 | 설명 |
+|--------|------|-------------|
+| `compile` | function | Markdown/MDX를 HTML이나 다른 형식으로 컴파일 |
+| `gfm`, `frontmatter`, ... | function | 빌트인 플러그인 팩토리 (총 20개) |
+| `hastToHtml` | function | HAST-to-HTML 시리얼라이저 (`@unifast/core`에서 재수출) |
+| `CompileOptions` | type | 컴파일 설정 |
+| `CompileResult` | type | 컴파일 결과 |
+| `UnifastPlugin` | type | 플러그인 인터페이스 |
+| `TocEntry` | type | 목차 항목 |
+| `HastRoot` | type | HAST 루트 노드 |
+| `HastElement` | type | HAST 요소 노드 |
+| `HastText` | type | HAST 텍스트 노드 |
+| `HastNode` | type | 모든 HAST 노드 타입의 유니언 |
+| `UnifastError` | class | 기반 에러 클래스 |
+| `ParseError` | class | 파싱 에러 클래스 |
+| `CompileError` | class | 컴파일 에러 클래스 |

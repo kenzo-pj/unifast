@@ -1,0 +1,111 @@
+---
+title: "@unifast/react"
+description: "將 unifast 的 HAST 輸出轉換為 React 元素，並支援元件對應"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## 概觀
+
+`@unifast/react` 會將 unifast 的 HAST（HTML Abstract Syntax Tree）輸出轉換為 React 元素。它提供兩個主要的函式：
+
+- [`compileToReact()`](/docs/packages/react/compile-to-react) - 高階 API：編譯 Markdown/MDX 並直接回傳 React 元素
+- [`hastToReact()`](/docs/packages/react/hast-to-react) - 低階 API：將 HAST 樹轉換為 React 元素
+
+本套件會自動處理 HTML 屬性與 React prop 名稱的對應（例如將 `class` 轉為 `className`、`for` 轉為 `htmlFor` 等），並解析 CSS style 字串。
+
+## 安裝
+
+<PackageInstall package="@unifast/react" />
+
+對等相依套件：使用 `compileToReact` 時需要 `@unifast/node`。
+
+## 型別定義
+
+### CompileToReactOptions
+
+繼承 `CompileOptions`，並加入 React 專屬欄位。
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React 的 `createElement` 函式 |
+| `Fragment` | `unknown` | React 的 `Fragment` 元件 |
+| `components?` | `ComponentMap` | HTML 標籤名稱到 React 元件的對應表 |
+| *(所有 CompileOptions)* | - | 繼承自 `CompileOptions` |
+
+### CompileToReactResult
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `element` | `unknown` | 根 React 元素 |
+| `frontmatter` | `Record<string, unknown>` | 已解析的 frontmatter 後設資料 |
+| `diagnostics` | `Diagnostic[]` | 警告與錯誤 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 各階段耗時（毫秒） |
+| `toc` | `TocEntry[]` | 擷取而得的目錄 |
+
+### HastToReactOptions
+
+| 屬性 | 型別 | 說明 |
+|----------|------|-------------|
+| `createElement` | `CreateElement` | React 的 `createElement` 函式 |
+| `Fragment` | `unknown` | React 的 `Fragment` 元件 |
+| `components?` | `ComponentMap` | HTML 標籤名稱到自訂 React 元件的對應表 |
+
+### CreateElement
+
+```ts
+type CreateElement = (type: any, props: any, ...children: any[]) => any;
+```
+
+### ComponentMap
+
+```ts
+type ComponentMap = Record<string, unknown>;
+```
+
+### 屬性名稱轉換
+
+| HTML 屬性 | React Prop |
+|---------------|------------|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| `accesskey` | `accessKey` |
+| `autocomplete` | `autoComplete` |
+| `autofocus` | `autoFocus` |
+| `autoplay` | `autoPlay` |
+| `charset` | `charSet` |
+| `colspan` | `colSpan` |
+| `contenteditable` | `contentEditable` |
+| `crossorigin` | `crossOrigin` |
+| `datetime` | `dateTime` |
+| `enctype` | `encType` |
+| `formaction` | `formAction` |
+| `hreflang` | `hrefLang` |
+| `httpequiv` | `httpEquiv` |
+| `inputmode` | `inputMode` |
+| `maxlength` | `maxLength` |
+| `minlength` | `minLength` |
+| `novalidate` | `noValidate` |
+| `readonly` | `readOnly` |
+| `referrerpolicy` | `referrerPolicy` |
+| `rowspan` | `rowSpan` |
+| `spellcheck` | `spellCheck` |
+| `srcdoc` | `srcDoc` |
+| `srclang` | `srcLang` |
+| `srcset` | `srcSet` |
+| `tabindex` | `tabIndex` |
+| `usemap` | `useMap` |
+
+CSS `style` 字串會自動解析為 React style 物件（例如 `"font-size: 16px"` 會變成 `{ fontSize: "16px" }`）。
+
+## 匯出列表
+
+| 匯出名稱 | 類別 | 說明 |
+|--------|------|-------------|
+| `compileToReact` | function | 將 Markdown/MDX 編譯為 React 元素 |
+| `hastToReact` | function | 將 HAST 轉換為 React 元素 |
+| `CompileToReactOptions` | type | `compileToReact` 的選項 |
+| `CompileToReactResult` | type | `compileToReact` 的結果 |
+| `HastToReactOptions` | type | `hastToReact` 的選項 |
+| `CreateElement` | type | React createElement 函式簽名 |
+| `ComponentMap` | type | HTML 標籤至元件的對應表 |

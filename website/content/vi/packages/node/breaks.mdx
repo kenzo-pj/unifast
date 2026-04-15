@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "Chuyển các ký tự xuống dòng trong văn bản thành phần tử `<br>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## Tham số
+
+Không có.
+
+## Cách dùng
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Each newline becomes a <br> element
+```
+
+## Ví dụ
+
+### Xuống dòng thành line break
+
+Không có `breaks()`, ba dòng này sẽ được gộp thành một đoạn văn duy nhất. Khi bật plugin, mỗi lần xuống dòng trở thành một `<br>`:
+
+<Example data={example} />

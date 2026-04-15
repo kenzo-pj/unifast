@@ -1,0 +1,83 @@
+---
+title: "unifastPlugin()"
+description: "Markdown および MDX ファイルをインポート可能な JavaScript モジュールに変換する Vite プラグインを生成します。"
+---
+
+```ts
+import unifast from "@unifast/vite";
+```
+
+## シグネチャ
+
+```ts
+function unifastPlugin(options?: UnifastPluginOptions): Plugin
+```
+
+## パラメータ
+
+### options?
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `md` | `CompileOptions` | `{}` | `.md` ファイルに適用される compile オプション |
+| `mdx` | `CompileOptions` | `md` オプションを使用 | `.mdx` ファイルに適用される compile オプション。指定がなければ `md` にフォールバックします |
+
+## 戻り値
+
+次の内容を持つ Vite の `Plugin` オブジェクトです。
+- **`name`**: `"vite-plugin-unifast"`
+- **`enforce`**: `"pre"` — 他のプラグインより前に実行されます
+- **`transform`**: `.md` / `.mdx` ファイルを JS モジュールにコンパイルします
+- **`handleHotUpdate`**: Markdown ファイルの変更時に HMR をトリガーします
+
+## 使い方
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { gfm, frontmatter, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        plugins: [gfm(), frontmatter(), syntect()],
+      },
+    }),
+  ],
+});
+```
+
+## 使用例
+
+### MD と MDX のオプションを分ける
+
+```ts
+import unifast from "@unifast/vite";
+import { gfm, frontmatter } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        plugins: [gfm(), frontmatter()],
+      },
+      mdx: {
+        plugins: [gfm(), frontmatter()],
+        // MDX-specific options can differ
+      },
+    }),
+  ],
+});
+```
+
+### コンポーネント内で Markdown をインポートする
+
+```ts
+import doc from "./README.md";
+
+// doc.html — compiled HTML string
+// doc.frontmatter — parsed frontmatter object
+// doc.toc — table of contents entries
+```

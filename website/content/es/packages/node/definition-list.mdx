@@ -1,0 +1,107 @@
+---
+title: "definitionList()"
+description: "Soporta la sintaxis de listas de definiciones con pares de `término` y `: descripción`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./definition-list-example.md?example"
+
+```ts
+import { definitionList } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function definitionList(): UnifastPlugin
+```
+
+## Parámetros
+
+Ninguno.
+
+## Uso
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+Markdown
+: A lightweight markup language for creating formatted text.
+
+HTML
+: The standard markup language for documents designed to be displayed in a web browser.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+El Markdown anterior produce el siguiente HTML:
+
+```html
+<dl>
+  <dt>Markdown</dt>
+  <dd>A lightweight markup language for creating formatted text.</dd>
+  <dt>HTML</dt>
+  <dd>The standard markup language for documents designed to be displayed in a web browser.</dd>
+</dl>
+```
+
+## Ejemplos
+
+### Lista de definiciones
+
+<Example data={example} />
+
+### Múltiples descripciones por término
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+unifast
+: A fast Markdown/MDX compiler.
+: Built with Rust for maximum performance.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+Salida:
+
+```html
+<dl>
+  <dt>unifast</dt>
+  <dd>A fast Markdown/MDX compiler.</dd>
+  <dd>Built with Rust for maximum performance.</dd>
+</dl>
+```
+
+### Múltiples términos y descripciones
+
+```ts
+import { compile, definitionList } from "@unifast/node";
+
+const md = `
+Plugin
+Extension
+: A module that adds functionality to the core system.
+
+Transformer
+: A function that modifies the AST during compilation.
+`;
+
+const result = compile(md, { plugins: [definitionList()] });
+```
+
+Salida:
+
+```html
+<dl>
+  <dt>Plugin</dt>
+  <dt>Extension</dt>
+  <dd>A module that adds functionality to the core system.</dd>
+  <dt>Transformer</dt>
+  <dd>A function that modifies the AST during compilation.</dd>
+</dl>
+```

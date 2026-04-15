@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Wendet typografische Ersetzungen für Anführungszeichen, Gedankenstriche und Auslassungspunkte an."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Signatur
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfiguration der anzuwendenden Ersetzungen
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | Gerade Anführungszeichen durch typografische Anführungszeichen ersetzen |
+| `dashes` | `boolean` | `true` | -- durch Halbgeviertstrich und --- durch Geviertstrich ersetzen |
+| `ellipses` | `boolean` | `true` | ... durch ein Auslassungszeichen ersetzen |
+
+## Verwendung
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Beispiele
+
+### Typografische Ersetzungen
+
+<Example data={example} />
+
+| Quelle | Ergebnis |
+|--------|--------|
+| `"Hello"` | typografische doppelte Anführungszeichen |
+| `'Hi'` | typografische einfache Anführungszeichen |
+| `--` | Halbgeviertstrich (–) |
+| `---` | Geviertstrich (—) |
+| `...` | Auslassungszeichen (…) |

@@ -1,0 +1,49 @@
+---
+title: "externalLinks()"
+description: "Aggiunge gli attributi rel e target ai link esterni nell'output Markdown."
+---
+
+import { Example } from "~/components/Example"
+import example from "./external-links-example.md?example"
+
+```ts
+import { externalLinks } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function externalLinks(options?: ExternalLinksPluginOptions): UnifastPlugin
+```
+
+## Parametri
+
+### options?
+
+Configurazione degli attributi dei link esterni
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `rel` | `string` | `"nofollow noopener noreferrer"` | Valore dell'attributo rel sui link esterni |
+| `target` | `string` | — | Valore dell'attributo target (ad esempio, "\_blank") |
+
+## Utilizzo
+
+```ts
+import { compile, externalLinks } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    externalLinks({
+      rel: "nofollow noopener noreferrer",
+      target: "_blank",
+    }),
+  ],
+});
+```
+
+## Esempi
+
+### Link esterni e interni a confronto
+
+<Example data={example} />

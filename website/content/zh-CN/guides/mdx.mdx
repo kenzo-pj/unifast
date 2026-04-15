@@ -1,0 +1,94 @@
+---
+title: "使用 MDX"
+description: "使用 unifast 编译 MDX，让你可以在 Markdown 中编写 JSX 表达式和 import 语句，并通过 React 或其他 JSX 运行时进行渲染。"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+MDX 让你可以在 Markdown 中编写 JSX 表达式和 import 语句。unifast 会将 MDX 编译为 JavaScript 模块，可通过 React 或其他 JSX 运行时进行渲染。
+
+### 安装
+
+<PackageInstall package="@unifast/node" />
+
+### 基本用法
+
+```ts
+import { compile } from "@unifast/node";
+
+const source = `
+# Hello
+
+<Counter initial={0} />
+
+export const meta = { title: "My Page" };
+`;
+
+const result = compile(source, { inputKind: "mdx" });
+// result.output is a JavaScript module string
+```
+
+### MDX 的工作方式
+
+MDX 在 Markdown 的基础上扩展了两项能力：
+
+1. **JSX 表达式** —— 在正文中内联使用组件。
+2. **ESM 导入/导出** —— 导入组件、导出元数据。
+
+编译器按照以下步骤处理 MDX：
+
+```
+MDX source
+  → Parse (Markdown + JSX + ESM)
+  → MdAst with JSX/ESM nodes
+  → Lower to HAst
+  → Emit as JavaScript module
+```
+
+输出是一个 JavaScript 模块，其中默认导出一个函数，该函数接受 `components` 属性用于注入组件。
+
+### 与 React 配合使用
+
+```ts
+import { compile } from "@unifast/node";
+import { compileToReact } from "@unifast/react";
+
+const source = `# Hello\n\nThis is **MDX**.`;
+
+const result = compile(source, { inputKind: "mdx" });
+const Component = compileToReact(result);
+
+// Render in your React app
+<Component components={{ h1: MyHeading }} />
+```
+
+### 在 MDX 中使用 Frontmatter
+
+将 MDX 与 frontmatter 插件结合使用即可提取元数据：
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const source = `---
+title: My Article
+author: Jane
+---
+
+# {frontmatter.title}
+
+Written by {frontmatter.author}.
+`;
+
+const result = compile(source, {
+  inputKind: "mdx",
+  plugins: [frontmatter()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Article", author: "Jane" }
+```
+
+### 参见
+
+- [compile()](/docs/packages/node/compile) —— 完整的 API 参考
+- [React 集成](/docs/guides/react) —— 使用 React 渲染 MDX

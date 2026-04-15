@@ -1,0 +1,103 @@
+---
+title: "frontmatter()"
+description: "Cria um plugin de frontmatter que habilita o parsing de blocos de metadados YAML, TOML ou JSON no topo de documentos Markdown/MDX."
+---
+
+```ts
+import { frontmatter } from "@unifast/node";
+```
+
+## Assinatura
+
+```ts
+function frontmatter(options?: FrontmatterPluginOptions): UnifastPlugin
+```
+
+## Parâmetros
+
+### options?
+
+Configuração para os formatos de frontmatter
+
+| Propriedade | Tipo | Padrão | Descrição |
+|----------|------|---------|-------------|
+| `yaml` | `boolean` | `true` | Habilita frontmatter YAML (delimitadores ---) |
+| `toml` | `boolean` | `false` | Habilita frontmatter TOML (delimitadores +++) |
+| `json` | `boolean` | `false` | Habilita frontmatter JSON (delimitadores ;;;) |
+
+## Uso
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    frontmatter({
+      yaml: true,
+      toml: true,
+      json: true,
+    }),
+  ],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+## Exemplos
+
+### Frontmatter YAML
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `---
+title: My Page
+date: 2024-01-01
+tags:
+  - markdown
+  - docs
+---
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter()] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+### Frontmatter TOML
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `+++
+title = "My Page"
+date = 2024-01-01
++++
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ toml: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01" }
+```
+
+### Frontmatter JSON
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `;;;
+{"title": "My Page", "draft": false}
+;;;
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ json: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", draft: false }
+```

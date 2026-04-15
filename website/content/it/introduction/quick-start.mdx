@@ -1,0 +1,79 @@
+---
+title: "Avvio rapido"
+description: "Installa unifast e compila il tuo primo documento Markdown in meno di un minuto."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+Installa unifast e compila il tuo primo documento Markdown in meno di un minuto.
+
+### Installazione
+
+<PackageInstall package="@unifast/node" />
+
+### Utilizzo di base
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, unifast!\n\nThis is **Markdown**.");
+
+console.log(result.html);
+// <h1>Hello, unifast!</h1>
+// <p>This is <strong>Markdown</strong>.</p>
+```
+
+Tutto qui. Un import, una chiamata di funzione, output HTML.
+
+### Aggiungere plugin
+
+I plugin estendono il compilatore con funzionalità aggiuntive. La maggior parte dei plugin è inclusa in `@unifast/node` e configura pass integrati.
+
+```ts
+import { compile, frontmatter, gfm } from "@unifast/node";
+
+const source = `---
+title: My Post
+date: 2025-01-15
+---
+
+# My Post
+
+A table:
+
+| Feature | Status |
+|---------|--------|
+| GFM     | Yes    |
+
+- [x] Task complete
+- [ ] Task pending
+`;
+
+const result = compile(source, {
+  plugins: [frontmatter(), gfm()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Post", date: "2025-01-15" }
+
+console.log(result.html);
+// Rendered HTML with GFM table and task list
+```
+
+### Aggiungere l'evidenziazione della sintassi
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(
+  '```js\nconsole.log("highlighted");\n```',
+  { plugins: [syntect()] }
+);
+// Code block with syntax highlighting classes
+```
+
+### Passi successivi
+
+- [Concetti fondamentali](/docs/introduction/key-concepts) - Scopri la pipeline di compilazione e l'architettura.
+- [Evidenziazione della sintassi](/docs/guides/syntax-highlighting) - Configura in dettaglio l'evidenziazione dei blocchi di codice.
+- [compile()](/docs/packages/node/compile) - Riferimento API completo per la funzione di compilazione.

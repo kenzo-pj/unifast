@@ -1,0 +1,50 @@
+---
+title: "sectionize()"
+description: "Racchiude i gruppi di titoli in elementi `<section>`."
+---
+
+import { Example } from "~/components/Example"
+import example from "./sectionize-example.md?example"
+
+```ts
+import { sectionize } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function sectionize(): UnifastPlugin
+```
+
+## Parametri
+
+Nessuno.
+
+## Utilizzo
+
+```ts
+import { compile, sectionize } from "@unifast/node";
+
+const md = `# Introduction
+
+Some introductory text.
+
+## Getting Started
+
+Instructions for getting started.
+
+## Configuration
+
+Configuration details here.`;
+
+const result = compile(md, {
+  plugins: [sectionize()],
+});
+// Each heading and its following content are wrapped in a <section> element
+```
+
+## Esempi
+
+### Sezioni dei titoli
+
+<Example data={example} />

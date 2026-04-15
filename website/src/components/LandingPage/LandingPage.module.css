@@ -369,8 +369,7 @@
 }
 
 .showcaseCode code {
-  font-family:
-    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 0.875rem;
   line-height: 1.7;
   color: var(--color-text);

@@ -1,0 +1,158 @@
+---
+title: "compileToReact()"
+description: "Compile input Markdown atau MDX dan langsung kembalikan elemen React, beserta frontmatter, diagnostics, stats, dan TOC."
+---
+
+```ts
+import { compileToReact } from "@unifast/react";
+```
+
+## Signature
+
+```ts
+function compileToReact(
+  input: string,
+  options: CompileToReactOptions,
+): CompileToReactResult
+```
+
+## Parameter
+
+### input
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Sumber Markdown atau MDX |
+
+### options
+
+Opsi compile beserta konfigurasi khusus React
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | Fungsi createElement dari React |
+| `Fragment` | `unknown` | — | Komponen Fragment dari React |
+| `components?` | `ComponentMap` | — | Pemetaan dari nama tag HTML ke komponen React |
+
+> Memperluas [`CompileOptions`](/docs/packages/core/overview) — semua opsi compile lainnya juga diterima.
+
+## Return
+
+| Properti | Tipe | Deskripsi |
+|----------|------|-------------|
+| `element` | `unknown` | Elemen React root |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter yang sudah di-parse |
+| `diagnostics` | `Diagnostic[]` | Peringatan dan error |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Rincian timing (ms) |
+| `toc` | `TocEntry[]` | Daftar isi yang diekstrak |
+
+## Penggunaan
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { gfm, frontmatter, toc } from "@unifast/node";
+
+const { element, frontmatter: fm, toc: tocEntries, diagnostics, stats } = compileToReact(
+  md,
+  {
+    createElement,
+    Fragment,
+    components: {
+      h1: ({ children, ...props }) => <h1 className="title" {...props}>{children}</h1>,
+      a: ({ children, ...props }) => <a target="_blank" {...props}>{children}</a>,
+    },
+    plugins: [gfm(), frontmatter(), toc()],
+  },
+);
+```
+
+## Contoh
+
+### Penggunaan dasar
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(
+  "# Hello, **world**!",
+  { createElement, Fragment },
+);
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Dengan komponen kustom
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, {
+  createElement,
+  Fragment,
+  components: {
+    h1: ({ children, ...props }) => (
+      <h1 className="text-4xl font-bold" {...props}>{children}</h1>
+    ),
+    a: ({ children, ...props }) => (
+      <a className="text-blue-500 underline" target="_blank" {...props}>{children}</a>
+    ),
+    code: ({ children, ...props }) => (
+      <code className="bg-gray-100 rounded px-1" {...props}>{children}</code>
+    ),
+  },
+});
+```
+
+### Server-side rendering
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compileToReact } from "@unifast/react";
+
+const { element } = compileToReact(md, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// Rendered HTML string for SSR
+```
+
+### Menggunakan frontmatter dan TOC
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compileToReact } from "@unifast/react";
+import { frontmatter, toc } from "@unifast/node";
+
+const md = `---
+title: My Page
+---
+
+# Introduction
+
+## Setup
+
+## Usage
+`;
+
+const result = compileToReact(md, {
+  createElement,
+  Fragment,
+  plugins: [frontmatter(), toc()],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page" }
+
+console.log(result.toc);
+// [
+//   { depth: 1, text: "Introduction", slug: "introduction" },
+//   { depth: 2, text: "Setup", slug: "setup" },
+//   { depth: 2, text: "Usage", slug: "usage" },
+// ]
+```

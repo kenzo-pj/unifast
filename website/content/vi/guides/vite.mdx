@@ -1,0 +1,93 @@
+---
+title: "Tích hợp Vite"
+description: "Sử dụng @unifast/vite để biên dịch các file Markdown và MDX tại thời điểm build và import trực tiếp trong ứng dụng Vite của bạn."
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+`@unifast/vite` cung cấp một plugin Vite biên dịch các file Markdown và MDX tại thời điểm build. Bạn có thể import trực tiếp file `.md` và `.mdx` trong ứng dụng.
+
+### Cài đặt
+
+<PackageInstall package="@unifast/node @unifast/vite" />
+
+### Thiết lập
+
+Thêm plugin vào cấu hình Vite của bạn:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      // Optional: pass compile options
+      plugins: [],
+    }),
+  ],
+});
+```
+
+### Import Markdown
+
+Sau khi cấu hình, bạn có thể import trực tiếp file `.md`:
+
+```ts
+import content from "./docs/getting-started.md";
+
+console.log(content.html);         // Compiled HTML string
+console.log(content.frontmatter);  // Parsed frontmatter
+console.log(content.toc);          // Table of contents
+```
+
+Module được import cung cấp:
+
+| Thuộc tính | Kiểu | Mô tả |
+|----------|------|-------------|
+| `html` | `string` | Đầu ra HTML đã biên dịch |
+| `frontmatter` | `Record<string, unknown>` | Metadata frontmatter đã được parse |
+| `toc` | `TocEntry[]` | Mục lục đã được trích xuất |
+
+### Kết hợp với Plugin
+
+Truyền plugin qua các tùy chọn của Vite plugin:
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+import { frontmatter, gfm, syntect } from "@unifast/node";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      plugins: [frontmatter(), gfm(), syntect()],
+    }),
+  ],
+});
+```
+
+Tất cả các import Markdown/MDX trong dự án sẽ tự động sử dụng những plugin này.
+
+### Hỗ trợ MDX
+
+File MDX được biên dịch thành module JavaScript với một default export là React component:
+
+```tsx
+import Content from "./article.mdx";
+
+function Page() {
+  return <Content components={{ h1: MyHeading }} />;
+}
+```
+
+### Hot Module Replacement
+
+Plugin Vite hỗ trợ HMR. Khi bạn chỉnh sửa file `.md` hoặc `.mdx`, trang sẽ được cập nhật mà không cần reload toàn bộ.
+
+### Xem thêm
+
+- [compile()](/docs/packages/node/compile) - API biên dịch bên dưới
+- [Tích hợp React](/docs/guides/react) - Render nội dung đã biên dịch trong React

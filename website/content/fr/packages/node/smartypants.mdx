@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Applique des substitutions typographiques pour les guillemets, tirets et points de suspension."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Paramètres
+
+### options?
+
+Configuration des substitutions à appliquer
+
+| Propriété | Type | Défaut | Description |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | Remplace les guillemets droits par des guillemets typographiques |
+| `dashes` | `boolean` | `true` | Remplace -- par un tiret demi-cadratin et --- par un tiret cadratin |
+| `ellipses` | `boolean` | `true` | Remplace ... par le caractère de points de suspension |
+
+## Utilisation
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Exemples
+
+### Substitutions typographiques
+
+<Example data={example} />
+
+| Source | Résultat |
+|--------|--------|
+| `"Hello"` | guillemets doubles typographiques |
+| `'Hi'` | guillemets simples typographiques |
+| `--` | tiret demi-cadratin (–) |
+| `---` | tiret cadratin (—) |
+| `...` | points de suspension (…) |

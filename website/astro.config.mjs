@@ -8,6 +8,7 @@ import translationStatusPlugin from "./plugins/vite-plugin-translation-status";
 import metaPlugin from "./plugins/vite-plugin-meta";
 
 const compileOptions = {
+  slug: { mode: "unicode" },
   toc: { enabled: true, maxDepth: 3 },
   lineNumbers: { enabled: true },
   plugins: [

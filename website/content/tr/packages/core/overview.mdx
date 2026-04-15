@@ -1,0 +1,169 @@
+---
+title: "@unifast/core"
+description: "unifast çalışma zamanı paketleri arasında paylaşılan TypeScript tip tanımları, HAST yardımcıları ve hata sınıfları"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Genel Bakış
+
+`@unifast/core`, derleme seçenekleri, sonuçlar, HAST (HTML Soyut Sözdizimi Ağacı) düğümleri, plugin arayüzü ve hata sınıfları için paylaşılan TypeScript tip tanımlarını sağlar. `@unifast/node` gibi çalışma zamanı paketlerinin bağımlılığıdır — genellikle doğrudan yüklemenize **gerek yoktur**.
+
+Derleyici ve dahili plugin'ler için [`@unifast/node`](/docs/packages/node/overview) kullanın.
+
+## Kurulum
+
+<PackageInstall package="@unifast/core" />
+
+## Tip Tanımları
+
+### CompileOptions
+
+`compile()` fonksiyonu için yapılandırma.
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `inputKind` | `"md" \| "mdx"` | `"md"` | Girdi biçimi |
+| `outputKind` | `"html" \| "hast" \| "mdast" \| "mdxJs"` | `"html"` | Çıktı biçimi |
+| `gfm` | `object` | - | GitHub Flavored Markdown ayarları |
+| `gfm.tables` | `boolean` | - | GFM tablolarını etkinleştir |
+| `gfm.taskList` | `boolean` | - | Görev listesi onay kutularını etkinleştir |
+| `gfm.strikethrough` | `boolean` | - | `~~üstü çizili~~` etkinleştir |
+| `gfm.footnotes` | `boolean` | - | Dipnotları etkinleştir |
+| `gfm.autolink` | `boolean` | - | URL otomatik bağlantısını etkinleştir |
+| `frontmatter` | `object` | - | Frontmatter ayrıştırma ayarları |
+| `frontmatter.yaml` | `boolean` | - | YAML frontmatter'ı ayrıştır |
+| `frontmatter.toml` | `boolean` | - | TOML frontmatter'ı ayrıştır |
+| `frontmatter.json` | `boolean` | - | JSON frontmatter'ı ayrıştır |
+| `rawHtml` | `"disallow" \| "allowDangerous" \| "parseAndSanitize"` | - | Kaynaktaki ham HTML'in nasıl işleneceği |
+| `sanitize` | `object` | - | HTML temizleme ayarları |
+| `sanitize.enabled` | `boolean` | - | Temizlemeyi etkinleştir |
+| `sanitize.schema` | `SanitizeSchema` | - | Özel temizleme kuralları |
+| `highlight` | `object` | - | Sözdizimi vurgulama ayarları |
+| `highlight.enabled` | `boolean` | - | Sözdizimi vurgulamayı etkinleştir |
+| `highlight.engine` | `"none" \| "syntect" \| "treeSitter"` | - | Vurgulama motoru |
+| `slug` | `object` | - | Başlık slug oluşturma ayarları |
+| `slug.mode` | `"github" \| "unicode"` | - | Slug oluşturma algoritması |
+| `toc` | `object` | - | İçindekiler tablosu ayarları |
+| `toc.enabled` | `boolean` | - | TOC çıkarmayı etkinleştir |
+| `toc.maxDepth` | `number` | - | Dahil edilecek maksimum başlık derinliği |
+| `diagnostics` | `object` | - | Tanılama çıktı ayarları |
+| `diagnostics.format` | `"compact" \| "verbose"` | - | Tanılama biçimi |
+| `cache` | `object` | - | Önbelleğe alma ayarları |
+| `cache.enabled` | `boolean` | - | Sonuç önbelleğini etkinleştir |
+| `cache.dir` | `string` | - | Önbellek dizin yolu |
+| `plugins` | `UnifastPlugin[]` | `[]` | Uygulanacak plugin dizisi |
+
+### CompileResult
+
+`compile()` fonksiyonu tarafından döndürülür.
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `output` | `string \| object` | Derlenmiş çıktı (`outputKind`'a bağlı olarak HTML string, HAST JSON veya MDAST JSON) |
+| `frontmatter` | `Record<string, unknown>` | Ayrıştırılmış frontmatter üst verisi |
+| `diagnostics` | `Diagnostic[]` | Uyarı ve hata dizisi |
+| `stats` | `{ parseMs, transformMs, emitMs }` | Milisaniye cinsinden zamanlama dökümü |
+| `toc` | `TocEntry[]` | Çıkarılan içindekiler tablosu girişleri |
+
+### Diagnostic
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `level` | `"error" \| "warn"` | Önem düzeyi |
+| `message` | `string` | İnsan tarafından okunabilir mesaj |
+| `start` | `number \| undefined` | Kaynaktaki başlangıç bayt ofseti |
+| `end` | `number \| undefined` | Kaynaktaki bitiş bayt ofseti |
+| `line` | `number \| undefined` | Satır numarası (1-tabanlı) |
+| `column` | `number \| undefined` | Sütun numarası (1-tabanlı) |
+
+### TocEntry
+
+İçindekiler tablosu için çıkarılan tek bir başlık.
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `depth` | `number` | Başlık düzeyi (1-6) |
+| `text` | `string` | Başlığın düz metin içeriği |
+| `slug` | `string` | Bağlantı oluşturma için üretilen slug |
+
+### SanitizeSchema
+
+Özel temizleme kuralları.
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `allowedTags` | `string[]` | İzin verilen HTML etiketleri |
+| `allowedAttributes` | `Record<string, string[]>` | Etiket başına izin verilen öznitelikler |
+| `allowedProtocols` | `Record<string, string[]>` | Öznitelik başına izin verilen URL protokolleri |
+
+### UnifastPlugin
+
+unifast'i genişletmek için plugin arayüzü.
+
+| Özellik | Tür | Açıklama |
+|---------|-----|----------|
+| `name` | `string` | Benzersiz plugin adı |
+| `options?` | `Partial<CompileOptions>` | Derleme seçeneklerine birleştirilecek seçenekler |
+| `hastTransform?` | `(hast: HastRoot) => HastRoot` | Derlemeden sonra HAST ağacını dönüştür |
+
+### HAST Düğüm Türleri
+
+| Tür | `type` alanı | Özellikler | Açıklama |
+|-----|--------------|------------|----------|
+| `HastRoot` | `"root"` | `children: HastNode[]` | Ağacın kök düğümü |
+| `HastElement` | `"element"` | `tagName`, `properties`, `children` | Bir HTML elemanı |
+| `HastText` | `"text"` | `value: string` | Bir metin düğümü |
+| `HastRaw` | `"raw"` | `value: string` | Ham HTML geçişi |
+| `HastComment` | `"comment"` | `value: string` | Bir HTML yorumu |
+| `HastDoctype` | `"doctype"` | - | Bir `<!DOCTYPE html>` düğümü |
+
+`HastNode` birleşim türüdür: `HastRoot | HastElement | HastText | HastRaw | HastComment | HastDoctype`
+
+## Hata Sınıfları
+
+| Sınıf | Genişletir | Özellikler | Açıklama |
+|-------|------------|------------|----------|
+| `UnifastError` | `Error` | `code?: string`, `span?: { start, end }` | Tüm unifast hataları için temel hata sınıfı |
+| `ParseError` | `UnifastError` | `code: "PARSE_ERROR"` | Markdown/MDX girdisi ayrıştırılamadığında fırlatılır |
+| `CompileError` | `UnifastError` | `code: "COMPILE_ERROR"` | Ayrıştırmadan sonra derleme başarısız olduğunda fırlatılır |
+
+```ts
+import { UnifastError, ParseError, CompileError } from "@unifast/core";
+
+try {
+  // ... bir şey derle
+} catch (err) {
+  if (err instanceof ParseError) {
+    console.error(`Parse error at ${err.span?.start}: ${err.message}`);
+  } else if (err instanceof CompileError) {
+    console.error(`Compile error: ${err.message}`);
+  }
+}
+```
+
+## Export Özeti
+
+| Export | Tür | Açıklama |
+|--------|-----|----------|
+| `CompileOptions` | type | Derleme yapılandırması |
+| `CompileResult` | type | Derleme sonucu |
+| `TocEntry` | type | İçindekiler tablosu girişi |
+| `SanitizeSchema` | type | Temizleme kuralları |
+| `UnifastPlugin` | type | Plugin arayüzü |
+| `HastNode` | type | Tüm HAST düğüm türlerinin birleşimi |
+| `HastRoot` | type | HAST kök düğümü |
+| `HastElement` | type | HAST eleman düğümü |
+| `HastText` | type | HAST metin düğümü |
+| `HastRaw` | type | HAST ham HTML düğümü |
+| `HastComment` | type | HAST yorum düğümü |
+| `HastDoctype` | type | HAST doctype düğümü |
+| `hastToHtml` | function | HAST'den HTML'e serileştirici |
+| `escapeHtml` | function | HTML özel karakterlerini kaçır (`&`, `<`, `>`, `"`) |
+| `extractLang` | function | Bir HAST `<code>` elemanından dil tanımlayıcısı çıkar |
+| `extractText` | function | Bir HAST düğümünden düz metin içeriği çıkar |
+| `findCodeChild` | function | Bir `<pre>` elemanının içindeki `<code>` alt elemanını bul |
+| `visitHast` | function | HAST ağaçlarında dolaşmak için ziyaretçi kalıbı yardımcısı |
+| `UnifastError` | class | Temel hata sınıfı |
+| `ParseError` | class | Ayrıştırma hatası sınıfı |
+| `CompileError` | class | Derleme hatası sınıfı |

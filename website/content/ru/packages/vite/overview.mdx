@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "Плагин Vite для unifast — преобразование файлов Markdown и MDX в JS-модули"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Обзор
+
+`@unifast/vite` — плагин Vite, который преобразует файлы `.md` и `.mdx` в JavaScript-модули. Он интегрирует компилятор Markdown/MDX unifast в конвейер сборки Vite, позволяя импортировать файлы Markdown напрямую в приложении.
+
+## Установка
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` является peer-зависимостью (необязательной) — когда он доступен, плагин использует нативный компилятор на Rust для максимальной производительности. Без него файлы `.md` переключаются на базовую отрисовку HTML, а файлы `.mdx` требуют его наличия.
+
+## Быстрый старт
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // параметры компиляции для файлов .md
+      },
+      mdx: {
+        // параметры компиляции для файлов .mdx
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // скомпилированная строка HTML
+console.log(doc.frontmatter);  // распарсенный объект frontmatter
+console.log(doc.toc);          // элементы оглавления
+```
+
+## Экспорты модулей
+
+### Файлы `.md`
+
+Каждый файл `.md` преобразуется в модуль со следующими экспортами:
+
+| Экспорт | Тип | Описание |
+|--------|------|-------------|
+| `html` | `string` | Скомпилированная строка HTML |
+| `frontmatter` | `Record<string, unknown>` | Распарсенные метаданные frontmatter |
+| `toc` | `TocEntry[]` | Извлечённое оглавление |
+| `default` | `object` | Объект, содержащий `html`, `frontmatter` и `toc` |
+
+### Файлы `.mdx`
+
+Каждый файл `.mdx` компилируется в JSX-модуль с использованием React `jsx-runtime`. Он экспортирует React-компонент по умолчанию вместе с `frontmatter` и `toc`.
+
+## Сводка экспортов
+
+| Экспорт | Вид | Описание |
+|--------|------|-------------|
+| `default` (unifastPlugin) | функция | Фабрика плагина Vite |
+| `UnifastPluginOptions` | тип | Интерфейс параметров плагина |

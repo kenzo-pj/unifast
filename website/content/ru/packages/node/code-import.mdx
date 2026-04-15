@@ -1,0 +1,85 @@
+---
+title: "codeImport()"
+description: "Импортирует код из внешних файлов в огороженные блоки кода."
+---
+
+```ts
+import { codeImport } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function codeImport(options?: CodeImportPluginOptions): UnifastPlugin
+```
+
+## Параметры
+
+### options?
+
+Конфигурация поведения импорта кода
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `rootDir` | `string` | — | Корневой каталог для разрешения путей к файлам. Если не указан, пути разрешаются относительно текущего рабочего каталога. |
+
+## Использование
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const md = `
+\`\`\`ts file="./src/example.ts"
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    codeImport({
+      rootDir: "/path/to/project",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Блок кода заменён содержимым ./src/example.ts
+```
+
+## Примеры
+
+### Базовый импорт файла
+
+````md
+```ts file="./src/utils.ts"
+```
+````
+
+Содержимое блока кода заменяется содержимым файла с сохранением языка для подсветки синтаксиса.
+
+### С rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    codeImport({ rootDir: "/home/user/project" }),
+  ],
+});
+
+console.log(result.output);
+// Пути к файлам разрешаются относительно rootDir
+```
+
+### Без rootDir
+
+```ts
+import { compile, codeImport } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [codeImport()],
+});
+
+console.log(result.output);
+// Пути к файлам разрешаются относительно текущего рабочего каталога
+```

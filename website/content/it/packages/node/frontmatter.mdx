@@ -1,0 +1,103 @@
+---
+title: "frontmatter()"
+description: "Crea un plugin frontmatter che abilita il parsing di blocchi di metadati YAML, TOML o JSON all'inizio dei documenti Markdown/MDX."
+---
+
+```ts
+import { frontmatter } from "@unifast/node";
+```
+
+## Firma
+
+```ts
+function frontmatter(options?: FrontmatterPluginOptions): UnifastPlugin
+```
+
+## Parametri
+
+### options?
+
+Configurazione dei formati di frontmatter
+
+| Proprietà | Tipo | Predefinito | Descrizione |
+|-----------|------|-------------|-------------|
+| `yaml` | `boolean` | `true` | Abilita il frontmatter YAML (delimitatori ---) |
+| `toml` | `boolean` | `false` | Abilita il frontmatter TOML (delimitatori +++) |
+| `json` | `boolean` | `false` | Abilita il frontmatter JSON (delimitatori ;;;) |
+
+## Utilizzo
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    frontmatter({
+      yaml: true,
+      toml: true,
+      json: true,
+    }),
+  ],
+});
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+## Esempi
+
+### Frontmatter YAML
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `---
+title: My Page
+date: 2024-01-01
+tags:
+  - markdown
+  - docs
+---
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter()] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01", tags: ["markdown", "docs"] }
+```
+
+### Frontmatter TOML
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `+++
+title = "My Page"
+date = 2024-01-01
++++
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ toml: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", date: "2024-01-01" }
+```
+
+### Frontmatter JSON
+
+```ts
+import { compile, frontmatter } from "@unifast/node";
+
+const md = `;;;
+{"title": "My Page", "draft": false}
+;;;
+
+# Hello`;
+
+const result = compile(md, { plugins: [frontmatter({ json: true })] });
+
+console.log(result.frontmatter);
+// { title: "My Page", draft: false }
+```

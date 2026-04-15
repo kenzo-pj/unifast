@@ -1,0 +1,59 @@
+---
+title: "smartypants()"
+description: "Áp dụng các phép thay thế typography cho dấu ngoặc kép, dấu gạch ngang và dấu ba chấm."
+---
+
+import { Example } from "~/components/Example"
+import example from "./smartypants-example.md?example"
+
+```ts
+import { smartypants } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function smartypants(options?: SmartypantsOptions): UnifastPlugin
+```
+
+## Tham số
+
+### options?
+
+Cấu hình cho các phép thay thế cần áp dụng
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `quotes` | `boolean` | `true` | Thay dấu ngoặc kép thẳng bằng dấu ngoặc kép cong |
+| `dashes` | `boolean` | `true` | Thay -- bằng en-dash và --- bằng em-dash |
+| `ellipses` | `boolean` | `true` | Thay ... bằng ký tự ba chấm |
+
+## Cách dùng
+
+```ts
+import { compile, smartypants } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    smartypants({
+      quotes: true,
+      dashes: true,
+      ellipses: true,
+    }),
+  ],
+});
+```
+
+## Ví dụ
+
+### Phép thay thế typography
+
+<Example data={example} />
+
+| Nguồn | Kết quả |
+|--------|--------|
+| `"Hello"` | dấu ngoặc kép cong |
+| `'Hi'` | dấu ngoặc đơn cong |
+| `--` | en-dash (–) |
+| `---` | em-dash (—) |
+| `...` | ba chấm (…) |

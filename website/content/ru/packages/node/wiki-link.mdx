@@ -1,0 +1,52 @@
+---
+title: "wikiLink()"
+description: "Поддерживает wiki-ссылки `[[links]]` с необязательными алиасами."
+---
+
+import { Example } from "~/components/Example"
+import example from "./wiki-link-example.md?example"
+
+```ts
+import { wikiLink } from "@unifast/node";
+```
+
+## Сигнатура
+
+```ts
+function wikiLink(options?: WikiLinkPluginOptions): UnifastPlugin
+```
+
+## Параметры
+
+### options?
+
+Конфигурация поведения wiki-ссылок
+
+| Свойство | Тип | По умолчанию | Описание |
+|----------|------|---------|-------------|
+| `hrefTemplate` | `string` | `"/wiki/${slug}"` | Шаблон для генерации URL ссылок. Используйте ${slug} как подстановку для слагифицированного имени страницы. |
+
+## Использование
+
+```ts
+import { compile, wikiLink } from "@unifast/node";
+
+const md = `Check out [[Getting Started]] for an introduction.`;
+
+const result = compile(md, {
+  plugins: [
+    wikiLink({
+      hrefTemplate: "/docs/${slug}",
+    }),
+  ],
+});
+
+console.log(result.output);
+// <p>Check out <a href="/docs/getting-started">Getting Started</a> for an introduction.</p>
+```
+
+## Примеры
+
+### Wiki-ссылки
+
+<Example data={example} />

@@ -1,0 +1,70 @@
+---
+title: "@unifast/node"
+description: "Binding Node.js cho trình biên dịch Markdown/MDX unifast với lõi Rust native"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Tổng quan
+
+`@unifast/node` là điểm truy cập chính để sử dụng unifast trong Node.js. Nó cung cấp hàm [`compile()`](/docs/packages/node/compile) để gọi trình biên dịch Rust native qua napi-rs nhằm đạt hiệu năng tối đa. Gói này cũng hỗ trợ hệ thống plugin, cho phép áp dụng các phép biến đổi HAST trong JavaScript sau bước biên dịch Rust.
+
+## Cài đặt
+
+<PackageInstall package="@unifast/node" />
+
+> Addon Rust native phải được build trước. Chạy `cargo build -p unifast-bindings-node --release` nếu binary native chưa có sẵn.
+
+## Bắt đầu nhanh
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong>!</h1>
+```
+
+## Pipeline plugin
+
+Khi các plugin được cung cấp, `compile()` thực thi pipeline sau:
+
+1. **Trích xuất plugin** - Tách `plugins` khỏi các tùy chọn còn lại
+2. **Gộp tùy chọn** - Deep-merge `options` của từng plugin vào tùy chọn biên dịch
+3. **Bắt buộc HAST** - Nếu có plugin nào có `hastTransform`, lời gọi native sẽ dùng `outputKind: "hast"`
+4. **Biên dịch native** - Gọi trình biên dịch Rust qua napi-rs
+5. **Biến đổi HAST** - Áp dụng `hastTransform` của từng plugin theo thứ tự
+6. **Chuyển đầu ra** - Nếu người dùng không yêu cầu đầu ra HAST, chuyển ngược về HTML qua `hastToHtml`
+
+## Plugin tích hợp sẵn
+
+Các hàm factory plugin sau được đóng gói sẵn — không cần cài đặt thêm:
+
+`gfm`, `frontmatter`, `sanitize`, `syntect`, `treeSitter`, `toc`, `externalLinks`, `autolinkHeadings`, `smartypants`, `wikiLink`, `codeImport`, `emoji`, `breaks`, `math`, `githubAlert`, `sectionize`, `directive`, `definitionList`, `rubyAnnotation`, `cjk`
+
+```ts
+import { compile, gfm, frontmatter, syntect } from "@unifast/node";
+
+const result = compile(source, {
+  plugins: [gfm(), frontmatter(), syntect()],
+});
+```
+
+## Tổng hợp các export
+
+| Export | Loại | Mô tả |
+|--------|------|-------------|
+| `compile` | function | Biên dịch Markdown/MDX thành HTML hoặc các định dạng khác |
+| `gfm`, `frontmatter`, ... | function | Các factory plugin tích hợp sẵn (tổng cộng 20) |
+| `hastToHtml` | function | Bộ tuần tự hóa HAST-to-HTML (re-export từ `@unifast/core`) |
+| `CompileOptions` | type | Cấu hình biên dịch |
+| `CompileResult` | type | Kết quả biên dịch |
+| `UnifastPlugin` | type | Interface plugin |
+| `TocEntry` | type | Mục của bảng mục lục |
+| `HastRoot` | type | Nút gốc HAST |
+| `HastElement` | type | Nút phần tử HAST |
+| `HastText` | type | Nút văn bản HAST |
+| `HastNode` | type | Union của tất cả các loại nút HAST |
+| `UnifastError` | class | Lớp lỗi cơ sở |
+| `ParseError` | class | Lớp lỗi parse |
+| `CompileError` | class | Lớp lỗi biên dịch |

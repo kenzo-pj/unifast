@@ -1,0 +1,87 @@
+---
+title: "math()"
+description: "인라인 및 디스플레이 수식 문법을 활성화합니다."
+---
+
+import { Example } from "~/components/Example"
+import example from "./math-example.md?example"
+
+```ts
+import { math } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function math(): UnifastPlugin
+```
+
+## 매개변수
+
+없음.
+
+## 사용법
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+Einstein's famous equation: $E = mc^2$
+
+The sum of integers from 1 to n:
+
+$$
+\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+## 예시
+
+### 수식 표현
+
+<Example data={example} renderMath />
+
+### 인라인 수식
+
+인라인 수식에는 단일 `$` 구분자를 사용합니다.
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ and is used to solve quadratic equations.
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### 디스플레이 수식
+
+디스플레이 수식에는 `$$` 구분자 또는 언어가 `math`인 코드 블록을 사용합니다.
+
+```ts
+import { compile, math } from "@unifast/node";
+
+const md = `
+$$
+\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}
+$$
+`;
+
+const result = compile(md, { plugins: [math()] });
+```
+
+### KaTeX CSS 포함
+
+플러그인은 수식 문법을 적절한 HTML 구조로 변환하지만, 브라우저에서 올바르게 렌더링하려면 KaTeX CSS를 별도로 포함해야 합니다.
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  crossorigin="anonymous"
+/>
+```

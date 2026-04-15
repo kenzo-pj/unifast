@@ -1,0 +1,141 @@
+---
+title: "compile()"
+description: "メインのコンパイル関数です。ネイティブ Rust コンパイラを使って Markdown や MDX を HTML などの出力フォーマットへ変換します。"
+---
+
+```ts
+import { compile } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function compile(input: string, options?: CompileOptions): CompileResult
+```
+
+## パラメータ
+
+### input
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `input` | `string` | — | Markdown または MDX のソース文字列 |
+
+### options?
+
+| プロパティ | 型 | デフォルト | 説明 |
+|----------|------|---------|-------------|
+| `options?` | `CompileOptions` | — | プラグインを含むコンパイル設定 |
+
+## 戻り値
+
+| プロパティ | 型 | 説明 |
+|----------|------|-------------|
+| `output` | `string \| object` | コンパイル結果。デフォルトは HTML 文字列、HAST/MDAST の場合は JSON 文字列です。 |
+| `frontmatter` | `Record<string, unknown>` | パース済みの frontmatter メタデータ (存在しない場合は空の `{}`) |
+| `diagnostics` | `Diagnostic[]` | `{ level, message, start?, end? }` の配列 |
+| `stats` | `{ parseMs, transformMs, emitMs }` | 処理時間の内訳 (ミリ秒) |
+| `toc` | `TocEntry[]` | 抽出された目次 (TOC が無効な場合は空の `[]`) |
+
+## 使い方
+
+```ts
+import { compile, gfm, frontmatter, toc, sanitize } from "@unifast/node";
+
+const md = `---
+title: My Document
+---
+
+# Hello, **world**!
+
+| Column A | Column B |
+|----------|----------|
+| Cell 1   | Cell 2   |
+`;
+
+const result = compile(md, {
+  inputKind: "md",       // "md" | "mdx"
+  outputKind: "html",    // "html" | "hast" | "mdast" | "mdxJs"
+  plugins: [gfm(), frontmatter(), toc({ maxDepth: 3 }), sanitize()],
+});
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong></h1>
+// <table>...</table>
+
+console.log(result.frontmatter);
+// { title: "My Document" }
+
+console.log(result.toc);
+// [{ depth: 1, text: "Hello, world!", slug: "hello-world" }]
+
+console.log(result.stats);
+// { parseMs: 0.12, transformMs: 0.08, emitMs: 0.05 }
+```
+
+## 使用例
+
+### 基本的な Markdown から HTML への変換
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello, **world**!");
+
+console.log(result.output);
+// <h1 id="hello-world">Hello, <strong>world</strong></h1>
+```
+
+### MDX 入力
+
+```ts
+import { compile } from "@unifast/node";
+
+const mdx = `
+import { Alert } from "./components";
+
+# Hello
+
+<Alert type="info">This is MDX!</Alert>
+`;
+
+const result = compile(mdx, { inputKind: "mdx" });
+```
+
+### HAST 出力
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "hast" });
+const hast = JSON.parse(result.output as string);
+
+console.log(hast);
+// { type: "root", children: [{ type: "element", tagName: "h1", ... }] }
+```
+
+### MDAST 出力
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile("# Hello", { outputKind: "mdast" });
+const mdast = JSON.parse(result.output as string);
+
+console.log(mdast);
+// { type: "root", children: [{ type: "heading", depth: 1, ... }] }
+```
+
+### MDX の JS 出力
+
+```ts
+import { compile } from "@unifast/node";
+
+const result = compile(mdxSource, {
+  inputKind: "mdx",
+  outputKind: "mdxJs",
+});
+
+console.log(result.output);
+// JavaScript module string with MDX compiled to JSX
+```

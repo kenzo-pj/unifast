@@ -1,0 +1,70 @@
+---
+title: "gfm()"
+description: "Membuat plugin GFM yang mengaktifkan ekstensi GitHub Flavored Markdown."
+---
+
+import { Example } from "~/components/Example"
+import tableExample from "./gfm-table-example.md?example"
+import taskListExample from "./gfm-task-list-example.md?example"
+import strikethroughExample from "./gfm-strikethrough-example.md?example"
+import footnoteExample from "./gfm-footnote-example.md?example"
+
+```ts
+import { gfm } from "@unifast/node";
+```
+
+## Signature
+
+```ts
+function gfm(options?: GfmPluginOptions): UnifastPlugin
+```
+
+## Parameter
+
+### options?
+
+Konfigurasi untuk masing-masing fitur GFM
+
+| Properti | Tipe | Default | Deskripsi |
+|----------|------|---------|-------------|
+| `tables` | `boolean` | `true` | Mengaktifkan pipe table dengan sintaks \| |
+| `taskList` | `boolean` | `true` | Mengaktifkan checkbox task list - [x] / - [ ] |
+| `strikethrough` | `boolean` | `true` | Mengaktifkan sintaks strikethrough ~~dihapus~~ |
+| `footnotes` | `boolean` | `true` | Mengaktifkan referensi footnote [^1] dan definisinya |
+| `autolink` | `boolean` | `true` | Secara otomatis melakukan link pada URL telanjang |
+
+## Penggunaan
+
+```ts
+import { compile, gfm } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    gfm({
+      tables: true,
+      taskList: true,
+      strikethrough: true,
+      footnotes: true,
+      autolink: true,
+    }),
+  ],
+});
+```
+
+## Contoh
+
+### Tabel
+
+<Example data={tableExample} />
+
+### Task List
+
+<Example data={taskListExample} />
+
+### Strikethrough & Autolink
+
+<Example data={strikethroughExample} />
+
+### Footnote
+
+<Example data={footnoteExample} />

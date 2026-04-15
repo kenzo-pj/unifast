@@ -189,34 +189,37 @@ const SHOWCASES = [
   },
 ];
 
-const FEATURES = [
+const FEATURE_KEYS = [
   {
     emoji: "\u{1F980}",
-    title: "Rust-Powered",
-    description: "Core compiler written in Rust with zero-copy parsing and arena allocation.",
+    titleKey: "landing.featureRustPoweredTitle",
+    descriptionKey: "landing.featureRustPoweredDescription",
   },
   {
     emoji: "\u{1F50B}",
-    title: "Batteries Included",
-    description:
-      "20+ built-in plugins: GFM, math, emoji, syntax highlighting, frontmatter, and more.",
+    titleKey: "landing.featureBatteriesIncludedTitle",
+    descriptionKey: "landing.featureBatteriesIncludedDescription",
   },
   {
     emoji: "\u{1F308}",
-    title: "Dual Highlight Engines",
-    description: "Tree-sitter and syntect built in. Up to 8x faster than rehype-highlight.",
+    titleKey: "landing.featureDualHighlightTitle",
+    descriptionKey: "landing.featureDualHighlightDescription",
   },
   {
     emoji: "\u{269B}\u{FE0F}",
-    title: "MDX Support",
-    description: "First-class MDX compilation with JSX and expression support.",
+    titleKey: "landing.featureMdxSupportTitle",
+    descriptionKey: "landing.featureMdxSupportDescription",
   },
 ] as const;
 
 function BenchmarkBars({
   rows,
+  legendUnifastLabel,
+  legendUnifiedLabel,
 }: {
   rows: ReadonlyArray<{ label: string; unifast: number; unified: number }>;
+  legendUnifastLabel: string;
+  legendUnifiedLabel: string;
 }) {
   const maxTime = Math.max(...rows.map((r) => r.unified));
   return (
@@ -249,33 +252,36 @@ function BenchmarkBars({
       ))}
       <div className={styles.benchLegend}>
         <span className={styles.legendUnifastDot} />
-        <span>unifast</span>
+        <span>{legendUnifastLabel}</span>
         <span className={styles.legendUnifiedDot} />
-        <span>unified + remark + rehype</span>
+        <span>{legendUnifiedLabel}</span>
       </div>
     </div>
   );
 }
 
 function BenchmarkSection() {
+  const { t } = useTranslation();
   return (
     <section className={styles.section}>
       <div className={styles.sectionInner}>
-        <h2 className={styles.sectionTitle}>Benchmark</h2>
-        <p className={styles.sectionDescription}>
-          Markdown to HTML compilation time (ms). Lower is better.
-        </p>
+        <h2 className={styles.sectionTitle}>{t("landing.benchmarkTitle")}</h2>
+        <p className={styles.sectionDescription}>{t("landing.benchmarkDescription")}</p>
         <Tabs.Root defaultValue={BENCH_TABS[0].id}>
           <Tabs.List className={styles.benchTabs}>
-            {BENCH_TABS.map((t) => (
-              <Tabs.Tab key={t.id} value={t.id} className={styles.benchTab}>
-                {t.label}
+            {BENCH_TABS.map((tab) => (
+              <Tabs.Tab key={tab.id} value={tab.id} className={styles.benchTab}>
+                {tab.label}
               </Tabs.Tab>
             ))}
           </Tabs.List>
-          {BENCH_TABS.map((t) => (
-            <Tabs.Panel key={t.id} value={t.id}>
-              <BenchmarkBars rows={t.rows} />
+          {BENCH_TABS.map((tab) => (
+            <Tabs.Panel key={tab.id} value={tab.id}>
+              <BenchmarkBars
+                rows={tab.rows}
+                legendUnifastLabel={t("landing.benchmarkLegendUnifast")}
+                legendUnifiedLabel={t("landing.benchmarkLegendUnified")}
+              />
             </Tabs.Panel>
           ))}
         </Tabs.Root>
@@ -285,10 +291,11 @@ function BenchmarkSection() {
 }
 
 function ShowcaseSection() {
+  const { t } = useTranslation();
   return (
     <section className={styles.section}>
       <div className={styles.sectionInner}>
-        <h2 className={styles.sectionTitle}>The APIs you need. Built in.</h2>
+        <h2 className={styles.sectionTitle}>{t("landing.showcaseTitle")}</h2>
         <Tabs.Root defaultValue={SHOWCASES[0].id}>
           <Tabs.List className={styles.showcasePills}>
             {SHOWCASES.map((sc) => (
@@ -312,7 +319,7 @@ function ShowcaseSection() {
 }
 
 export function LandingPage({ locale }: { locale: LocaleCode }) {
-  useTranslation(locale);
+  const { t } = useTranslation(locale);
 
   return (
     <I18nContext.Provider value={{ locale }}>
@@ -336,7 +343,7 @@ export function LandingPage({ locale }: { locale: LocaleCode }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.githubLink}
-                  aria-label="GitHub"
+                  aria-label={t("landing.githubLabel")}
                 >
                   <GitHubIcon size={20} />
                 </a>
@@ -348,19 +355,23 @@ export function LandingPage({ locale }: { locale: LocaleCode }) {
 
         <section className={styles.hero}>
           <h1 className={styles.title}>
-            Blazing <span className={styles.accent}>fast</span> Markdown compiler
+            {t("landing.heroTitlePart1")}{" "}
+            <span className={styles.accent}>{t("landing.heroTitleAccent")}</span>{" "}
+            {t("landing.heroTitlePart2")}
           </h1>
           <p className={styles.subtitle}>
-            High-performance Markdown / MDX compiler built with Rust.
+            {t("landing.heroSubtitleLine1")}
             <br />
-            Up to <strong>25x faster</strong> than unified.
+            {t("landing.heroSubtitleLine2Prefix")}{" "}
+            <strong>{t("landing.heroSubtitleLine2Bold")}</strong>{" "}
+            {t("landing.heroSubtitleLine2Suffix")}
           </p>
           <div className={styles.actions}>
             <a
               href={localePath("/docs/introduction/what-is-unifast/", locale)}
               className={styles.primaryBtn}
             >
-              Get Started
+              {t("landing.getStarted")}
             </a>
             <a
               href="https://github.com/kenzo-pj/unifast"
@@ -369,7 +380,7 @@ export function LandingPage({ locale }: { locale: LocaleCode }) {
               className={styles.secondaryBtn}
             >
               <GitHubIcon size={16} />
-              GitHub
+              {t("landing.githubLabel")}
             </a>
           </div>
           <div className={styles.install}>
@@ -383,15 +394,15 @@ export function LandingPage({ locale }: { locale: LocaleCode }) {
 
         <section className={styles.section}>
           <div className={styles.sectionInner}>
-            <h2 className={styles.sectionTitle}>Features</h2>
+            <h2 className={styles.sectionTitle}>{t("landing.featuresTitle")}</h2>
             <div className={styles.features}>
-              {FEATURES.map((feat) => (
-                <div key={feat.title} className={styles.featureCard}>
+              {FEATURE_KEYS.map((feat) => (
+                <div key={feat.titleKey} className={styles.featureCard}>
                   <h3 className={styles.featureTitle}>
                     <span className={styles.featureEmoji}>{feat.emoji}</span>
-                    {feat.title}
+                    {t(feat.titleKey)}
                   </h3>
-                  <p className={styles.featureDescription}>{feat.description}</p>
+                  <p className={styles.featureDescription}>{t(feat.descriptionKey)}</p>
                 </div>
               ))}
             </div>
@@ -401,7 +412,7 @@ export function LandingPage({ locale }: { locale: LocaleCode }) {
         {sponsors.length > 0 && (
           <section className={styles.section}>
             <div className={styles.sectionInner}>
-              <h2 className={styles.sectionTitle}>Sponsors</h2>
+              <h2 className={styles.sectionTitle}>{t("landing.sponsorsTitle")}</h2>
               <div className={styles.sponsors}>
                 {sponsors.map((sp) => (
                   <a
@@ -425,19 +436,17 @@ export function LandingPage({ locale }: { locale: LocaleCode }) {
 
         <section className={styles.cta}>
           <div className={styles.ctaInner}>
-            <h2 className={styles.ctaTitle}>Ready to compile?</h2>
-            <p className={styles.ctaDescription}>
-              Explore the documentation or dive into the API reference.
-            </p>
+            <h2 className={styles.ctaTitle}>{t("landing.ctaTitle")}</h2>
+            <p className={styles.ctaDescription}>{t("landing.ctaDescription")}</p>
             <div className={styles.ctaCards}>
               <a
                 href={localePath("/docs/introduction/what-is-unifast/", locale)}
                 className={styles.ctaCard}
               >
                 <span className={styles.ctaCardText}>
-                  <span className={styles.ctaCardTitle}>Documentation</span>
+                  <span className={styles.ctaCardTitle}>{t("landing.ctaDocumentationTitle")}</span>
                   <span className={styles.ctaCardDescription}>
-                    Learn how to install and use unifast in your project.
+                    {t("landing.ctaDocumentationDescription")}
                   </span>
                 </span>
                 <ArrowRight01Icon size={16} className={styles.ctaCardArrow} />
@@ -447,9 +456,9 @@ export function LandingPage({ locale }: { locale: LocaleCode }) {
                 className={styles.ctaCard}
               >
                 <span className={styles.ctaCardText}>
-                  <span className={styles.ctaCardTitle}>API Reference</span>
+                  <span className={styles.ctaCardTitle}>{t("landing.ctaApiReferenceTitle")}</span>
                   <span className={styles.ctaCardDescription}>
-                    Explore @unifast/node APIs, plugins, and options.
+                    {t("landing.ctaApiReferenceDescription")}
                   </span>
                 </span>
                 <ArrowRight01Icon size={16} className={styles.ctaCardArrow} />

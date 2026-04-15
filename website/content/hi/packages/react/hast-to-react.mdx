@@ -1,0 +1,123 @@
+---
+title: "hastToReact()"
+description: "एक HAST root node को React elements में convert करें। low-level function जब आपको compilation pipeline पर पूर्ण नियंत्रण चाहिए।"
+---
+
+```ts
+import { hastToReact } from "@unifast/react";
+```
+
+## Signature
+
+```ts
+function hastToReact(
+  hast: HastRoot,
+  options: HastToReactOptions,
+): unknown
+```
+
+## Parameters
+
+### hast
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `type` | `"root"` | — | Node type identifier |
+| `children` | `HastNode[]` | — | tree के Child nodes |
+
+### options
+
+React element creation config
+
+| Property | Type | Default | विवरण |
+|----------|------|---------|-------------|
+| `createElement` | `CreateElement` | — | React का createElement function |
+| `Fragment` | `unknown` | — | React का Fragment component |
+| `components?` | `ComponentMap` | — | HTML tag names का custom React components पर map |
+
+## उपयोग
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+
+const element = hastToReact(hast, {
+  createElement,
+  Fragment,
+  components: {
+    pre: ({ children, ...props }) => <pre className="code-block" {...props}>{children}</pre>,
+    a: ({ children, ...props }) => <a target="_blank" rel="noopener" {...props}>{children}</a>,
+  },
+});
+```
+
+## उदाहरण
+
+### मूल उपयोग
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile("# Hello, **world**!", { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+
+function Page() {
+  return <div>{element}</div>;
+}
+```
+
+### Shiki-highlighted HAST के साथ
+
+```tsx
+import { createElement, Fragment } from "react";
+import { compile } from "@unifast/node";
+import { createShikiTransformer } from "@unifast/shiki";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const transformer = await createShikiTransformer({
+  themes: ["github-dark"],
+  langs: ["typescript"],
+});
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const highlighted = transformer.transform(hast);
+const element = hastToReact(highlighted, { createElement, Fragment });
+```
+
+### Server-side rendering
+
+```tsx
+import { createElement, Fragment } from "react";
+import { renderToString } from "react-dom/server";
+import { compile } from "@unifast/node";
+import { hastToReact } from "@unifast/react";
+import type { HastRoot } from "@unifast/core";
+
+const result = compile(md, { outputKind: "hast" });
+const hast: HastRoot = JSON.parse(result.output as string);
+const element = hastToReact(hast, { createElement, Fragment });
+const html = renderToString(element);
+
+console.log(html);
+// SSR के लिए Rendered HTML string
+```
+
+## व्यवहार
+
+- **Property renaming:** HTML attributes का नाम React समकक्षों में बदल दिया जाता है (`class` से `className`, `for` से `htmlFor`, आदि)
+- **Style parsing:** CSS style strings को React style objects में parse किया जाता है
+- **className arrays:** HAST `className` arrays को spaces के साथ join किया जाता है
+- **Boolean attributes:** `true` attribute को render करता है, `false`/`null`/`undefined` इसे omit कर देते हैं
+- **Raw nodes:** inline HTML के रूप में Rendered — अविश्वसनीय input process करते समय `sanitize` plugin (`@unifast/node` से) का उपयोग करें
+- **Comments और doctype:** Ignore कर दिए जाते हैं (`null` return)

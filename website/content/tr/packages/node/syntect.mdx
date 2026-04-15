@@ -1,0 +1,86 @@
+---
+title: "syntect()"
+description: "Fenced kod blokları için Rust native sözdizimi vurgulamasını etkinleştiren bir syntect plugin'i oluşturur. 100+ dil desteğiyle Sublime Text sözdizimi tanımları tarafından desteklenir."
+---
+
+```ts
+import { syntect } from "@unifast/node";
+```
+
+## İmza
+
+```ts
+function syntect(options?: SyntectPluginOptions): UnifastPlugin
+```
+
+## Parametreler
+
+### options?
+
+Vurgulama motoru yapılandırması
+
+| Özellik | Tür | Varsayılan | Açıklama |
+|---------|-----|------------|----------|
+| `engine` | `"none" \| "syntect"` | `"syntect"` | "syntect" syntect vurgulayıcısını kullanır; "none" vurgulamayı devre dışı bırakır |
+
+## Kullanım
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    syntect({
+      engine: "syntect",
+    }),
+  ],
+});
+
+console.log(result.output);
+// Kod blokları <span> elemanları ve CSS sınıflarıyla sözdizimi vurgulamasına sahip olur
+```
+
+## Örnekler
+
+### Sözdizimi vurgulamayı etkinleştirme
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [syntect()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### Vurgulamayı devre dışı bırakma
+
+```ts
+import { compile, syntect } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [syntect({ engine: "none" })],
+});
+
+console.log(result.output);
+// Kod blokları sözdizimi vurgulaması olmadan render edilir
+```

@@ -1,0 +1,70 @@
+---
+title: "@unifast/vite"
+description: "unifast के लिए Vite plugin — Markdown और MDX फ़ाइलों को JS modules में transform करें"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## अवलोकन
+
+`@unifast/vite` एक Vite plugin है जो `.md` और `.mdx` फ़ाइलों को JavaScript modules में transform करता है। यह unifast के Markdown/MDX कंपाइलर को Vite build pipeline में integrate करता है, जिससे आप अपने application में Markdown फ़ाइलों को सीधे import कर सकते हैं।
+
+## इंस्टॉलेशन
+
+<PackageInstall package="@unifast/vite" />
+
+`@unifast/node` एक peer dependency है (optional) — जब उपलब्ध होता है, तो plugin अधिकतम प्रदर्शन के लिए native Rust कंपाइलर का उपयोग करता है। इसके बिना, `.md` फ़ाइलें basic HTML rendering पर fall back हो जाती हैं, और `.mdx` फ़ाइलों को इसकी आवश्यकता होती है।
+
+## Quick Start
+
+```ts
+// vite.config.ts
+import { defineConfig } from "vite";
+import unifast from "@unifast/vite";
+
+export default defineConfig({
+  plugins: [
+    unifast({
+      md: {
+        // .md फ़ाइलों के लिए compile options
+      },
+      mdx: {
+        // .mdx फ़ाइलों के लिए compile options
+      },
+    }),
+  ],
+});
+```
+
+```ts
+// App.tsx
+import doc from "./content/hello.md";
+
+console.log(doc.html);         // compiled HTML string
+console.log(doc.frontmatter);  // parsed frontmatter object
+console.log(doc.toc);          // table of contents entries
+```
+
+## Module Exports
+
+### `.md` फ़ाइलें
+
+प्रत्येक `.md` फ़ाइल को निम्नलिखित exports के साथ एक module में transform किया जाता है:
+
+| Export | Type | विवरण |
+|--------|------|-------------|
+| `html` | `string` | Compiled HTML string |
+| `frontmatter` | `Record<string, unknown>` | Parsed frontmatter metadata |
+| `toc` | `TocEntry[]` | निकाला गया table of contents |
+| `default` | `object` | `html`, `frontmatter`, और `toc` वाला Object |
+
+### `.mdx` फ़ाइलें
+
+प्रत्येक `.mdx` फ़ाइल को React के `jsx-runtime` का उपयोग करके एक JSX module में compile किया जाता है। यह `frontmatter` और `toc` के साथ एक default React component export करती है।
+
+## Exports सारांश
+
+| Export | Kind | विवरण |
+|--------|------|-------------|
+| `default` (unifastPlugin) | function | Vite plugin factory |
+| `UnifastPluginOptions` | type | Plugin options interface |

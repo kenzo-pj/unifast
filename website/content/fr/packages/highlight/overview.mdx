@@ -1,0 +1,50 @@
+---
+title: "@unifast/highlight"
+description: "Plugin de coloration syntaxique pour unifast basé sur highlight.js et appliqué via des transformations HAST"
+---
+
+import { PackageInstall } from "~/components/PackageInstall"
+
+## Vue d'ensemble
+
+`@unifast/highlight` fournit une coloration syntaxique propulsée par [lowlight](https://github.com/wooorm/lowlight) (un wrapper autour de highlight.js). Contrairement aux plugins intégrés `syntect()` et `treeSitter()` qui assurent la coloration en Rust, ce paquet applique la coloration sous forme de transformation HAST JavaScript après la compilation — vous offrant ainsi l'accès à l'écosystème étendu de langages et de thèmes de highlight.js.
+
+## Installation
+
+<PackageInstall package="@unifast/highlight" />
+
+## Démarrage rapide
+
+```ts
+import { compile } from "@unifast/node";
+import { highlight } from "@unifast/highlight";
+
+const md = `
+\`\`\`javascript
+const x = 42;
+console.log(x);
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [highlight()],
+});
+
+console.log(result.output);
+// Code blocks are highlighted with highlight.js CSS classes
+```
+
+## Fonctionnement
+
+1. Le compilateur Rust produit une sortie HAST avec des blocs `<pre><code>` non colorés
+2. La fonction `hastTransform` du plugin `highlight()` parcourt l'arbre HAST
+3. Pour chaque élément `<code>` doté d'une classe `language-*`, lowlight colore le code
+4. Les nœuds HAST colorés remplacent les enfants d'origine
+
+Comme ce traitement s'exécute sous forme de transformation HAST, la coloration native Rust (`syntect` / `treeSitter`) doit être désactivée. Le plugin définit automatiquement `highlight.enabled: false` dans les options de compilation.
+
+## Résumé des exports
+
+| Export | Nature | Description |
+|--------|------|-------------|
+| `highlight` | fonction | Crée un plugin de transformation HAST basé sur highlight.js |

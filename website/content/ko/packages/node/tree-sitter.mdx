@@ -1,0 +1,86 @@
+---
+title: "treeSitter()"
+description: "Tree-sitter 파싱 라이브러리를 이용해 펜스드 코드 블록에 구문 강조를 적용하는 Tree-sitter 플러그인을 생성합니다."
+---
+
+```ts
+import { treeSitter } from "@unifast/node";
+```
+
+## 시그니처
+
+```ts
+function treeSitter(options?: TreeSitterPluginOptions): UnifastPlugin
+```
+
+## 매개변수
+
+### options?
+
+강조 엔진 설정
+
+| 속성 | 타입 | 기본값 | 설명 |
+|----------|------|---------|-------------|
+| `engine` | `"none" \| "treeSitter"` | `"treeSitter"` | `"treeSitter"`은 Tree-sitter 하이라이터를 사용하고, `"none"`은 강조를 비활성화합니다 |
+
+## 사용법
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+# Code Example
+
+\`\`\`rust
+fn main() {
+    println!("Hello, world!");
+}
+\`\`\`
+`;
+
+const result = compile(md, {
+  plugins: [
+    treeSitter({
+      engine: "treeSitter",
+    }),
+  ],
+});
+
+console.log(result.output);
+// 코드 블록이 <span> 요소와 CSS 클래스로 강조됩니다
+```
+
+## 예시
+
+### 구문 강조 활성화
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const md = `
+\`\`\`typescript
+const greeting: string = "Hello";
+console.log(greeting);
+\`\`\`
+`;
+
+const result = compile(md, { plugins: [treeSitter()] });
+
+console.log(result.output);
+// <pre><code class="language-typescript">
+//   <span class="...">const</span> ...
+// </code></pre>
+```
+
+### 강조 비활성화
+
+```ts
+import { compile, treeSitter } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [treeSitter({ engine: "none" })],
+});
+
+console.log(result.output);
+// 코드 블록이 구문 강조 없이 렌더링됩니다
+```

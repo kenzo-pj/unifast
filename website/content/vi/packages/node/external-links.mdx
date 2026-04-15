@@ -1,0 +1,49 @@
+---
+title: "externalLinks()"
+description: "Thêm thuộc tính rel và target vào các liên kết ngoài trong đầu ra Markdown của bạn."
+---
+
+import { Example } from "~/components/Example"
+import example from "./external-links-example.md?example"
+
+```ts
+import { externalLinks } from "@unifast/node";
+```
+
+## Chữ ký
+
+```ts
+function externalLinks(options?: ExternalLinksPluginOptions): UnifastPlugin
+```
+
+## Tham số
+
+### options?
+
+Cấu hình cho các thuộc tính của liên kết ngoài
+
+| Thuộc tính | Kiểu | Mặc định | Mô tả |
+|----------|------|---------|-------------|
+| `rel` | `string` | `"nofollow noopener noreferrer"` | Giá trị cho thuộc tính rel trên các liên kết ngoài |
+| `target` | `string` | — | Giá trị cho thuộc tính target (ví dụ "\_blank") |
+
+## Cách dùng
+
+```ts
+import { compile, externalLinks } from "@unifast/node";
+
+const result = compile(md, {
+  plugins: [
+    externalLinks({
+      rel: "nofollow noopener noreferrer",
+      target: "_blank",
+    }),
+  ],
+});
+```
+
+## Ví dụ
+
+### Liên kết ngoài so với liên kết nội bộ
+
+<Example data={example} />

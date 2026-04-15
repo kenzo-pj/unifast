@@ -1,0 +1,44 @@
+---
+title: "breaks()"
+description: "テキスト内の改行を `<br>` 要素に変換します。"
+---
+
+import { Example } from "~/components/Example"
+import example from "./breaks-example.md?example"
+
+```ts
+import { breaks } from "@unifast/node";
+```
+
+## シグネチャ
+
+```ts
+function breaks(): UnifastPlugin
+```
+
+## パラメータ
+
+なし。
+
+## 使い方
+
+```ts
+import { compile, breaks } from "@unifast/node";
+
+const md = `This is line one.
+This is line two.
+This is line three.`;
+
+const result = compile(md, {
+  plugins: [breaks()],
+});
+// Each newline becomes a <br> element
+```
+
+## 使用例
+
+### 改行を改行要素に変換する
+
+`breaks()` を使わない場合、これら 3 行は 1 つの段落に結合されます。プラグインを有効にすると、各改行は `<br>` になります。
+
+<Example data={example} />
