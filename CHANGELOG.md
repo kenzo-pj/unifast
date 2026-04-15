@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.7] - 2026-04-15
+
+### Bug Fixes
+
+- Cjs require ([1ee8c3f](https://github.com/kenzo-pj/unifast/commit/1ee8c3fe523cea9a536ba74f5ee000ab6977f3bf))
 ## [0.0.6] - 2026-04-15
 
 ### Bug Fixes
