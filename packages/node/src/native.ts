@@ -57,14 +57,14 @@ function resolvePlatformBindingName(): string {
 export function loadNativeBinding(): NativeBinding {
   if (nativeBinding) return nativeBinding;
 
-  const require = createRequire(import.meta.url);
+  const cjsRequire = createRequire(import.meta.url);
   const platformName = resolvePlatformBindingName();
   const candidates = [`../native/${platformName}`, "../native/unifast.node"];
 
   const errors: string[] = [];
   for (const candidate of candidates) {
     try {
-      nativeBinding = require(candidate) as NativeBinding;
+      nativeBinding = cjsRequire(candidate) as NativeBinding;
       return nativeBinding;
     } catch (error) {
       errors.push(`  ${candidate}: ${(error as Error).message}`);

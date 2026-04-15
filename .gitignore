@@ -23,8 +23,8 @@ website/src/data/sponsors.json
 # NAPI-RS native build artifacts
 packages/node/native/
 
-# AI-generated plans
-docs/plans/
+# Local docs (plans, specs, notes — not shipped)
+docs/
 
 # Playwright MCP
 .playwright-mcp/
