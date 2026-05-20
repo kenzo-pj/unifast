@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { hastToHtml } from "../hast-utils.js";
 
-describe(hastToHtml, () => {
+describe("hastToHtml", () => {
   it("serializes a text node", () => {
     const hast: HastRoot = {
       type: "root",

@@ -76,6 +76,8 @@
 
     "jest/require-hook": "off",
     "vitest/no-importing-vitest-globals": "off",
+    "vitest/prefer-describe-function-title": "off",
+    "vitest/valid-title": "off",
 
     "jsx-a11y/click-events-have-key-events": "off",
     "jsx-a11y/no-autofocus": "warn",
@@ -94,7 +96,8 @@
       "rules": {
         "no-console": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "unicorn/consistent-function-scoping": "off"
+        "unicorn/consistent-function-scoping": "off",
+        "vitest/no-conditional-expect": "off"
       }
     }
   ]
