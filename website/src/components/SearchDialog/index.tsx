@@ -86,6 +86,7 @@ export function SearchDialog() {
             <input
               className={styles.input}
               type="text"
+              aria-label={t("search.placeholder")}
               placeholder={t("search.placeholder")}
               value={query}
               onChange={(e) => search(e.target.value)}
@@ -106,14 +107,22 @@ export function SearchDialog() {
                   key={result.url}
                   className={styles.resultItem}
                   data-active={i === activeIndex ? "" : undefined}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  onClick={() => goToResult(result.url)}
                 >
-                  <div className={styles.resultTitle}>{result.title}</div>
-                  <div
-                    className={styles.resultExcerpt}
-                    dangerouslySetInnerHTML={{ __html: result.excerpt }}
-                  />
+                  <a
+                    href={result.url}
+                    className={styles.resultLink}
+                    onMouseEnter={() => setActiveIndex(i)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToResult(result.url);
+                    }}
+                  >
+                    <div className={styles.resultTitle}>{result.title}</div>
+                    <div
+                      className={styles.resultExcerpt}
+                      dangerouslySetInnerHTML={{ __html: result.excerpt }}
+                    />
+                  </a>
                 </li>
               ))}
             </ul>

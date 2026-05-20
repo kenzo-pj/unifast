@@ -73,11 +73,11 @@ export function ParamTable({ params }: ParamTableProps) {
                     <code>{param.name}</code>
                     {param.description && <InfoIcon text={param.description} />}
                   </td>
-                  {hasProps && <td />}
+                  {hasProps && <td aria-label="—" />}
                   <td>
                     <code>{param.type}</code>
                   </td>
-                  {hasDefault && <td />}
+                  {hasDefault && <td aria-label="—" />}
                 </tr>
               );
             }

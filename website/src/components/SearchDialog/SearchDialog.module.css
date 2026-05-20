@@ -118,6 +118,12 @@
   background: var(--color-hover);
 }
 
+.resultLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .resultTitle {
   font-size: 0.875rem;
   font-weight: 500;
