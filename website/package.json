@@ -20,18 +20,18 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/react": "^5.0.3",
-    "@base-ui/react": "^1.4.0",
+    "@astrojs/react": "^5.0.5",
+    "@base-ui/react": "^1.4.1",
     "@unifast/node": "workspace:*",
     "@unifast/vite": "workspace:*",
-    "astro": "^6.1.6",
+    "astro": "^6.3.5",
     "hugeicons-react": "^0.4.0",
-    "katex": "^0.16.45",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "katex": "^0.16.47",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.8",
+    "@astrojs/check": "^0.9.9",
     "@css-modules-kit/codegen": "^0.10.0",
     "@css-modules-kit/stylelint-plugin": "^0.10.0",
     "@types/katex": "^0.16.8",
@@ -40,12 +40,12 @@
     "lightningcss": "^1.32.0",
     "markdownlint-cli2": "^0.21.0",
     "pagefind": "^1.5.2",
-    "stylelint": "^17.7.0",
+    "stylelint": "^17.11.1",
     "stylelint-config-standard": "^40.0.0",
-    "textlint": "^15.5.4",
-    "textlint-rule-no-dead-link": "^6.2.1",
+    "textlint": "^15.7.1",
+    "textlint-rule-no-dead-link": "^6.2.2",
     "textlint-rule-preset-ja-technical-writing": "^12.0.2",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.3",
     "typescript": "^5.9.3",
     "vite": "^6.4.2"
   }

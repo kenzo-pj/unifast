@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🦀 Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
       - name: 💾 Cache Cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -51,7 +51,7 @@ jobs:
     needs: check
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🦀 Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -122,7 +122,7 @@ jobs:
             artifact: win32-x64
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🦀 Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -167,7 +167,7 @@ jobs:
           ls -la *.node 2>/dev/null || echo "No .node files found"
 
       - name: 📤 Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binding-${{ matrix.artifact }}
           path: target/${{ matrix.target }}/release/*.node
@@ -179,16 +179,18 @@ jobs:
     needs: [build-node-binding, publish-crates]
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
       - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11
 
       - name: 📥 Install dependencies
         run: pnpm install --frozen-lockfile
@@ -197,7 +199,7 @@ jobs:
         run: pnpm turbo build --filter='!@unifast/website'
 
       - name: 📥 Download all native binding artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
@@ -227,7 +229,7 @@ jobs:
     needs: [publish-npm, publish-crates]
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -238,7 +240,7 @@ jobs:
         run: git-cliff --latest --strip header > RELEASE_NOTES.md
 
       - name: 📥 Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 

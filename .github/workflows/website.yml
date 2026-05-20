@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - name: 🎨 Lint CSS
         run: pnpm --filter @unifast/website lint:css
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - uses: ./.github/actions/setup-rust
 
@@ -57,9 +57,10 @@ jobs:
 
       - name: 📤 Upload artifact
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: website/dist
+          include-hidden-files: "true"
 
   deploy:
     name: 🚀 Deploy
@@ -75,4 +76,4 @@ jobs:
     steps:
       - name: 🚀 Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

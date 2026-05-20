@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-rust
         with:
           components: rustfmt
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-rust
       - name: 📎 Run Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-rust
       - name: 🧪 Run tests
         run: cargo test --all --all-features
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-rust
       - name: 🔨 Check Node binding
         run: cargo check -p unifast-bindings-node
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: ./.github/actions/setup-rust
       - name: 🔧 Add WASM target
         run: rustup target add wasm32-unknown-unknown

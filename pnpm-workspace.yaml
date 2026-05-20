@@ -1,3 +1,13 @@
 packages:
   - "packages/*"
   - "website"
+
+allowBuilds:
+  "@evilmartians/lefthook": true
+  esbuild: true
+  sharp: true
+
+onlyBuiltDependencies:
+  - "@evilmartians/lefthook"
+  - esbuild
+  - sharp

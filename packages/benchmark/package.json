@@ -10,7 +10,7 @@
     "bench:bun": "bun run bun-markdown.bench.ts"
   },
   "devDependencies": {
-    "@codspeed/vitest-plugin": "^5.2.0",
+    "@codspeed/vitest-plugin": "^5.4.0",
     "@shikijs/rehype": "^3.23.0",
     "@unifast/highlight": "workspace:*",
     "@unifast/node": "workspace:*",
@@ -43,6 +43,6 @@
     "remark-wiki-link": "^2.0.1",
     "unified": "^11.0.5",
     "vfile-matter": "^5.0.1",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.6"
   }
 }
