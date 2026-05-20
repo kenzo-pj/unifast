@@ -1,6 +1,6 @@
 {
   "name": "@unifast/core",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "TypeScript type definitions for unifast",
   "keywords": [
     "hast",

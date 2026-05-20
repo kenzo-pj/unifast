@@ -2256,7 +2256,7 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "unifast-bindings-node"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "napi",
  "napi-build",
@@ -2268,7 +2268,7 @@ dependencies = [
 
 [[package]]
 name = "unifast-bindings-wasm"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "unifast-core",
  "wasm-bindgen",
@@ -2276,7 +2276,7 @@ dependencies = [
 
 [[package]]
 name = "unifast-cli"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "clap",
  "miette",
@@ -2286,7 +2286,7 @@ dependencies = [
 
 [[package]]
 name = "unifast-core"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "bumpalo",
  "codspeed-divan-compat",

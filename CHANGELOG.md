@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.8] - 2026-05-20
+
+### Bug Fixes
+
+- Node package version ([6f010e9](https://github.com/kenzo-pj/unifast/commit/6f010e9df23c00dfac1beb46d4ad3869bdb00a13))
 ## [0.0.7] - 2026-04-15
 
 ### Bug Fixes
