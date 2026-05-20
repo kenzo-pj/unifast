@@ -52,7 +52,7 @@
     "vitest": "^4.1.6"
   },
   "peerDependencies": {
-    "@unifast/node": "workspace:^",
+    "@unifast/node": ">=0.0.7 <1.0.0",
     "vite": ">=5.0.0"
   },
   "peerDependenciesMeta": {
