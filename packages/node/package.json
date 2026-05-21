@@ -1,6 +1,6 @@
 {
   "name": "@unifast/node",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Node.js binding for unifast Markdown/MDX compiler",
   "keywords": [
     "compiler",
