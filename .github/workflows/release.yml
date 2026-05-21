@@ -177,6 +177,9 @@ jobs:
     name: 📦 Publish to npm
     runs-on: ubuntu-latest
     needs: [build-node-binding, publish-crates]
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v6
@@ -186,6 +189,7 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+          scope: "@unifast"
 
       - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v6
@@ -210,6 +214,14 @@ jobs:
           done
           ls -la packages/node/native/ || echo "No native bindings found"
 
+      - name: 🔐 Configure npm auth
+        run: |
+          {
+            echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}"
+            echo "@unifast:registry=https://registry.npmjs.org/"
+            echo "always-auth=true"
+          } > ~/.npmrc
+
       - name: 🚀 Publish packages
         run: |
           pnpm --filter @unifast/core publish --no-git-checks --access public
@@ -219,6 +231,7 @@ jobs:
           pnpm --filter @unifast/highlight publish --no-git-checks --access public
           pnpm --filter @unifast/vite publish --no-git-checks --access public
         env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   github-release:
