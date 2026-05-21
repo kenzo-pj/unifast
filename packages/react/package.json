@@ -1,6 +1,6 @@
 {
   "name": "@unifast/react",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Convert HAST to React elements for unifast",
   "keywords": [
     "hast",

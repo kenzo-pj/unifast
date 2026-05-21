@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.0.9] - 2026-05-21
+
+### Bug Fixes
+
+- Clippy error ([0faac7d](https://github.com/kenzo-pj/unifast/commit/0faac7d39cd980dd13f48e2907af467e21f76b59))
 ## [0.0.8] - 2026-05-20
 
 ### Bug Fixes
