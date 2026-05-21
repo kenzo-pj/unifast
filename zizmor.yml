@@ -1,0 +1,7 @@
+rules:
+  cache-poisoning:
+    ignore:
+      # publish-npm ジョブの setup-node は `cache: ""` でキャッシュを明示的に無効化済み。
+      # zizmor はヒューリスティックで setup-node の存在のみで cache-poisoning を疑う
+      # (audit confidence: Low) ため、ここでは安全であると判断し抑制する。
+      - release.yml:185

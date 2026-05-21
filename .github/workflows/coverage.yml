@@ -14,20 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - uses: ./.github/actions/setup-rust
         with:
           components: llvm-tools-preview
 
       - name: 🔧 Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
+        uses: taiki-e/install-action@6bd9352acd589686fbc4cff533c083c3366dd444 # cargo-llvm-cov
 
       - name: 📊 Generate coverage
         run: cargo llvm-cov --all-features --workspace --lcov --output-path rust-lcov.info
 
       - name: 📤 Upload to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
         with:
           files: rust-lcov.info
           flags: rust
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - uses: ./.github/actions/setup-node
 
@@ -55,7 +55,7 @@ jobs:
           cat packages/*/coverage/lcov.info > coverage/ts-lcov.info 2>/dev/null || true
 
       - name: 📤 Upload to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
         with:
           files: coverage/ts-lcov.info
           flags: typescript
