@@ -31,7 +31,7 @@ fn expand_raw_nodes(
             HNode::Raw(raw) => {
                 let span = raw.span;
                 let parsed = parse_html_fragment(&raw.value, span, id_gen, diagnostics);
-                children.splice(i..=i, parsed.into_iter());
+                children.splice(i..=i, parsed);
             }
             HNode::Root(_) | HNode::Element(_) => {
                 if let Some(kids) = children[i].children_mut() {
